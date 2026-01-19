@@ -152,5 +152,25 @@ export const workRecordService = {
         })
       }, 300)
     })
+  },
+
+  // Update record
+  updateWorkRecord: async (id: string, data: Partial<WorkRecord>): Promise<void> => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log('Update record:', id, data)
+            resolve()
+        }, 500)
+    })
+  },
+
+  // Delete record
+  deleteWorkRecord: async (id: string): Promise<void> => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log('Delete record:', id)
+            resolve()
+        }, 500)
+    })
   }
 }

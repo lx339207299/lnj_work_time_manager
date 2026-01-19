@@ -34,6 +34,7 @@ export const projectService = {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve([
+                { id: 'u0', name: '李雷', avatar: '', role: '项目负责人', wageType: 'day' },
                 { id: 'u1', name: '张三', avatar: '', role: '普通工', wageType: 'day' },
                 { id: 'u2', name: '李四', avatar: '', role: '小工', wageType: 'hour' },
                 { id: 'u3', name: '王五', avatar: '', role: '大工', wageType: 'day' },

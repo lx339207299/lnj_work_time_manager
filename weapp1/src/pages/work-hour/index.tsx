@@ -181,7 +181,9 @@ function WorkHour() {
                             <View className="member-content">
                                 <View className="info">
                                     <Text className="name">{member.name}</Text>
-                                    <Text className="role">{member.role}</Text>
+                                    <View className={`role-tag ${member.role === '项目负责人' ? 'manager' : ''}`}>
+                                        {member.role}
+                                    </View>
                                 </View>
                             </View>
                         </View>

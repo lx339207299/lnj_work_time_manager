@@ -7,7 +7,8 @@ export default defineAppConfig({
     'pages/project/edit/index',
     'pages/work-hour/index',
     'pages/stats/index',
-    'pages/mine/index'
+    'pages/mine/index',
+    'pages/employee/index'
   ],
   window: {
     backgroundTextStyle: 'light',

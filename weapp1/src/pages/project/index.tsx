@@ -58,7 +58,9 @@ function ProjectList() {
                 <View className="card-header">
                   <View className="title-row">
                     <View className="title">{project.name}</View>
-                    {project.role === 'owner' && <Tag type="primary" plain>负责人</Tag>}
+                    {project.role === 'owner' && (
+                        <View className="role-tag manager">项目负责人</View>
+                    )}
                   </View>
                   <Horizontal size={16} color="#999" />
                 </View>

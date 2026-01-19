@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard } from '@nutui/nutui-react-taro'
+import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog, InputNumber } from '@nutui/nutui-react-taro'
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
@@ -34,6 +34,13 @@ function ProjectDetail() {
   const [memberStats, setMemberStats] = useState<ProjectMemberStat[]>([])
   const [loadingMemberStats, setLoadingMemberStats] = useState(false)
   
+  // Action Sheet & Dialog State
+  const [actionSheetVisible, setActionSheetVisible] = useState(false)
+  const [currentRecord, setCurrentRecord] = useState<WorkRecord | null>(null)
+  const [editDialogVisible, setEditDialogVisible] = useState(false)
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false)
+  const [editDuration, setEditDuration] = useState(0)
+
   // Mock current user ID (In real app, get from userStore)
   const currentUserId = 'u1' 
   
@@ -135,6 +142,57 @@ function ProjectDetail() {
     })
   }
 
+  const handleRecordClick = (record: WorkRecord) => {
+    // Only allow edit if owner or self
+    if (canEdit || record.userId === currentUserId) {
+        setCurrentRecord(record)
+        setActionSheetVisible(true)
+    }
+  }
+
+  const handleActionSelect = (item: any) => {
+    setActionSheetVisible(false)
+    if (!currentRecord) return
+
+    if (item.key === 'edit') {
+        setEditDuration(currentRecord.duration)
+        setEditDialogVisible(true)
+    } else if (item.key === 'delete') {
+        setDeleteDialogVisible(true)
+    }
+  }
+
+  const handleEditConfirm = async () => {
+    if (!currentRecord) return
+    
+    try {
+        await workRecordService.updateWorkRecord(currentRecord.id, { duration: editDuration })
+        Taro.showToast({ title: '修改成功', icon: 'success' })
+        setEditDialogVisible(false)
+        fetchRecords(selectedDate) // Refresh
+    } catch (error) {
+        Taro.showToast({ title: '修改失败', icon: 'error' })
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!currentRecord) return
+
+    try {
+        await workRecordService.deleteWorkRecord(currentRecord.id)
+        Taro.showToast({ title: '删除成功', icon: 'success' })
+        setDeleteDialogVisible(false)
+        fetchRecords(selectedDate) // Refresh
+    } catch (error) {
+        Taro.showToast({ title: '删除失败', icon: 'error' })
+    }
+  }
+
+  const actionOptions: any[] = [
+    { name: '修改工时', key: 'edit' },
+    { name: '删除记录', key: 'delete', color: '#fa2c19' }
+  ]
+
   return (
     <View className="project-detail-page">
       {/* Header Section */}
@@ -209,12 +267,16 @@ function ProjectDetail() {
                 records.length > 0 ? (
                     <View className="record-list">
                     {records.map(record => (
-                        <View key={record.id} className="record-card">
+                        <View 
+                            key={record.id} 
+                            className="record-card"
+                            onClick={() => handleRecordClick(record)}
+                        >
                         <View className="user-info">
                             <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
                             <View className="name-role">
                             <Text className="name">{record.userName}</Text>
-                            {record.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
+                            {record.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
                             </View>
                             <View className="duration">
                             <Text className="num">{record.duration}</Text>
@@ -246,7 +308,7 @@ function ProjectDetail() {
                                     <Avatar size="small" className="avatar">{stat.userName[0]}</Avatar>
                                     <View className="name-role">
                                         <Text className="name">{stat.userName}</Text>
-                                        {stat.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
+                                        {stat.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
                                     </View>
                                     <View className="duration">
                                         <Text className="num">{stat.totalDuration}</Text>
@@ -266,6 +328,43 @@ function ProjectDetail() {
       <View className="fab-add" onClick={handleAddRecord}>
         <Plus size={24} color="#fff" />
       </View>
+
+      {/* Action Sheet */}
+      <ActionSheet
+        visible={actionSheetVisible}
+        options={actionOptions}
+        onSelect={handleActionSelect}
+        onCancel={() => setActionSheetVisible(false)}
+      />
+
+      {/* Edit Dialog */}
+      <Dialog
+        visible={editDialogVisible}
+        title="修改工时"
+        onConfirm={handleEditConfirm}
+        onCancel={() => setEditDialogVisible(false)}
+      >
+        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+            <InputNumber 
+                value={editDuration}
+                min={0}
+                max={24}
+                step={0.5}
+                digits={1}
+                onChange={(val) => setEditDuration(Number(val))}
+            />
+            <Text style={{ marginLeft: '8px' }}>小时</Text>
+        </View>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog
+        visible={deleteDialogVisible}
+        title="确认删除"
+        content="确定要删除这条工时记录吗？此操作无法撤销。"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteDialogVisible(false)}
+      />
     </View>
   )
 }
