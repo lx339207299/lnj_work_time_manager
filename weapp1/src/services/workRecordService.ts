@@ -67,5 +67,36 @@ export const workRecordService = {
         resolve(days.map(d => `${month}-${d}`))
       }, 300)
     })
+  },
+
+  // Get all records list (pagination supported)
+  getProjectRecordsList: async (projectId: string, page: number = 1, pageSize: number = 10): Promise<{ list: WorkRecord[], total: number }> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Generate mock list spanning multiple dates
+        const list: WorkRecord[] = []
+        for (let i = 0; i < pageSize; i++) {
+            const dayOffset = (page - 1) * pageSize + i
+            const date = new Date()
+            date.setDate(date.getDate() - dayOffset) // Past dates
+            const dateStr = date.toISOString().split('T')[0]
+            
+            list.push({
+                id: `list-${dayOffset}`,
+                projectId,
+                userId: i % 2 === 0 ? 'u1' : 'u2',
+                userName: i % 2 === 0 ? '张三' : '李四',
+                userRole: i % 2 === 0 ? 'owner' : 'member',
+                date: dateStr,
+                duration: 4 + (i % 5),
+                content: `工时记录详情内容测试 ${dayOffset}`
+            })
+        }
+        resolve({
+            list,
+            total: 50 // Mock total count
+        })
+      }, 300)
+    })
   }
 }

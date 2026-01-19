@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard } from '@nutui/nutui-react-taro'
-import { Edit, People, Clock, User, ArrowLeft, ArrowRight } from '@nutui/icons-react-taro'
+import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
@@ -29,6 +29,13 @@ function ProjectDetail() {
   const [loadingRecords, setLoadingRecords] = useState(false)
   const [monthStats, setMonthStats] = useState<string[]>([])
   
+  // New State for View Mode
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const [allRecords, setAllRecords] = useState<WorkRecord[]>([])
+  const [loadingAllRecords, setLoadingAllRecords] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  
   // Mock current user ID (In real app, get from userStore)
   const currentUserId = 'u1' 
   
@@ -46,9 +53,14 @@ function ProjectDetail() {
 
   // Effects
   useEffect(() => {
-    fetchMonthStats(dayjs().format('YYYY-MM'))
-    fetchRecords(selectedDate)
-  }, [])
+    // Load initial data based on view mode
+    if (viewMode === 'calendar') {
+        fetchMonthStats(dayjs().format('YYYY-MM'))
+        fetchRecords(selectedDate)
+    } else {
+        fetchAllRecords(1)
+    }
+  }, [viewMode])
 
   const fetchRecords = async (date: string) => {
     setLoadingRecords(true)
@@ -62,6 +74,29 @@ function ProjectDetail() {
       Taro.showToast({ title: '获取记录失败', icon: 'error' })
     } finally {
       setLoadingRecords(false)
+    }
+  }
+
+  const fetchAllRecords = async (pageNum: number) => {
+    if (pageNum === 1) setLoadingAllRecords(true)
+    try {
+      const { list, total } = await workRecordService.getProjectRecordsList(currentProject.id, pageNum)
+      // Filter based on permission if needed, but usually 'all records' implies project perspective
+      // For now, assume canViewAll affects this too, or list returns filtered data from backend
+      
+      if (pageNum === 1) {
+          setAllRecords(list)
+      } else {
+          setAllRecords(prev => [...prev, ...list])
+      }
+      
+      setHasMore(allRecords.length + list.length < total)
+      setPage(pageNum)
+    } catch (error) {
+      console.error(error)
+      Taro.showToast({ title: '获取列表失败', icon: 'error' })
+    } finally {
+      setLoadingAllRecords(false)
     }
   }
 
@@ -112,11 +147,17 @@ function ProjectDetail() {
       <View className="header-section">
         <View className="title-row">
           <View className="project-name">{currentProject.name}</View>
-          {canEdit && (
-            <View className="edit-btn" onClick={handleEdit}>
-              <Edit size={18} color="#666" />
+          <View className="actions">
+            <View className="view-switch" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
+                {viewMode === 'list' ? <Calendar size={14} /> : <Order size={14} />}
+                <Text className="switch-text">{viewMode === 'list' ? '日历' : '列表'}</Text>
             </View>
-          )}
+            {canEdit && (
+                <View className="edit-btn" onClick={handleEdit}>
+                    <Edit size={16} color="#666" />
+                </View>
+            )}
+          </View>
         </View>
         
         <View className="project-desc">{currentProject.description || '暂无描述'}</View>
@@ -140,60 +181,104 @@ function ProjectDetail() {
         </View>
       </View>
 
-      {/* Calendar Section */}
-      <View className="calendar-section">
-
-        {/* @ts-ignore */}
-        <CalendarCard
-          value={new Date(selectedDate)}
-          onChange={handleDateChange}
-          onPageChange={handlePageChange}
-          renderDayBottom={(day: CalendarCardDay) => {
-             // Check if day has records
-             const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-            //  console.log(day);
-             const hasRecord = monthStats.includes(dateStr)
-             if (hasRecord) {
-              console.log(dateStr);
-             }
-             return hasRecord ? <View className="dot" /> : null
-          }}
-        />
-      </View>
-
-      {/* Work Records List */}
-      <View className="records-section">
-        <View className="section-title">用工记录 ({selectedDate})</View>
-        
-        {loadingRecords ? (
-           <View className="skeleton-wrapper">
-             <Skeleton rows={3} title animated />
-           </View>
-        ) : (
-          records.length > 0 ? (
-            <View className="record-list">
-              {records.map(record => (
-                <View key={record.id} className="record-card">
-                   <View className="user-info">
-                     <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
-                     <View className="name-role">
-                       <Text className="name">{record.userName}</Text>
-                       {record.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
-                     </View>
-                     <View className="duration">
-                       <Text className="num">{record.duration}</Text>
-                       <Text className="unit">小时</Text>
-                     </View>
-                   </View>
-                   <View className="content">{record.content}</View>
-                </View>
-              ))}
+      {viewMode === 'calendar' ? (
+        <>
+            {/* Calendar Section */}
+            <View className="calendar-section">
+                {/* @ts-ignore */}
+                <CalendarCard
+                value={new Date(selectedDate)}
+                onChange={handleDateChange}
+                onPageChange={handlePageChange}
+                renderDayBottom={(day: CalendarCardDay) => {
+                    // Check if day has records
+                    const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
+                    //  console.log(day);
+                    const hasRecord = monthStats.includes(dateStr)
+                    if (hasRecord) {
+                    console.log(dateStr);
+                    }
+                    return hasRecord ? <View className="dot" /> : null
+                }}
+                />
             </View>
-          ) : (
-            <Empty description="暂无用工记录" imageSize={80} />
-          )
-        )}
-      </View>
+
+            {/* Daily Work Records List */}
+            <View className="records-section">
+                <View className="section-title">用工记录 ({selectedDate})</View>
+                
+                {loadingRecords ? (
+                <View className="skeleton-wrapper">
+                    <Skeleton rows={3} title animated />
+                </View>
+                ) : (
+                records.length > 0 ? (
+                    <View className="record-list">
+                    {records.map(record => (
+                        <View key={record.id} className="record-card">
+                        <View className="user-info">
+                            <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
+                            <View className="name-role">
+                            <Text className="name">{record.userName}</Text>
+                            {record.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
+                            </View>
+                            <View className="duration">
+                            <Text className="num">{record.duration}</Text>
+                            <Text className="unit">小时</Text>
+                            </View>
+                        </View>
+                        <View className="content">{record.content}</View>
+                        </View>
+                    ))}
+                    </View>
+                ) : (
+                    <Empty description="暂无用工记录" imageSize={80} />
+                )
+                )}
+            </View>
+        </>
+      ) : (
+        /* All Records List */
+        <View className="records-section">
+            {loadingAllRecords && page === 1 ? (
+                <View className="skeleton-wrapper">
+                    <Skeleton rows={3} title animated />
+                </View>
+            ) : (
+                allRecords.length > 0 ? (
+                    <View className="record-list">
+                        {allRecords.map(record => (
+                            <View key={record.id} className="record-card">
+                                <View className="record-header">
+                                    <View className="date-tag">{record.date}</View>
+                                </View>
+                                <View className="user-info">
+                                    <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
+                                    <View className="name-role">
+                                        <Text className="name">{record.userName}</Text>
+                                        {record.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
+                                    </View>
+                                    <View className="duration">
+                                        <Text className="num">{record.duration}</Text>
+                                        <Text className="unit">小时</Text>
+                                    </View>
+                                </View>
+                                <View className="content">{record.content}</View>
+                            </View>
+                        ))}
+                        {/* Simple Load More Button for now */}
+                        {hasMore && (
+                            <View className="load-more" onClick={() => fetchAllRecords(page + 1)}>
+                                <Button size="small" fill="none">加载更多</Button>
+                            </View>
+                        )}
+                    </View>
+                ) : (
+                    <Empty description="暂无工时记录" imageSize={80} />
+                )
+            )}
+        </View>
+      )}
     </View>
   )
 }
