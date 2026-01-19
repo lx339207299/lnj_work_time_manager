@@ -27,5 +27,20 @@ export const projectService = {
         resolve({ id: 'mock_' + Date.now(), ...data, role: 'owner', memberCount: 1, totalHours: 0 })
       }, 500)
     })
+  },
+
+  // Get project members
+  getProjectMembers: async (projectId: string): Promise<any[]> => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve([
+                { id: 'u1', name: '张三', avatar: '', role: '普通工', wageType: 'day' },
+                { id: 'u2', name: '李四', avatar: '', role: '小工', wageType: 'hour' },
+                { id: 'u3', name: '王五', avatar: '', role: '大工', wageType: 'day' },
+                { id: 'u4', name: '赵六', avatar: '', role: '普通工', wageType: 'hour' },
+                { id: 'u5', name: '钱七', avatar: '', role: '技术工', wageType: 'day' },
+            ])
+        }, 300)
+    })
   }
 }

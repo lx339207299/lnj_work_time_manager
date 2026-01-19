@@ -1,3 +1,232 @@
-.page-container {
-  padding: 20px;
+.work-hour-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 12px;
+  box-sizing: border-box;
+
+  .section-card {
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+
+    &.info-card {
+        padding: 0 16px;
+        .row-item {
+            padding: 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+            .label {
+                font-size: 15px;
+                color: #333;
+                font-weight: 500;
+            }
+
+            .value {
+                font-size: 15px;
+                color: #333;
+
+                &.date-trigger {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+            }
+        }
+        
+        .divider {
+            height: 1px;
+            background: #f5f5f5;
+            transform: scaleY(0.5);
+        }
+    }
+
+    &.members-card {
+        padding: 16px;
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+
+            .title {
+                font-size: 15px;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .action-btn {
+                    font-size: 14px;
+                    color: #1989fa;
+                    padding: 4px;
+                    
+                    &:active {
+                        opacity: 0.7;
+                    }
+                }
+
+                .divider-v {
+                    width: 1px;
+                    height: 12px;
+                    background: #eee;
+                }
+            }
+        }
+
+        .members-list {
+            .member-item {
+                margin-bottom: 12px;
+                padding: 12px;
+                background: #f9f9f9;
+                border-radius: 8px;
+                transition: all 0.2s;
+
+                &.selected {
+                    background: #e6f7ff;
+                    border: 1px solid #1989fa;
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .member-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                }
+
+                .custom-checkbox-wrapper {
+                    display: flex;
+                    align-items: center;
+                    flex: 1;
+                    
+                    .custom-checkbox {
+                        margin-right: 8px;
+                        pointer-events: none; // Let parent click handle toggle
+                    }
+                }
+
+                .member-content {
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+
+                    .avatar {
+                        margin-right: 10px;
+                        background: #d9ecff;
+                        color: #1989fa;
+                        flex-shrink: 0;
+                    }
+
+                    .info {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        
+                        .name {
+                            font-size: 15px;
+                            font-weight: 500;
+                            color: #333;
+                            margin-bottom: 2px;
+                        }
+
+                        .role {
+                            font-size: 12px;
+                            color: #999;
+                        }
+                    }
+                }
+
+                .work-setting {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    margin-left: 10px;
+
+                    .mini-input {
+                        width: 90px;
+                        
+                        // Override nutui input number style for mini version
+                        .nut-input-number__icon {
+                            width: 24px;
+                            height: 24px;
+                        }
+                        
+                        input {
+                            height: 24px;
+                            width: 32px;
+                            font-size: 14px;
+                        }
+                    }
+
+                    .unit {
+                        font-size: 13px;
+                        color: #666;
+                        width: 28px;
+                        text-align: right;
+                    }
+                }
+            }
+        }
+    }
+
+    &.form-card {
+        padding: 0 16px;
+        display: none; // Hidden as requested
+        
+        .form-item {
+            padding: 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f5f5f5;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &.vertical {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .label {
+                font-size: 15px;
+                color: #333;
+                font-weight: 500;
+            }
+
+            .content-textarea {
+                width: 100%;
+                padding: 0;
+                
+                textarea {
+                    min-height: 80px;
+                    font-size: 14px;
+                    background: #f9f9f9;
+                    border-radius: 6px;
+                    padding: 8px;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+            }
+        }
+    }
+  }
+
+  .footer-action {
+    margin-top: 30px;
+    padding: 0 10px 30px;
+  }
 }

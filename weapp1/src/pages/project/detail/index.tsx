@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard } from '@nutui/nutui-react-taro'
-import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order } from '@nutui/icons-react-taro'
+import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
@@ -139,6 +139,12 @@ function ProjectDetail() {
     console.log('handlePageChange', data)
     const monthStr = `${data.year}-${String(data.month).padStart(2, '0')}`
     fetchMonthStats(monthStr)
+  }
+
+  const handleAddRecord = () => {
+    Taro.navigateTo({
+      url: `/pages/work-hour/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}&date=${selectedDate}`
+    })
   }
 
   return (
@@ -279,6 +285,10 @@ function ProjectDetail() {
             )}
         </View>
       )}
+      {/* Floating Add Button */}
+      <View className="fab-add" onClick={handleAddRecord}>
+        <Plus size={24} color="#fff" />
+      </View>
     </View>
   )
 }
