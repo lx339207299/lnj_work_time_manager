@@ -100,6 +100,12 @@ function ProjectDetail() {
     }
   }
 
+  const handlePageChange = (data: { year: number, month: number }) => {
+    console.log('handlePageChange', data)
+    const monthStr = `${data.year}-${String(data.month).padStart(2, '0')}`
+    fetchMonthStats(monthStr)
+  }
+
   return (
     <View className="project-detail-page">
       {/* Header Section */}
@@ -141,14 +147,15 @@ function ProjectDetail() {
         <CalendarCard
           value={new Date(selectedDate)}
           onChange={handleDateChange}
+          onPageChange={handlePageChange}
           renderDayBottom={(day: CalendarCardDay) => {
              // Check if day has records
              const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
             //  console.log(day);
-            //  console.log(dateStr);
              const hasRecord = monthStats.includes(dateStr)
-             console.log(hasRecord);
-             
+             if (hasRecord) {
+              console.log(dateStr);
+             }
              return hasRecord ? <View className="dot" /> : null
           }}
         />

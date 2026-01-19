@@ -10,6 +10,15 @@ function App(props) {
 
   // 可以使用所有的 React Hooks
   useEffect(() => {
+    // 仅在 H5 环境下加载 vConsole，且只加载一次
+    if (process.env.TARO_ENV === 'h5') {
+      import('vconsole').then(VConsole => {
+        new VConsole.default()
+      })
+    }
+  }, [])
+
+  useEffect(() => {
     checkAuth()
   })
 

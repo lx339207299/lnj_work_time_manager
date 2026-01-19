@@ -1036,7 +1036,7 @@
   dependencies:
     core-js-pure "^3.43.0"
 
-"@babel/runtime@^7.14.5", "@babel/runtime@^7.23.9", "@babel/runtime@^7.5.5", "@babel/runtime@^7.7.6", "@babel/runtime@^7.7.7", "@babel/runtime@^7.8.7":
+"@babel/runtime@^7.14.5", "@babel/runtime@^7.17.2", "@babel/runtime@^7.23.9", "@babel/runtime@^7.5.5", "@babel/runtime@^7.7.6", "@babel/runtime@^7.7.7", "@babel/runtime@^7.8.7":
   version "7.28.6"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.6.tgz"
   integrity sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==
@@ -1089,11 +1089,6 @@
   integrity sha512-fneVypElGUH6Be39mlRZeAu00pccTlf4oVuzf9xPJD1cdEqI8NyAiQua/EW7lZdrbMUbgyXcJmfKPefhYius3A==
   dependencies:
     stackframe "^1.1.1"
-
-"@esbuild/darwin-x64@0.19.12":
-  version "0.19.12"
-  resolved "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.19.12.tgz"
-  integrity sha512-hKoVkKzFiToTgn+41qGhsUJXFlIjxI/jSYeZf3ugemDYZldIXIxhvwN6erJGlX4t5h417iFuheZ7l+YVn05N3A==
 
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.9.1"
@@ -1348,11 +1343,6 @@
   resolved "https://registry.npmjs.org/@open-wc/webpack-import-meta-loader/-/webpack-import-meta-loader-0.4.7.tgz"
   integrity sha512-F3d1EHRckk2+ZpgEEAgVITp8BU9DYLBhKOhNMREeQ1BwILRIhrt+V1bebpnd0Mz595jzd7Yh1wSibLsXibkCpg==
 
-"@parcel/watcher-darwin-x64@2.5.4":
-  version "2.5.4"
-  resolved "https://registry.npmjs.org/@parcel/watcher-darwin-x64/-/watcher-darwin-x64-2.5.4.tgz"
-  integrity sha512-UKaQFhCtNJW1A9YyVz3Ju7ydf6QgrpNQfRZ35wNKUhTQ3dxJ/3MULXN5JN/0Z80V/KUBDGa3RZaKq1EQT2a2gg==
-
 "@parcel/watcher@^2.4.1":
   version "2.5.4"
   resolved "https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.4.tgz"
@@ -1478,14 +1468,38 @@
   resolved "https://registry.npmjs.org/@stencil/core/-/core-2.22.3.tgz"
   integrity sha512-kmVA0M/HojwsfkeHsifvHVIYe4l5tin7J5+DLgtl8h6WWfiMClND5K3ifCXXI2ETDNKiEk21p6jql3Fx9o2rng==
 
-"@swc/core-darwin-x64@1.3.96":
-  version "1.3.96"
-  resolved "https://registry.npmjs.org/@swc/core-darwin-x64/-/core-darwin-x64-1.3.96.tgz"
-  integrity sha512-mFp9GFfuPg+43vlAdQZl0WZpZSE8sEzqL7sr/7Reul5McUHP0BaLsEzwjvD035ESfkY8GBZdLpMinblIbFNljQ==
+"@swc/core-darwin-arm64@1.3.92":
+  version "1.3.92"
+  resolved "https://registry.npmmirror.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.92.tgz"
+  integrity sha512-v7PqZUBtIF6Q5Cp48gqUiG8zQQnEICpnfNdoiY3xjQAglCGIQCjJIDjreZBoeZQZspB27lQN4eZ43CX18+2SnA==
 
-"@swc/core@^1.0.46", "@swc/core@>=1.2.50", "@swc/core@1.3.96":
+"@swc/core-darwin-arm64@1.3.96":
   version "1.3.96"
-  resolved "https://registry.npmjs.org/@swc/core/-/core-1.3.96.tgz"
+  resolved "https://registry.npmmirror.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.96.tgz"
+  integrity sha512-8hzgXYVd85hfPh6mJ9yrG26rhgzCmcLO0h1TIl8U31hwmTbfZLzRitFQ/kqMJNbIBCwmNH1RU2QcJnL3d7f69A==
+
+"@swc/core@^1.0.46", "@swc/core@^1.3.92", "@swc/core@>=1.2.50":
+  version "1.3.92"
+  resolved "https://registry.npmmirror.com/@swc/core/-/core-1.3.92.tgz"
+  integrity sha512-vx0vUrf4YTEw59njOJ46Ha5i0cZTMYdRHQ7KXU29efN1MxcmJH2RajWLPlvQarOP1ab9iv9cApD7SMchDyx2vA==
+  dependencies:
+    "@swc/counter" "^0.1.1"
+    "@swc/types" "^0.1.5"
+  optionalDependencies:
+    "@swc/core-darwin-arm64" "1.3.92"
+    "@swc/core-darwin-x64" "1.3.92"
+    "@swc/core-linux-arm-gnueabihf" "1.3.92"
+    "@swc/core-linux-arm64-gnu" "1.3.92"
+    "@swc/core-linux-arm64-musl" "1.3.92"
+    "@swc/core-linux-x64-gnu" "1.3.92"
+    "@swc/core-linux-x64-musl" "1.3.92"
+    "@swc/core-win32-arm64-msvc" "1.3.92"
+    "@swc/core-win32-ia32-msvc" "1.3.92"
+    "@swc/core-win32-x64-msvc" "1.3.92"
+
+"@swc/core@1.3.96":
+  version "1.3.96"
+  resolved "https://registry.npmmirror.com/@swc/core/-/core-1.3.96.tgz"
   integrity sha512-zwE3TLgoZwJfQygdv2SdCK9mRLYluwDOM53I+dT6Z5ZvrgVENmY3txvWDvduzkV+/8IuvrRbVezMpxcojadRdQ==
   dependencies:
     "@swc/counter" "^0.1.1"
@@ -1538,11 +1552,6 @@
     "@babel/runtime" "^7.14.5"
     "@tarojs/runtime" "3.6.38"
     "@tarojs/shared" "3.6.38"
-
-"@tarojs/binding-darwin-x64@3.6.38":
-  version "3.6.38"
-  resolved "https://registry.npmjs.org/@tarojs/binding-darwin-x64/-/binding-darwin-x64-3.6.38.tgz"
-  integrity sha512-/zRdKaZ0eHJMLmweuooLKzuo79Vlmp2K1v9AXzN818GuCTI3DaOQZkl899Oj/hZ2H4q9tp/UlcvrjSkcRpY5wA==
 
 "@tarojs/binding@3.6.38":
   version "3.6.38"
@@ -1716,11 +1725,6 @@
   version "0.0.11"
   resolved "https://registry.npmjs.org/@tarojs/plugin-doctor-darwin-universal/-/plugin-doctor-darwin-universal-0.0.11.tgz"
   integrity sha512-iZXID/UBsFGkouXJV/g/UTogPJ9IqCNmqCQ/bTZYNnIPHxxCUVZj7R1or8f/RJk3IHi0WroZHVbkz/NF9IqMVA==
-
-"@tarojs/plugin-doctor-darwin-x64@0.0.11":
-  version "0.0.11"
-  resolved "https://registry.npmjs.org/@tarojs/plugin-doctor-darwin-x64/-/plugin-doctor-darwin-x64-0.0.11.tgz"
-  integrity sha512-wNFty0LOq0lX2WMG3ea0IYsvSq0Y1Z24zIumSfnsL8R3x3AaKQBf0d/nzY++Wp0Kc7rEskS9gtYR7Z0b4oB9tA==
 
 "@tarojs/plugin-doctor@^0.0.11":
   version "0.0.11"
@@ -4277,6 +4281,11 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.npmjs.org/copy-descriptor/-/copy-descriptor-0.1.1.tgz"
   integrity sha512-XgZ0pFcakEUlbwQEVNg3+QAis1FyTL3Qel9FYy8pSkQqoG3PNoT0bOCQtOXcOkur21r2Eq2kI+IE+gsmAEVlYw==
 
+copy-text-to-clipboard@^3.0.1:
+  version "3.2.2"
+  resolved "https://registry.npmmirror.com/copy-text-to-clipboard/-/copy-text-to-clipboard-3.2.2.tgz"
+  integrity sha512-T6SqyLd1iLuqPA90J5N4cTalrtovCySh58iiZDGJ6FGznbclKh4UI+FGacQSgFzwKG77W7XT5gwbVEbd9cIH1A==
+
 copy-webpack-plugin@5.1.2:
   version "5.1.2"
   resolved "https://registry.npmjs.org/copy-webpack-plugin/-/copy-webpack-plugin-5.1.2.tgz"
@@ -4307,7 +4316,7 @@ core-js-pure@^3.23.3, core-js-pure@^3.43.0:
   resolved "https://registry.npmjs.org/core-js-pure/-/core-js-pure-3.47.0.tgz"
   integrity sha512-BcxeDbzUrRnXGYIVAGFtcGQVNpFcUhVjr6W7F8XktvQW2iJP9e66GP6xdKotCRFlrxBvNIBrhwKteRXqMV86Nw==
 
-core-js@^3.6.5:
+core-js@^3.11.0, core-js@^3.6.5:
   version "3.47.0"
   resolved "https://registry.npmjs.org/core-js/-/core-js-3.47.0.tgz"
   integrity sha512-c3Q2VVkGAUyupsjRnaNX6u8Dq2vAdzm9iuPj5FW0fRxzlxgq9Q39MDq10IvmQSpLgHQNyQzQmOo6bgGHmH3NNg==
@@ -8932,6 +8941,11 @@ multimatch@^5.0.0:
     arrify "^2.0.1"
     minimatch "^3.0.4"
 
+mutation-observer@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/mutation-observer/-/mutation-observer-1.0.3.tgz"
+  integrity sha512-M/O/4rF2h776hV7qGMZUH3utZLO/jK7p8rnNgGkjKUw8zCGjRQPxB8z6+5l8+VjRUQ3dNYu4vjqXYLr+U8ZVNA==
+
 mute-stream@0.0.8:
   version "0.0.8"
   resolved "https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.8.tgz"
@@ -12754,6 +12768,16 @@ vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
+
+vconsole@^3.15.1:
+  version "3.15.1"
+  resolved "https://registry.npmmirror.com/vconsole/-/vconsole-3.15.1.tgz"
+  integrity sha512-KH8XLdrq9T5YHJO/ixrjivHfmF2PC2CdVoK6RWZB4yftMykYIaXY1mxZYAic70vADM54kpMQF+dYmvl5NRNy1g==
+  dependencies:
+    "@babel/runtime" "^7.17.2"
+    copy-text-to-clipboard "^3.0.1"
+    core-js "^3.11.0"
+    mutation-observer "^1.0.3"
 
 verror@1.10.0:
   version "1.10.0"
