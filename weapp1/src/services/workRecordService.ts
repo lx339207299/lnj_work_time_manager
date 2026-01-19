@@ -12,7 +12,61 @@ export interface WorkRecord {
   content: string
 }
 
+export interface ProjectMemberStat {
+  userId: string
+  userName: string
+  userAvatar?: string
+  userRole: string
+  totalDuration: number
+  wageType: 'day' | 'hour'
+}
+
 export const workRecordService = {
+  // Get project member statistics (aggregated work hours)
+  getProjectMemberStats: async (projectId: string): Promise<ProjectMemberStat[]> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            userId: 'u1',
+            userName: '张三',
+            userRole: 'owner',
+            totalDuration: 12.5,
+            wageType: 'day'
+          },
+          {
+            userId: 'u2',
+            userName: '李四',
+            userRole: 'member',
+            totalDuration: 45,
+            wageType: 'hour'
+          },
+          {
+            userId: 'u3',
+            userName: '王五',
+            userRole: 'member',
+            totalDuration: 8,
+            wageType: 'day'
+          },
+          {
+            userId: 'u4',
+            userName: '赵六',
+            userRole: 'member',
+            totalDuration: 120,
+            wageType: 'hour'
+          },
+          {
+            userId: 'u5',
+            userName: '钱七',
+            userRole: 'member',
+            totalDuration: 5.5,
+            wageType: 'day'
+          }
+        ])
+      }, 300)
+    })
+  },
+
   // Get work records by project and date
   getProjectWorkRecords: async (projectId: string, date: string): Promise<WorkRecord[]> => {
     // Mock data

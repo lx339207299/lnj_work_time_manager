@@ -5,7 +5,7 @@ import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
-import { workRecordService, WorkRecord } from '../../../services/workRecordService'
+import { workRecordService, WorkRecord, ProjectMemberStat } from '../../../services/workRecordService'
 import './index.scss'
 
 // Define types locally if missing from 2.x types
@@ -31,10 +31,8 @@ function ProjectDetail() {
   
   // New State for View Mode
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [allRecords, setAllRecords] = useState<WorkRecord[]>([])
-  const [loadingAllRecords, setLoadingAllRecords] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
+  const [memberStats, setMemberStats] = useState<ProjectMemberStat[]>([])
+  const [loadingMemberStats, setLoadingMemberStats] = useState(false)
   
   // Mock current user ID (In real app, get from userStore)
   const currentUserId = 'u1' 
@@ -58,7 +56,7 @@ function ProjectDetail() {
         fetchMonthStats(dayjs().format('YYYY-MM'))
         fetchRecords(selectedDate)
     } else {
-        fetchAllRecords(1)
+        fetchMemberStats()
     }
   }, [viewMode])
 
@@ -77,26 +75,16 @@ function ProjectDetail() {
     }
   }
 
-  const fetchAllRecords = async (pageNum: number) => {
-    if (pageNum === 1) setLoadingAllRecords(true)
+  const fetchMemberStats = async () => {
+    setLoadingMemberStats(true)
     try {
-      const { list, total } = await workRecordService.getProjectRecordsList(currentProject.id, pageNum)
-      // Filter based on permission if needed, but usually 'all records' implies project perspective
-      // For now, assume canViewAll affects this too, or list returns filtered data from backend
-      
-      if (pageNum === 1) {
-          setAllRecords(list)
-      } else {
-          setAllRecords(prev => [...prev, ...list])
-      }
-      
-      setHasMore(allRecords.length + list.length < total)
-      setPage(pageNum)
+      const list = await workRecordService.getProjectMemberStats(currentProject.id)
+      setMemberStats(list)
     } catch (error) {
       console.error(error)
       Taro.showToast({ title: '获取列表失败', icon: 'error' })
     } finally {
-      setLoadingAllRecords(false)
+      setLoadingMemberStats(false)
     }
   }
 
@@ -233,7 +221,6 @@ function ProjectDetail() {
                             <Text className="unit">小时</Text>
                             </View>
                         </View>
-                        <View className="content">{record.content}</View>
                         </View>
                     ))}
                     </View>
@@ -244,43 +231,33 @@ function ProjectDetail() {
             </View>
         </>
       ) : (
-        /* All Records List */
+        /* Member Stats List */
         <View className="records-section">
-            {loadingAllRecords && page === 1 ? (
+            {loadingMemberStats ? (
                 <View className="skeleton-wrapper">
                     <Skeleton rows={3} title animated />
                 </View>
             ) : (
-                allRecords.length > 0 ? (
+                memberStats.length > 0 ? (
                     <View className="record-list">
-                        {allRecords.map(record => (
-                            <View key={record.id} className="record-card">
-                                <View className="record-header">
-                                    <View className="date-tag">{record.date}</View>
-                                </View>
+                        {memberStats.map(stat => (
+                            <View key={stat.userId} className="record-card">
                                 <View className="user-info">
-                                    <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
+                                    <Avatar size="small" className="avatar">{stat.userName[0]}</Avatar>
                                     <View className="name-role">
-                                        <Text className="name">{record.userName}</Text>
-                                        {record.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
+                                        <Text className="name">{stat.userName}</Text>
+                                        {stat.userRole === 'owner' && <Tag type="primary" plain className="role-tag">负责人</Tag>}
                                     </View>
                                     <View className="duration">
-                                        <Text className="num">{record.duration}</Text>
-                                        <Text className="unit">小时</Text>
+                                        <Text className="num">{stat.totalDuration}</Text>
+                                        <Text className="unit">{stat.wageType === 'day' ? '天' : '小时'}</Text>
                                     </View>
                                 </View>
-                                <View className="content">{record.content}</View>
                             </View>
                         ))}
-                        {/* Simple Load More Button for now */}
-                        {hasMore && (
-                            <View className="load-more" onClick={() => fetchAllRecords(page + 1)}>
-                                <Button size="small" fill="none">加载更多</Button>
-                            </View>
-                        )}
                     </View>
                 ) : (
-                    <Empty description="暂无工时记录" imageSize={80} />
+                    <Empty description="暂无工时统计" imageSize={80} />
                 )
             )}
         </View>

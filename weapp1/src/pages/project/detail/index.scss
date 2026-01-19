@@ -198,7 +198,7 @@
       .user-info {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 0;
 
         .avatar {
           margin-right: 10px;
@@ -241,15 +241,6 @@
             color: #999;
           }
         }
-      }
-
-      .content {
-        font-size: 14px;
-        color: #666;
-        line-height: 1.5;
-        background: #f9f9f9;
-        padding: 8px 10px;
-        border-radius: 6px;
       }
     }
 

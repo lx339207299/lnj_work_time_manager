@@ -179,7 +179,6 @@ function WorkHour() {
                                 className="custom-checkbox"
                             />
                             <View className="member-content">
-                                <Avatar size="small" className="avatar">{member.name[0]}</Avatar>
                                 <View className="info">
                                     <Text className="name">{member.name}</Text>
                                     <Text className="role">{member.role}</Text>
