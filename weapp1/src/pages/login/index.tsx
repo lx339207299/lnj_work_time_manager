@@ -1,6 +1,6 @@
 import React from 'react'
 import { View } from '@tarojs/components'
-import { Button, Input, Form } from '@nutui/nutui-react-taro'
+import { Button, Input, Form, Dialog } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
 import { useUserStore } from '../../store/userStore'
 import './index.scss'
@@ -21,8 +21,14 @@ function Login() {
     
     Taro.showToast({ title: '登录成功', icon: 'success' })
     
+    // Set a flag to show invite in home page
+    const hasPendingInvite = true // Always true for testing
+    if (hasPendingInvite) {
+        Taro.setStorageSync('pending_invite', 'true')
+    }
+    
     setTimeout(() => {
-      Taro.switchTab({ url: '/pages/project/index' })
+        Taro.switchTab({ url: '/pages/project/index' })
     }, 1500)
   }
 

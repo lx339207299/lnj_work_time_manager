@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View } from '@tarojs/components'
-import { Button, Tag, Empty, Skeleton } from '@nutui/nutui-react-taro'
+import { Button, Tag, Empty, Skeleton, Dialog } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
 import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
@@ -26,6 +26,23 @@ function ProjectList() {
 
   useDidShow(() => {
     fetchData()
+    
+    // Check for pending invite
+    const pendingInvite = Taro.getStorageSync('pending_invite')
+    if (pendingInvite === 'true') {
+        Taro.removeStorageSync('pending_invite')
+        Dialog.open('invite', {
+            title: '邀请加入',
+            content: '“某某建筑工程队”邀请您加入组织，是否同意？',
+            onConfirm: () => {
+                Taro.showToast({ title: '已加入组织', icon: 'success' })
+                Dialog.close('invite')
+            },
+            onCancel: () => {
+                Dialog.close('invite')
+            }
+        })
+    }
   })
 
   const handleCreate = () => {
@@ -90,6 +107,8 @@ function ProjectList() {
       <View className="fab-container" onClick={handleCreate}>
         <Button icon={<Plus />} shape="round" type="primary" className="fab-button" />
       </View>
+
+      <Dialog id="invite" />
     </View>
   )
 }

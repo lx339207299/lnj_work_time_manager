@@ -16,11 +16,9 @@ function App(props) {
         new VConsole.default()
       })
     }
-  }, [])
-
-  useEffect(() => {
+    // Initial check (handles H5 refresh where useDidShow might miss initial render timing or for safety)
     checkAuth()
-  })
+  }, [])
 
   // 对应 onShow
   useDidShow(() => {

@@ -41,5 +41,11 @@
   .logout-section {
     padding: 0 16px;
     margin-top: 40px;
+
+    .nut-button {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
   }
 }
