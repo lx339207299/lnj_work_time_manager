@@ -7,6 +7,7 @@ export interface Project {
   role: 'owner' | 'member'
   memberCount: number
   totalHours: number
+  totalDays: number
 }
 
 interface ProjectState {

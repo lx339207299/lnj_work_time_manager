@@ -91,7 +91,11 @@ function ProjectList() {
                   </View>
                   <View className="divider" />
                   <View className="stat-item">
-                    <View className="value">{project.totalHours}</View>
+                    <View className="value">
+                        {project.totalDays > 0 ? `${project.totalDays}天` : ''}
+                        {project.totalDays > 0 && project.totalHours > 0 ? ' / ' : ''}
+                        {project.totalHours > 0 || project.totalDays === 0 ? `${project.totalHours}时` : ''}
+                    </View>
                     <View className="label">总工时</View>
                   </View>
                 </View>

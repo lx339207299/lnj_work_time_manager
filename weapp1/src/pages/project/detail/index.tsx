@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog, InputNumber } from '@nutui/nutui-react-taro'
-import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus } from '@nutui/icons-react-taro'
+import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
@@ -35,6 +35,12 @@ function ProjectDetail() {
   const [editDialogVisible, setEditDialogVisible] = useState(false)
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false)
   const [editDuration, setEditDuration] = useState(0)
+
+  // More Action Sheet
+  const [moreActionVisible, setMoreActionVisible] = useState(false)
+  const moreActionOptions = [
+    { name: '项目流水', key: 'flow' }
+  ]
 
   // Mock current user ID (In real app, get from userStore)
   const currentUserId = 'u1' 
@@ -155,6 +161,15 @@ function ProjectDetail() {
     }
   }
 
+  const handleMoreActionSelect = (item: any) => {
+    setMoreActionVisible(false)
+    if (item.key === 'flow') {
+      Taro.navigateTo({
+        url: `/pages/project/flow/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`
+      })
+    }
+  }
+
   const handleEditConfirm = async () => {
     if (!currentRecord) return
     
@@ -194,9 +209,11 @@ function ProjectDetail() {
           <View className="project-name">{currentProject.name}</View>
           <View className="actions">
             {canEdit && (
+              <>
                 <View className="edit-btn" onClick={handleEdit}>
                     <Edit size={16} color="#666" />
                 </View>
+              </>
             )}
           </View>
         </View>
@@ -205,22 +222,35 @@ function ProjectDetail() {
         
         {/* Compact Stats Row */}
         <View className="stats-row">
-          <View className="stat-item" onClick={handleGoMembers}>
+          <View className="stat-item stat-center" onClick={handleGoMembers}>
             <People size={14} color="#666" className="icon" />
             <Text className="text">{currentProject.memberCount}人</Text>
             <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
           </View>
           <View className="divider" />
-          <View className="stat-item" onClick={handleGoStats}>
+          <View className="stat-item stat-hours" onClick={handleGoStats}>
             <Clock size={14} color="#666" className="icon" />
-            <Text className="text">{currentProject.totalHours}小时</Text>
+            <View className="text-col">
+              {currentProject.totalDays > 0 ? (
+                  <Text className="text">{currentProject.totalDays}天</Text>
+              ) : null}
+              {currentProject.totalHours > 0 || (currentProject.totalDays || 0) === 0 ? (
+                  <Text className="text-sub">{currentProject.totalHours}小时</Text>
+              ) : null}
+            </View>
             <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
           </View>
           <View className="divider" />
-          <View className="stat-item">
+          <View className="stat-item stat-center">
             <User size={14} color="#666" className="icon" />
             <Text className="text">{isProjectOwner ? '我负责' : '其他负责人'}</Text>
           </View>
+          <View className="divider" />
+          {canEdit && (
+                <View className="more-btn" onClick={(e) => { e.stopPropagation(); setMoreActionVisible(true); }}>
+                    <More size={14} color="#666" style={{ transform: 'rotate(90deg)' }} />
+                </View>
+            )}
         </View>
       </View>
 
@@ -292,6 +322,14 @@ function ProjectDetail() {
         options={actionOptions}
         onSelect={handleActionSelect}
         onCancel={() => setActionSheetVisible(false)}
+      />
+
+      {/* More Action Sheet */}
+      <ActionSheet
+        visible={moreActionVisible}
+        options={moreActionOptions}
+        onSelect={handleMoreActionSelect}
+        onCancel={() => setMoreActionVisible(false)}
       />
 
       {/* Edit Dialog */}

@@ -74,21 +74,60 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
+
+        &.stat-center {
+            gap: 2px;
+            
+            .text {
+                font-size: 13px;
+                color: #666;
+            }
+        }
+
+        &.stat-hours {
+            flex: 1; // Give more space to hours
+            justify-content: flex-start;
+            padding-left: 10px;
+        }
 
         .icon {
           margin-top: 1px;
         }
 
-        .text {
-          font-size: 13px;
-          color: #666;
+        .text-col {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.2;
+          
+          .text {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+          
+          .text-sub {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+        }
+        
+        .more-btn {
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto; // Push to right end
         }
       }
 
       .divider {
         width: 1px;
-        height: 12px;
+        height: 24px;
         background: #ddd;
         margin: 0 8px;
       }

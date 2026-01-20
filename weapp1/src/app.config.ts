@@ -6,6 +6,7 @@ export default defineAppConfig({
     'pages/project/detail/index',
     'pages/project/stats/index',
     'pages/project/member/index',
+    'pages/project/flow/index',
     'pages/project/edit/index',
     'pages/work-hour/index',
     'pages/stats/index',
