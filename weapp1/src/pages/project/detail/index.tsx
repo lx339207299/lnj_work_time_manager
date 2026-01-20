@@ -5,7 +5,7 @@ import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
-import { workRecordService, WorkRecord, ProjectMemberStat } from '../../../services/workRecordService'
+import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
 
 // Define types locally if missing from 2.x types
@@ -28,11 +28,6 @@ function ProjectDetail() {
   const [records, setRecords] = useState<WorkRecord[]>([])
   const [loadingRecords, setLoadingRecords] = useState(false)
   const [monthStats, setMonthStats] = useState<string[]>([])
-  
-  // New State for View Mode
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [memberStats, setMemberStats] = useState<ProjectMemberStat[]>([])
-  const [loadingMemberStats, setLoadingMemberStats] = useState(false)
   
   // Action Sheet & Dialog State
   const [actionSheetVisible, setActionSheetVisible] = useState(false)
@@ -58,14 +53,9 @@ function ProjectDetail() {
 
   // Effects
   useEffect(() => {
-    // Load initial data based on view mode
-    if (viewMode === 'calendar') {
-        fetchMonthStats(dayjs().format('YYYY-MM'))
-        fetchRecords(selectedDate)
-    } else {
-        fetchMemberStats()
-    }
-  }, [viewMode])
+    fetchMonthStats(dayjs().format('YYYY-MM'))
+    fetchRecords(selectedDate)
+  }, [])
 
   const fetchRecords = async (date: string) => {
     setLoadingRecords(true)
@@ -79,19 +69,6 @@ function ProjectDetail() {
       Taro.showToast({ title: '获取记录失败', icon: 'error' })
     } finally {
       setLoadingRecords(false)
-    }
-  }
-
-  const fetchMemberStats = async () => {
-    setLoadingMemberStats(true)
-    try {
-      const list = await workRecordService.getProjectMemberStats(currentProject.id)
-      setMemberStats(list)
-    } catch (error) {
-      console.error(error)
-      Taro.showToast({ title: '获取列表失败', icon: 'error' })
-    } finally {
-      setLoadingMemberStats(false)
     }
   }
 
@@ -110,10 +87,26 @@ function ProjectDetail() {
     Taro.navigateTo({ url: `/pages/project/edit/index?id=${currentProject.id}` })
   }
 
-  const handlePrevMonth = () => {
-    const newMonth = currentMonth.subtract(1, 'month')
-    setCurrentMonth(newMonth)
-    fetchMonthStats(newMonth.format('YYYY-MM'))
+  const handleGoMembers = () => {
+    console.log('Navigate to members', currentProject.id)
+    Taro.navigateTo({ 
+        url: `/pages/project/member/index?projectId=${currentProject.id}`,
+        fail: (err) => {
+            console.error('Navigate failed:', err)
+            Taro.showToast({ title: '跳转失败', icon: 'none' })
+        }
+    })
+  }
+
+  const handleGoStats = () => {
+    console.log('Navigate to stats', currentProject.id)
+    Taro.navigateTo({ 
+        url: `/pages/project/stats/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`,
+        fail: (err) => {
+            console.error('Navigate failed:', err)
+            Taro.showToast({ title: '跳转失败', icon: 'none' })
+        }
+    })
   }
 
   const handleDateChange = (val: CalendarCardValue) => {
@@ -200,10 +193,6 @@ function ProjectDetail() {
         <View className="title-row">
           <View className="project-name">{currentProject.name}</View>
           <View className="actions">
-            <View className="view-switch" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
-                {viewMode === 'list' ? <Calendar size={14} /> : <Order size={14} />}
-                <Text className="switch-text">{viewMode === 'list' ? '日历' : '列表'}</Text>
-            </View>
             {canEdit && (
                 <View className="edit-btn" onClick={handleEdit}>
                     <Edit size={16} color="#666" />
@@ -216,14 +205,16 @@ function ProjectDetail() {
         
         {/* Compact Stats Row */}
         <View className="stats-row">
-          <View className="stat-item">
+          <View className="stat-item" onClick={handleGoMembers}>
             <People size={14} color="#666" className="icon" />
             <Text className="text">{currentProject.memberCount}人</Text>
+            <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
           </View>
           <View className="divider" />
-          <View className="stat-item">
+          <View className="stat-item" onClick={handleGoStats}>
             <Clock size={14} color="#666" className="icon" />
             <Text className="text">{currentProject.totalHours}小时</Text>
+            <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
           </View>
           <View className="divider" />
           <View className="stat-item">
@@ -233,97 +224,63 @@ function ProjectDetail() {
         </View>
       </View>
 
-      {viewMode === 'calendar' ? (
-        <>
-            {/* Calendar Section */}
-            <View className="calendar-section">
-                {/* @ts-ignore */}
-                <CalendarCard
-                value={new Date(selectedDate)}
-                onChange={handleDateChange}
-                onPageChange={handlePageChange}
-                renderDayBottom={(day: CalendarCardDay) => {
-                    // Check if day has records
-                    const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-                    //  console.log(day);
-                    const hasRecord = monthStats.includes(dateStr)
-                    if (hasRecord) {
-                    console.log(dateStr);
-                    }
-                    return hasRecord ? <View className="dot" /> : null
-                }}
-                />
-            </View>
+      {/* Calendar Section */}
+      <View className="calendar-section">
+        {/* @ts-ignore */}
+        <CalendarCard
+        value={new Date(selectedDate)}
+        onChange={handleDateChange}
+        onPageChange={handlePageChange}
+        renderDayBottom={(day: CalendarCardDay) => {
+            // Check if day has records
+            const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
+            //  console.log(day);
+            const hasRecord = monthStats.includes(dateStr)
+            if (hasRecord) {
+            console.log(dateStr);
+            }
+            return hasRecord ? <View className="dot" /> : null
+        }}
+        />
+      </View>
 
-            {/* Daily Work Records List */}
-            <View className="records-section">
-                <View className="section-title">用工记录 ({selectedDate})</View>
-                
-                {loadingRecords ? (
-                <View className="skeleton-wrapper">
-                    <Skeleton rows={3} title animated />
-                </View>
-                ) : (
-                records.length > 0 ? (
-                    <View className="record-list">
-                    {records.map(record => (
-                        <View 
-                            key={record.id} 
-                            className="record-card"
-                            onClick={() => handleRecordClick(record)}
-                        >
-                        <View className="user-info">
-                            <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
-                            <View className="name-role">
-                            <Text className="name">{record.userName}</Text>
-                            {record.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
-                            </View>
-                            <View className="duration">
-                            <Text className="num">{record.duration}</Text>
-                            <Text className="unit">小时</Text>
-                            </View>
-                        </View>
-                        </View>
-                    ))}
-                    </View>
-                ) : (
-                    <Empty description="暂无用工记录" imageSize={80} />
-                )
-                )}
-            </View>
-        </>
-      ) : (
-        /* Member Stats List */
-        <View className="records-section">
-            {loadingMemberStats ? (
-                <View className="skeleton-wrapper">
-                    <Skeleton rows={3} title animated />
-                </View>
-            ) : (
-                memberStats.length > 0 ? (
-                    <View className="record-list">
-                        {memberStats.map(stat => (
-                            <View key={stat.userId} className="record-card">
-                                <View className="user-info">
-                                    <Avatar size="small" className="avatar">{stat.userName[0]}</Avatar>
-                                    <View className="name-role">
-                                        <Text className="name">{stat.userName}</Text>
-                                        {stat.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
-                                    </View>
-                                    <View className="duration">
-                                        <Text className="num">{stat.totalDuration}</Text>
-                                        <Text className="unit">{stat.wageType === 'day' ? '天' : '小时'}</Text>
-                                    </View>
-                                </View>
-                            </View>
-                        ))}
-                    </View>
-                ) : (
-                    <Empty description="暂无工时统计" imageSize={80} />
-                )
-            )}
+      {/* Daily Work Records List */}
+      <View className="records-section">
+        <View className="section-title">用工记录 ({selectedDate})</View>
+        
+        {loadingRecords ? (
+        <View className="skeleton-wrapper">
+            <Skeleton rows={3} title animated />
         </View>
-      )}
+        ) : (
+        records.length > 0 ? (
+            <View className="record-list">
+            {records.map(record => (
+                <View 
+                    key={record.id} 
+                    className="record-card"
+                    onClick={() => handleRecordClick(record)}
+                >
+                <View className="user-info">
+                    <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
+                    <View className="name-role">
+                    <Text className="name">{record.userName}</Text>
+                    {record.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
+                    </View>
+                    <View className="duration">
+                    <Text className="num">{record.duration}</Text>
+                    <Text className="unit">小时</Text>
+                    </View>
+                </View>
+                </View>
+            ))}
+            </View>
+        ) : (
+            <Empty description="暂无用工记录" imageSize={80} />
+        )
+        )}
+      </View>
+
       {/* Floating Add Button */}
       <View className="fab-add" onClick={handleAddRecord}>
         <Plus size={24} color="#fff" />

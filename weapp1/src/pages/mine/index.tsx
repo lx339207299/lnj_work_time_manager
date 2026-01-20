@@ -12,6 +12,9 @@ function Mine() {
   const { currentOrg, orgList, setCurrentOrg } = useOrgStore()
   const [isVisible, setIsVisible] = useState(false)
 
+  // Mock Role Check (Should ideally come from userStore or orgStore)
+  const isManager = userInfo?.role === 'owner' || userInfo?.role === 'leader' || currentOrg?.role === 'owner'
+
   const handleLogout = () => {
     logout()
     Taro.reLaunch({
@@ -51,25 +54,51 @@ function Mine() {
 
       <View className="menu-list">
         <CellGroup>
-          <Cell 
-            title="当前组织" 
-            align="center"
-            extra={
-              <View style={{ display: 'flex', alignItems: 'center' }}>
-                <Text style={{ marginRight: 4 }}>{currentOrg?.name || '未选择组织'}</Text>
-                <ArrowRight size={12} />
-              </View>
-            } 
-            clickable 
-            onClick={handleSwitchOrg}
-          />
-          <Cell 
-            title="员工管理" 
-            align="center"
-            extra={<ArrowRight size={12} />}
-            clickable 
-            onClick={() => Taro.navigateTo({ url: '/pages/employee/index' })}
-          />
+          {isManager ? (
+            /* Manager View */
+            <>
+                <Cell 
+                    title="当前组织" 
+                    align="center"
+                    extra={
+                    <View style={{ display: 'flex', alignItems: 'center' }}>
+                        <Text style={{ marginRight: 4 }}>{currentOrg?.name || '未选择组织'}</Text>
+                        <ArrowRight size={12} />
+                    </View>
+                    } 
+                    clickable 
+                    onClick={handleSwitchOrg}
+                />
+                <Cell 
+                    title="员工管理" 
+                    align="center"
+                    extra={<ArrowRight size={12} />}
+                    clickable 
+                    onClick={() => Taro.navigateTo({ url: '/pages/employee/index' })}
+                />
+            </>
+          ) : (
+            /* Employee/Temp View */
+            <>
+                 <Cell 
+                    title="个人资料" 
+                    align="center"
+                    extra={<ArrowRight size={12} />}
+                    clickable 
+                    // Assume current user ID is available in userInfo.id
+                    onClick={() => Taro.navigateTo({ url: `/pages/employee/edit/index?id=${userInfo?.id || '1'}` })}
+                />
+                 <Cell 
+                    title="当前组织" 
+                    align="center"
+                    extra={
+                    <View style={{ display: 'flex', alignItems: 'center' }}>
+                        <Text style={{ marginRight: 4 }}>{currentOrg?.name || '未选择组织'}</Text>
+                    </View>
+                    } 
+                />
+            </>
+          )}
         </CellGroup>
       </View>
 

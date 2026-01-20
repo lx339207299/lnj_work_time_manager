@@ -11,53 +11,57 @@
 
   .employee-list {
     .nut-swipe {
-        margin-bottom: 12px;
+        margin-bottom: 0; // Cell group handles borders usually, but let's check
         
         .nut-button {
             height: 100%;
         }
     }
 
-    .employee-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff;
-      padding: 16px;
-      
-      .left-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .avatar {
-          background-color: #e6f7ff;
-          color: #1989fa;
-        }
-
-        .info {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-
-          .name-row {
+    .employee-cell {
+        .cell-title-content {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
 
-            .name {
-              font-size: 16px;
-              font-weight: 500;
-              color: #333;
+            .avatar {
+                background-color: #e6f7ff;
+                color: #1989fa;
+                flex-shrink: 0;
             }
-          }
 
-          .phone {
-            font-size: 13px;
-            color: #999;
-          }
+            .info {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                align-items: flex-start;
+
+                .name-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    .name {
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #333;
+                    }
+
+                    .red-dot {
+                        width: 6px;
+                        height: 6px;
+                        background-color: #fa2c19;
+                        border-radius: 50%;
+                        margin-left: 2px;
+                    }
+                }
+
+                .phone {
+                    font-size: 13px;
+                    color: #999;
+                }
+            }
         }
-      }
     }
   }
 

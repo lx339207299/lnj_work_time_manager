@@ -16,6 +16,7 @@ let mockEmployees: Employee[] = [
   { id: '2', name: '李四', phone: '13900139000', role: 'leader', wageType: 'day', wageAmount: 500, avatar: '' },
   { id: '3', name: '王五', phone: '13700137000', role: 'member', wageType: 'hour', wageAmount: 50, avatar: '' },
   { id: '4', name: '赵六', phone: '13600136000', role: 'temp', wageType: 'day', wageAmount: 300, avatar: '' },
+  { id: '5', name: '钱七', phone: '13500135000', role: 'member', wageType: 'day', wageAmount: 0, avatar: '' }, // No salary set
 ]
 
 export const employeeService = {

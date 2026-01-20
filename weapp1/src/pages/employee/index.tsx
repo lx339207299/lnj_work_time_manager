@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton } from '@nutui/nutui-react-taro'
+import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutui/nutui-react-taro'
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import './index.scss'
@@ -88,10 +88,11 @@ function EmployeeList() {
     
     // In real app: Open share dialog or copy invite link
     Taro.showActionSheet({
-        itemList: ['发送微信邀请', '复制邀请链接', '生成邀请二维码'],
-        success: (res) => {
-            Taro.showToast({ title: '已生成邀请', icon: 'success' })
-        }
+        itemList: ['发送微信邀请', '复制邀请链接', '生成邀请二维码']
+    }).then(() => {
+        Taro.showToast({ title: '已生成邀请', icon: 'success' })
+    }).catch(err => {
+        console.log('ActionSheet cancelled:', err.errMsg)
     })
   }
 
@@ -105,6 +106,7 @@ function EmployeeList() {
       ) : (
         employees.length > 0 ? (
             <View className="employee-list">
+                <Cell.Group>
                 {employees.map(emp => (
                     <Swipe
                         key={emp.id}
@@ -115,26 +117,37 @@ function EmployeeList() {
                         }
                         disabled={!['owner', 'leader'].includes(currentUserRole)}
                     >
-                        <View className="employee-card" onClick={() => handleEdit(emp.id)}>
-                            <View className="left-info">
-                                <Avatar size="normal" className="avatar">{emp.name[0]}</Avatar>
-                                <View className="info">
-                                    <View className="name-row">
-                                        <Text className="name">{emp.name}</Text>
-                                        <Tag type={roleMap[emp.role]?.type as any || 'default'} plain>
-                                            {roleMap[emp.role]?.text || emp.role}
-                                        </Tag>
+                        <Cell
+                            className="employee-cell"
+                            onClick={() => handleEdit(emp.id)}
+                            align="center"
+                            title={
+                                <View className="cell-title-content">
+                                    <Avatar size="normal" className="avatar">{emp.name[0]}</Avatar>
+                                    <View className="info">
+                                        <View className="name-row">
+                                            <Text className="name">{emp.name}</Text>
+                                            <Tag type={roleMap[emp.role]?.type as any || 'default'} plain>
+                                                {roleMap[emp.role]?.text || emp.role}
+                                            </Tag>
+                                            {/* Show red dot if wageAmount is not set */}
+                                            {(!emp.wageAmount || emp.wageAmount <= 0) && (
+                                                <View className="red-dot" />
+                                            )}
+                                        </View>
+                                        <Text className="phone">{emp.phone}</Text>
                                     </View>
-                                    <Text className="phone">{emp.phone}</Text>
                                 </View>
-                            </View>
-                            {/* Show arrow only if editable */}
-                            {(['owner', 'leader'].includes(currentUserRole) || emp.id === currentUserId) && (
-                                <ArrowRight color="#999" />
-                            )}
-                        </View>
+                            }
+                            extra={
+                                (['owner', 'leader'].includes(currentUserRole) || emp.id === currentUserId) ? (
+                                    <ArrowRight color="#999" />
+                                ) : null
+                            }
+                        />
                     </Swipe>
                 ))}
+                </Cell.Group>
             </View>
         ) : (
             <Empty description="暂无员工数据" />

@@ -24,7 +24,8 @@ function ProjectEdit() {
     } else {
       Taro.setNavigationBarTitle({ title: '创建项目' })
     }
-  }, [id, currentProject])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -58,34 +59,35 @@ function ProjectEdit() {
 
   return (
     <View className="project-edit-page">
-      <Form
-        labelPosition="left"
-        footer={
-          <View className="form-footer">
-            <Button block type="primary" loading={loading} onClick={handleSubmit}>
-              {id ? '保存修改' : '立即创建'}
-            </Button>
-          </View>
-        }
-      >
-        <Form.Item label="项目名称" required>
-          <Input 
-            value={name} 
-            onChange={(val) => setName(val)} 
-            placeholder="请输入项目名称" 
-            maxLength={20}
-          />
-        </Form.Item>
-        <Form.Item label="项目描述">
-          <TextArea 
-            value={description} 
-            onChange={(val) => setDescription(val)} 
-            placeholder="请输入项目描述（选填）" 
-            maxLength={100}
-            rows={3}
-          />
-        </Form.Item>
-      </Form>
+      <View className="form-content">
+        <Form
+          labelPosition="left"
+        >
+          <Form.Item label="项目名称" required name="name">
+            <Input 
+              value={name} 
+              onChange={(val) => setName(val)} 
+              placeholder="请输入项目名称" 
+              maxLength={15}
+            />
+          </Form.Item>
+          <Form.Item label="项目描述" name="description">
+            <TextArea 
+              value={description} 
+              onChange={(val) => setDescription(val)} 
+              placeholder="请输入项目描述（选填）" 
+              maxLength={50}
+              rows={3}
+            />
+          </Form.Item>
+        </Form>
+      </View>
+
+      <View className="form-footer">
+        <Button block type="primary" loading={loading} onClick={handleSubmit}>
+          {id ? '保存修改' : '立即创建'}
+        </Button>
+      </View>
 
       {/* Placeholder for Member Management in V2 */}
       {id && (

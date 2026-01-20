@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react'
-import { View } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Cell, Input, InputNumber, Picker, DatePicker, Dialog } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
@@ -42,7 +42,10 @@ function EmployeeEdit() {
   // Mock current user check
   const isCurrentUserOwner = true 
   const isLeader = false // Mock role check
-  const isSelf = false // Mock check if editing self 
+  const isSelf = id === '1' // Mock check if editing self (Assume '1' is self)
+
+  const canEditPersonalInfo = isSelf
+  const canEditWorkInfo = isCurrentUserOwner || isLeader 
 
   useEffect(() => {
     if (id) {
@@ -129,6 +132,30 @@ function EmployeeEdit() {
     })
   }
 
+  const handleDelete = () => {
+      Dialog.open('delete', {
+        title: '确认删除',
+        content: '删除后无法恢复，确定要删除该员工吗？',
+        onConfirm: async () => {
+            try {
+                if (id) {
+                    await employeeService.deleteEmployee(id)
+                    Taro.showToast({ title: '删除成功', icon: 'success' })
+                    setTimeout(() => {
+                        Taro.navigateBack()
+                    }, 1000)
+                }
+                Dialog.close('delete')
+            } catch (error) {
+                Taro.showToast({ title: '删除失败', icon: 'error' })
+            }
+        },
+        onCancel: () => {
+            Dialog.close('delete')
+        }
+      })
+  }
+
   const getRoleText = (val: string) => roleOptions.find(o => o.value === val)?.text || val
   const getWageTypeText = (val: string) => wageTypeOptions.find(o => o.value === val)?.text || val
 
@@ -142,7 +169,8 @@ function EmployeeEdit() {
                     value={name} 
                     onChange={(val) => setName(val)}
                     align="right"
-                    style={{ border: 'none', padding: 0, textAlign: 'right' }}
+                    disabled={!canEditPersonalInfo}
+                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditPersonalInfo ? '#999' : '#333' }}
                 />
             } />
             <Cell title="手机号" extra={
@@ -152,14 +180,19 @@ function EmployeeEdit() {
                     onChange={(val) => setPhone(val)}
                     align="right"
                     type="number"
-                    style={{ border: 'none', padding: 0, textAlign: 'right' }}
+                    disabled={!canEditPersonalInfo}
+                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditPersonalInfo ? '#999' : '#333' }}
                 />
             } />
             <Cell 
                 title="生日" 
-                description={birthday || '请选择(选填)'} 
-                onClick={() => setShowDatePicker(true)}
-                extra={<ArrowRight />}
+                extra={
+                    <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Text style={{ color: birthday ? (canEditPersonalInfo ? '#333' : '#999') : '#ccc' }}>{birthday || '请选择(选填)'}</Text>
+                        {canEditPersonalInfo && <ArrowRight size={14} color="#999" />}
+                    </View>
+                }
+                onClick={() => canEditPersonalInfo && setShowDatePicker(true)}
             />
         </Cell.Group>
       </View>
@@ -168,15 +201,23 @@ function EmployeeEdit() {
         <Cell.Group>
             <Cell 
                 title="角色" 
-                description={getRoleText(role)} 
-                onClick={() => setShowRolePicker(true)}
-                extra={<ArrowRight />}
+                extra={
+                    <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Text style={{ color: canEditWorkInfo ? '#333' : '#999' }}>{getRoleText(role)}</Text>
+                        {canEditWorkInfo && <ArrowRight size={14} color="#999" />}
+                    </View>
+                }
+                onClick={() => canEditWorkInfo && setShowRolePicker(true)}
             />
             <Cell 
                 title="薪资类型" 
-                description={getWageTypeText(wageType)} 
-                onClick={() => setShowWagePicker(true)}
-                extra={<ArrowRight />}
+                extra={
+                    <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Text style={{ color: canEditWorkInfo ? '#333' : '#999' }}>{getWageTypeText(wageType)}</Text>
+                        {canEditWorkInfo && <ArrowRight size={14} color="#999" />}
+                    </View>
+                }
+                onClick={() => canEditWorkInfo && setShowWagePicker(true)}
             />
             <Cell title="薪资数额" extra={
                 <Input 
@@ -185,7 +226,8 @@ function EmployeeEdit() {
                     onChange={(val) => setWageAmount(val)}
                     align="right"
                     type="digit"
-                    style={{ border: 'none', padding: 0, textAlign: 'right' }}
+                    disabled={!canEditWorkInfo}
+                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditWorkInfo ? '#999' : '#333' }}
                 />
             } />
         </Cell.Group>
@@ -201,6 +243,13 @@ function EmployeeEdit() {
             <Button block type="warning" fill="outline" className="transfer-btn" onClick={handleTransfer}>
                 移交负责人身份
             </Button>
+        )}
+
+        {/* Delete Button */}
+        {id && (isCurrentUserOwner || isLeader) && !isSelf && (
+             <Button block type="danger" fill="outline" className="delete-btn" onClick={handleDelete}>
+                 删除员工
+             </Button>
         )}
       </View>
 
@@ -245,6 +294,7 @@ function EmployeeEdit() {
       />
 
       <Dialog id="transfer" />
+      <Dialog id="delete" />
     </View>
   )
 }

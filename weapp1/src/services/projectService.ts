@@ -34,14 +34,21 @@ export const projectService = {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve([
-                { id: 'u0', name: '李雷', avatar: '', role: '项目负责人', wageType: 'day' },
-                { id: 'u1', name: '张三', avatar: '', role: '普通工', wageType: 'day' },
-                { id: 'u2', name: '李四', avatar: '', role: '小工', wageType: 'hour' },
-                { id: 'u3', name: '王五', avatar: '', role: '大工', wageType: 'day' },
-                { id: 'u4', name: '赵六', avatar: '', role: '普通工', wageType: 'hour' },
-                { id: 'u5', name: '钱七', avatar: '', role: '技术工', wageType: 'day' },
+                { id: '3', name: '王五', avatar: '', role: '小工', wageType: 'hour' },
+                { id: '4', name: '赵六', avatar: '', role: '大工', wageType: 'day' },
+                { id: '5', name: '钱七', avatar: '', role: '普通工', wageType: 'hour' },
             ])
         }, 300)
+    })
+  },
+
+  // Add members to project
+  addProjectMembers: async (projectId: string, memberIds: string[]): Promise<void> => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log(`Added members ${memberIds.join(',')} to project ${projectId}`)
+            resolve()
+        }, 500)
     })
   }
 }
