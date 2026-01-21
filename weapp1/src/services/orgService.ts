@@ -16,7 +16,15 @@ export const orgService = {
   },
 
   // Create organization
-  createOrg: async (name: string) => {
-    // return request({ url: '/api/orgs', method: 'POST', data: { name } })
+  createOrg: async (name: string): Promise<any> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+            id: 'org_' + Date.now(),
+            name,
+            role: 'owner'
+        })
+      }, 500)
+    })
   }
 }

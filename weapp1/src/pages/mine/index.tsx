@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { Cell, CellGroup, Button, Avatar, ActionSheet } from '@nutui/nutui-react-taro'
+import { Dialog, Cell, CellGroup, Button, Avatar, ActionSheet } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import Taro from '@tarojs/taro'
 import { useUserStore } from '../../store/userStore'
@@ -22,24 +22,27 @@ function Mine() {
     })
   }
 
-  const handleSwitchOrg = () => {
-    if (orgList.length > 0) {
-      setIsVisible(true)
+  const handleOrgClick = () => {
+    // Scenario 1: No Org
+    if (!orgList || orgList.length === 0) {
+        Dialog.open('no-org', {
+            title: '暂无组织',
+            content: '您暂未加入任何组织。\n如果您是团队负责人，请创建新组织；\n如果您是团队成员，请联系负责人邀请您加入。',
+            confirmText: '创建组织',
+            cancelText: '我知道了',
+            onConfirm: () => {
+                Dialog.close('no-org')
+                Taro.navigateTo({ url: '/pages/org/edit/index' })
+            },
+            onCancel: () => {
+                Dialog.close('no-org')
+            }
+        })
+    } else {
+        // Scenario 2: Has Org -> Go to List
+        Taro.navigateTo({ url: '/pages/org/list/index' })
     }
   }
-
-  const handleChooseOrg = (item: any) => {
-    const org = orgList.find(o => o.id === item.id)
-    if (org) {
-      setCurrentOrg(org)
-    }
-    setIsVisible(false)
-  }
-
-  const menuOptions = orgList.map(org => ({
-    name: org.name,
-    id: org.id
-  }))
 
   return (
     <View className="mine-page">
@@ -54,21 +57,25 @@ function Mine() {
 
       <View className="menu-list">
         <CellGroup>
-          {isManager ? (
+            {/* Common Menu for Everyone */}
+            <Cell 
+                title="当前组织" 
+                align="center"
+                extra={
+                <View style={{ display: 'flex', alignItems: 'center' }}>
+                    <Text style={{ marginRight: 4, color: currentOrg ? '#333' : '#999' }}>
+                        {currentOrg?.name || '暂无组织'}
+                    </Text>
+                    <ArrowRight size={12} />
+                </View>
+                } 
+                clickable 
+                onClick={handleOrgClick}
+            />
+
+            {isManager ? (
             /* Manager View */
             <>
-                <Cell 
-                    title="当前组织" 
-                    align="center"
-                    extra={
-                    <View style={{ display: 'flex', alignItems: 'center' }}>
-                        <Text style={{ marginRight: 4 }}>{currentOrg?.name || '未选择组织'}</Text>
-                        <ArrowRight size={12} />
-                    </View>
-                    } 
-                    clickable 
-                    onClick={handleSwitchOrg}
-                />
                 <Cell 
                     title="员工管理" 
                     align="center"
@@ -88,15 +95,6 @@ function Mine() {
                     // Assume current user ID is available in userInfo.id
                     onClick={() => Taro.navigateTo({ url: `/pages/employee/edit/index?id=${userInfo?.id || '1'}` })}
                 />
-                 <Cell 
-                    title="当前组织" 
-                    align="center"
-                    extra={
-                    <View style={{ display: 'flex', alignItems: 'center' }}>
-                        <Text style={{ marginRight: 4 }}>{currentOrg?.name || '未选择组织'}</Text>
-                    </View>
-                    } 
-                />
             </>
           )}
         </CellGroup>
@@ -108,12 +106,7 @@ function Mine() {
         </Button>
       </View>
 
-      <ActionSheet
-        visible={isVisible}
-        options={menuOptions}
-        onSelect={handleChooseOrg}
-        onCancel={() => setIsVisible(false)}
-      />
+      <Dialog id="no-org" />
     </View>
   )
 }

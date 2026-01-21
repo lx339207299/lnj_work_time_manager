@@ -36,7 +36,7 @@ function Login() {
     <View className="login-container">
       <View className="login-header">
         <View className="title">欢迎回来</View>
-        <View className="subtitle">工时管理系统</View>
+        <View className="subtitle">用工管理系统</View>
       </View>
       
       <View className="login-form">

@@ -12,7 +12,9 @@ export default defineAppConfig({
     'pages/stats/index',
     'pages/mine/index',
     'pages/employee/index',
-    'pages/employee/edit/index'
+    'pages/employee/edit/index',
+    'pages/org/list/index',
+    'pages/org/edit/index'
   ],
   window: {
     backgroundTextStyle: 'light',
