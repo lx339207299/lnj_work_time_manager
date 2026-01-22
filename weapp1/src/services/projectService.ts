@@ -16,8 +16,21 @@ export const projectService = {
     })
   },
 
-  getProjectDetail: async (projectId: string) => {
+  getProjectDetail: async (projectId: string): Promise<Project> => {
     // Mock data
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                id: projectId,
+                name: 'SaaS平台开发',
+                description: '企业级SaaS平台研发项目',
+                role: 'owner',
+                memberCount: 5,
+                totalHours: 125, // Updated mock data to show change
+                totalDays: 16
+            })
+        }, 500)
+    })
   },
 
   createProject: async (data: any) => {

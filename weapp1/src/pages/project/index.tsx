@@ -8,11 +8,21 @@ import { useProjectStore, Project } from '../../store/projectStore'
 import { projectService } from '../../services/projectService'
 import './index.scss'
 
+import { useUserStore } from '../../store/userStore'
+import { useAuth } from '../../hooks/useAuth'
+
 function ProjectList() {
   const [loading, setLoading] = useState(true)
   const { projectList, setProjectList, setCurrentProject } = useProjectStore()
-
+  const { token } = useUserStore() // Get token directly
+  
   const fetchData = async () => {
+    if (!token) {
+        setLoading(false)
+        setProjectList([]) // Clear list if not logged in
+        return
+    }
+
     setLoading(true)
     try {
       const res = await projectService.getProjects('current_org_id') // Mock Org ID
@@ -28,24 +38,30 @@ function ProjectList() {
     fetchData()
     
     // Check for pending invite
-    const pendingInvite = Taro.getStorageSync('pending_invite')
-    if (pendingInvite === 'true') {
-        Taro.removeStorageSync('pending_invite')
-        Dialog.open('invite', {
-            title: '邀请加入',
-            content: '“某某建筑工程队”邀请您加入组织，是否同意？',
-            onConfirm: () => {
-                Taro.showToast({ title: '已加入组织', icon: 'success' })
-                Dialog.close('invite')
-            },
-            onCancel: () => {
-                Dialog.close('invite')
-            }
-        })
+    if (token) {
+        const pendingInvite = Taro.getStorageSync('pending_invite')
+        if (pendingInvite === 'true') {
+            Taro.removeStorageSync('pending_invite')
+            Dialog.open('invite', {
+                title: '邀请加入',
+                content: '“某某建筑工程队”邀请您加入组织，是否同意？',
+                onConfirm: () => {
+                    Taro.showToast({ title: '已加入组织', icon: 'success' })
+                    Dialog.close('invite')
+                },
+                onCancel: () => {
+                    Dialog.close('invite')
+                }
+            })
+        }
     }
   })
 
   const handleCreate = () => {
+    if (!token) {
+        Taro.navigateTo({ url: '/pages/login/index' })
+        return
+    }
     setCurrentProject(null as any) // Clear current project for create mode
     Taro.navigateTo({ url: '/pages/project/edit/index' })
   }
@@ -102,7 +118,10 @@ function ProjectList() {
               </View>
             ))
           ) : (
-            <Empty description="暂无项目" />
+            <Empty 
+                description={token ? "暂无项目" : "登录后管理项目"} 
+                actions={token ? undefined : [{ text: '去登录', onClick: () => Taro.navigateTo({ url: '/pages/login/index' }) }]}
+            />
           )
         )}
       </View>

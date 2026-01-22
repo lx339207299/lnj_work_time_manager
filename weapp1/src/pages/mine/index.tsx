@@ -8,7 +8,7 @@ import { useOrgStore, Organization } from '../../store/orgStore'
 import './index.scss'
 
 function Mine() {
-  const { userInfo, logout } = useUserStore()
+  const { userInfo, token, logout } = useUserStore()
   const { currentOrg, orgList, setCurrentOrg } = useOrgStore()
   const [isVisible, setIsVisible] = useState(false)
 
@@ -17,12 +17,19 @@ function Mine() {
 
   const handleLogout = () => {
     logout()
-    Taro.reLaunch({
-      url: '/pages/login/index'
-    })
+    // No need to relaunch, just stay on mine page and UI updates
+    Taro.showToast({ title: '已退出', icon: 'success' })
+  }
+  
+  const handleLogin = () => {
+      Taro.navigateTo({ url: '/pages/login/index' })
   }
 
   const handleOrgClick = () => {
+    if (!token) {
+        handleLogin()
+        return
+    }
     // Scenario 1: No Org
     if (!orgList || orgList.length === 0) {
         Dialog.open('no-org', {
@@ -43,16 +50,25 @@ function Mine() {
         Taro.navigateTo({ url: '/pages/org/list/index' })
     }
   }
+  
+  const handleProtectedClick = (url: string) => {
+      if (!token) {
+          handleLogin()
+          return
+      }
+      Taro.navigateTo({ url })
+  }
 
   return (
     <View className="mine-page">
       {/* 个人信息区 */}
-      <View className="user-header">
+      <View className="user-header" onClick={!token ? handleLogin : undefined}>
         <Avatar size="large" src={userInfo?.avatar || ''} />
         <View className="user-info">
-          <Text className="user-name">{userInfo?.name || '未登录'}</Text>
-          <Text className="user-phone">{userInfo?.phone || ''}</Text>
+          <Text className="user-name">{token ? (userInfo?.name || '用户') : '点击登录/注册'}</Text>
+          <Text className="user-phone">{token ? (userInfo?.phone || '') : '登录后体验更多功能'}</Text>
         </View>
+        {!token && <ArrowRight color="#fff" />}
       </View>
 
       <View className="menu-list">
@@ -73,7 +89,7 @@ function Mine() {
                 onClick={handleOrgClick}
             />
 
-            {isManager ? (
+            {token && isManager ? (
             /* Manager View */
             <>
                 <Cell 
@@ -81,7 +97,7 @@ function Mine() {
                     align="center"
                     extra={<ArrowRight size={12} />}
                     clickable 
-                    onClick={() => Taro.navigateTo({ url: '/pages/employee/index' })}
+                    onClick={() => handleProtectedClick('/pages/employee/index')}
                 />
             </>
           ) : (
@@ -93,18 +109,20 @@ function Mine() {
                     extra={<ArrowRight size={12} />}
                     clickable 
                     // Assume current user ID is available in userInfo.id
-                    onClick={() => Taro.navigateTo({ url: `/pages/employee/edit/index?id=${userInfo?.id || '1'}` })}
+                    onClick={() => handleProtectedClick(`/pages/employee/edit/index?id=${userInfo?.id || '1'}`)}
                 />
             </>
           )}
         </CellGroup>
       </View>
 
-      <View className="logout-section">
-        <Button block type="danger" onClick={handleLogout}>
-          退出登录
-        </Button>
-      </View>
+      {token && (
+          <View className="logout-section">
+            <Button block type="danger" onClick={handleLogout}>
+              退出登录
+            </Button>
+          </View>
+      )}
 
       <Dialog id="no-org" />
     </View>

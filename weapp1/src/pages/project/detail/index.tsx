@@ -8,6 +8,8 @@ import { useProjectStore } from '../../../store/projectStore'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
 
+import { projectService } from '../../../services/projectService'
+
 // Define types locally if missing from 2.x types
 type CalendarCardValue = Date | Date[]
 interface CalendarCardDay {
@@ -20,7 +22,7 @@ interface CalendarCardDay {
 
 function ProjectDetail() {
   const router = useRouter()
-  const { currentProject } = useProjectStore()
+  const { currentProject, setCurrentProject } = useProjectStore()
   
   // State
   const [currentMonth, setCurrentMonth] = useState(dayjs())
@@ -39,7 +41,8 @@ function ProjectDetail() {
   // More Action Sheet
   const [moreActionVisible, setMoreActionVisible] = useState(false)
   const moreActionOptions = [
-    { name: '项目流水', key: 'flow' }
+    { name: '项目流水', key: 'flow' },
+    { name: '刷新', key: 'refresh' }
   ]
 
   // Mock current user ID (In real app, get from userStore)
@@ -167,6 +170,34 @@ function ProjectDetail() {
       Taro.navigateTo({
         url: `/pages/project/flow/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`
       })
+    } else if (item.key === 'refresh') {
+        handleRefresh()
+    }
+  }
+
+  const handleRefresh = async () => {
+    if (!currentProject) return
+    
+    Taro.showLoading({ title: '刷新中...' })
+    try {
+        // 1. Refresh Project Detail (update stats)
+        const updatedProject = await projectService.getProjectDetail(currentProject.id)
+        if (updatedProject) {
+            setCurrentProject(updatedProject)
+        }
+        
+        // 2. Refresh Records & Stats
+        await Promise.all([
+            fetchRecords(selectedDate),
+            fetchMonthStats(dayjs(selectedDate).format('YYYY-MM'))
+        ])
+        
+        Taro.showToast({ title: '刷新成功', icon: 'success' })
+    } catch (error) {
+        console.error(error)
+        Taro.showToast({ title: '刷新失败', icon: 'none' })
+    } finally {
+        Taro.hideLoading()
     }
   }
 

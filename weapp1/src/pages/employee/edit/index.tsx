@@ -5,6 +5,7 @@ import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Cell, Input, InputNumber, Picker, DatePicker, Dialog } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
+import { useUserStore } from '../../../store/userStore'
 import { employeeService, Employee } from '../../../services/employeeService'
 import './index.scss'
 
@@ -23,7 +24,8 @@ const wageTypeOptions = [
 
 function EmployeeEdit() {
   const router = useRouter()
-  const { id } = router.params
+  const { id, isNew } = router.params
+  const { userInfo } = useUserStore()
   
   // Form State
   const [name, setName] = useState('')
@@ -42,9 +44,12 @@ function EmployeeEdit() {
   // Mock current user check
   const isCurrentUserOwner = true 
   const isLeader = false // Mock role check
-  const isSelf = id === '1' // Mock check if editing self (Assume '1' is self)
-
-  const canEditPersonalInfo = isSelf
+  
+  // Permission Logic
+  // 1. New user (isNew=true) can edit everything
+  // 2. Editing self (id matches userInfo.id) can edit personal info
+  const isSelf = id === userInfo?.id || id === 'u_' + userInfo?.phone // Match ID logic from authService mock
+  const canEditPersonalInfo = isNew === 'true' || isSelf
   const canEditWorkInfo = isCurrentUserOwner || isLeader 
 
   useEffect(() => {
@@ -53,8 +58,12 @@ function EmployeeEdit() {
       fetchEmployee(id)
     } else {
       Taro.setNavigationBarTitle({ title: '添加员工' })
+      // Pre-fill phone if isNew/isSelf
+      if (isSelf && userInfo?.phone) {
+          setPhone(userInfo.phone)
+      }
     }
-  }, [id])
+  }, [id, isSelf, userInfo])
 
   const fetchEmployee = async (empId: string) => {
     try {
@@ -180,8 +189,8 @@ function EmployeeEdit() {
                     onChange={(val) => setPhone(val)}
                     align="right"
                     type="number"
-                    disabled={!canEditPersonalInfo}
-                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditPersonalInfo ? '#999' : '#333' }}
+                    disabled={true} // Phone should generally be read-only if it's the account ID, or editable only if creating new
+                    style={{ border: 'none', padding: 0, textAlign: 'right', color: '#999' }}
                 />
             } />
             <Cell 
@@ -197,6 +206,7 @@ function EmployeeEdit() {
         </Cell.Group>
       </View>
 
+      {!isSelf && (
       <View className="form-card">
         <Cell.Group>
             <Cell 
@@ -232,6 +242,7 @@ function EmployeeEdit() {
             } />
         </Cell.Group>
       </View>
+      )}
 
       <View className="action-section">
         <Button block type="primary" loading={submitting} onClick={handleSave}>
