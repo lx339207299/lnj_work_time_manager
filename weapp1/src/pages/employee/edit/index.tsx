@@ -24,8 +24,7 @@ const wageTypeOptions = [
 
 function EmployeeEdit() {
   const router = useRouter()
-  const { id, isNew } = router.params
-  const { userInfo } = useUserStore()
+  const { id } = router.params
   
   // Form State
   const [name, setName] = useState('')
@@ -38,19 +37,10 @@ function EmployeeEdit() {
   // UI State
   const [showRolePicker, setShowRolePicker] = useState(false)
   const [showWagePicker, setShowWagePicker] = useState(false)
-  const [showDatePicker, setShowDatePicker] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  // Mock current user check
-  const isCurrentUserOwner = true 
-  const isLeader = false // Mock role check
-  
-  // Permission Logic
-  // 1. New user (isNew=true) can edit everything
-  // 2. Editing self (id matches userInfo.id) can edit personal info
-  const isSelf = id === userInfo?.id || id === 'u_' + userInfo?.phone // Match ID logic from authService mock
-  const canEditPersonalInfo = isNew === 'true' || isSelf
-  const canEditWorkInfo = isCurrentUserOwner || isLeader 
+  // Manager Edit Mode Only
+  const canEditWorkInfo = true 
 
   useEffect(() => {
     if (id) {
@@ -58,12 +48,8 @@ function EmployeeEdit() {
       fetchEmployee(id)
     } else {
       Taro.setNavigationBarTitle({ title: '添加员工' })
-      // Pre-fill phone if isNew/isSelf
-      if (isSelf && userInfo?.phone) {
-          setPhone(userInfo.phone)
-      }
     }
-  }, [id, isSelf, userInfo])
+  }, [id])
 
   const fetchEmployee = async (empId: string) => {
     try {
@@ -173,61 +159,41 @@ function EmployeeEdit() {
       <View className="form-card">
         <Cell.Group>
             <Cell title="姓名" extra={
-                <Input 
-                    placeholder="请输入姓名" 
-                    value={name} 
-                    onChange={(val) => setName(val)}
-                    align="right"
-                    disabled={!canEditPersonalInfo}
-                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditPersonalInfo ? '#999' : '#333' }}
-                />
+                <Text style={{ color: '#999' }}>{name || '待填写'}</Text>
             } />
             <Cell title="手机号" extra={
-                <Input 
-                    placeholder="请输入手机号" 
-                    value={phone} 
-                    onChange={(val) => setPhone(val)}
-                    align="right"
-                    type="number"
-                    disabled={true} // Phone should generally be read-only if it's the account ID, or editable only if creating new
-                    style={{ border: 'none', padding: 0, textAlign: 'right', color: '#999' }}
-                />
+                <Text style={{ color: '#999' }}>{phone || '待填写'}</Text>
             } />
             <Cell 
                 title="生日" 
                 extra={
-                    <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Text style={{ color: birthday ? (canEditPersonalInfo ? '#333' : '#999') : '#ccc' }}>{birthday || '请选择(选填)'}</Text>
-                        {canEditPersonalInfo && <ArrowRight size={14} color="#999" />}
-                    </View>
+                    <Text style={{ color: '#999' }}>{birthday || '未设置'}</Text>
                 }
-                onClick={() => canEditPersonalInfo && setShowDatePicker(true)}
             />
         </Cell.Group>
       </View>
 
-      {!isSelf && (
       <View className="form-card">
         <Cell.Group>
             <Cell 
                 title="角色" 
                 extra={
                     <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Text style={{ color: canEditWorkInfo ? '#333' : '#999' }}>{getRoleText(role)}</Text>
-                        {canEditWorkInfo && <ArrowRight size={14} color="#999" />}
+                        <Text style={{ color: '#333' }}>{getRoleText(role)}</Text>
+                        <ArrowRight size={14} color="#999" />
                     </View>
                 }
-                onClick={() => canEditWorkInfo && setShowRolePicker(true)}
+                onClick={() => setShowRolePicker(true)}
             />
             <Cell 
                 title="薪资类型" 
                 extra={
                     <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Text style={{ color: canEditWorkInfo ? '#333' : '#999' }}>{getWageTypeText(wageType)}</Text>
-                        {canEditWorkInfo && <ArrowRight size={14} color="#999" />}
+                        <Text style={{ color: '#333' }}>{getWageTypeText(wageType)}</Text>
+                        <ArrowRight size={14} color="#999" />
                     </View>
                 }
-                onClick={() => canEditWorkInfo && setShowWagePicker(true)}
+                onClick={() => setShowWagePicker(true)}
             />
             <Cell title="薪资数额" extra={
                 <Input 
@@ -236,31 +202,29 @@ function EmployeeEdit() {
                     onChange={(val) => setWageAmount(val)}
                     align="right"
                     type="digit"
-                    disabled={!canEditWorkInfo}
-                    style={{ border: 'none', padding: 0, textAlign: 'right', color: !canEditWorkInfo ? '#999' : '#333' }}
+                    style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
                 />
             } />
         </Cell.Group>
       </View>
-      )}
 
       <View className="action-section">
         <Button block type="primary" loading={submitting} onClick={handleSave}>
             保存
         </Button>
         
-        {/* Transfer Button Logic: Must be editing, current user is owner, target is not owner */}
-        {id && isCurrentUserOwner && role !== 'owner' && (
-            <Button block type="warning" fill="outline" className="transfer-btn" onClick={handleTransfer}>
-                移交负责人身份
-            </Button>
-        )}
-
-        {/* Delete Button */}
-        {id && (isCurrentUserOwner || isLeader) && !isSelf && (
-             <Button block type="danger" fill="outline" className="delete-btn" onClick={handleDelete}>
-                 删除员工
-             </Button>
+        {/* Actions for existing employees */}
+        {id && (
+            <>
+                {role !== 'owner' && (
+                    <Button block type="warning" fill="outline" className="transfer-btn" onClick={handleTransfer}>
+                        移交负责人身份
+                    </Button>
+                )}
+                <Button block type="danger" fill="outline" className="delete-btn" onClick={handleDelete}>
+                    删除员工
+                </Button>
+            </>
         )}
       </View>
 
@@ -284,24 +248,6 @@ function EmployeeEdit() {
             setShowWagePicker(false)
         }}
         onClose={() => setShowWagePicker(false)}
-      />
-
-      {/* Birthday Picker */}
-      <DatePicker
-        visible={showDatePicker}
-        type="date"
-        startDate={new Date(1950, 0, 1)}
-        endDate={new Date()}
-        onConfirm={(list, values) => {
-            // values is array of strings/numbers depending on version.
-            // list is options list. 
-            // NutUI 2 DatePicker onConfirm: (options, values)
-            // values: [year, month, day]
-            const dateStr = values.join('-')
-            setBirthday(dateStr)
-            setShowDatePicker(false)
-        }}
-        onClose={() => setShowDatePicker(false)}
       />
 
       <Dialog id="transfer" />

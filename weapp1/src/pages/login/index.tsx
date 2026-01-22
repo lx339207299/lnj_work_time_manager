@@ -75,7 +75,7 @@ function Login() {
             } else {
                 Taro.showToast({ title: '请完善个人资料', icon: 'none' })
                 setTimeout(() => {
-                    Taro.navigateTo({ url: `/pages/employee/edit/index?id=${user.id}&isNew=true` })
+                    Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true` })
                 }, 500)
             }
         }, 1500)

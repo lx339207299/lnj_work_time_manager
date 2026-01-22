@@ -89,7 +89,15 @@ function Mine() {
                 onClick={handleOrgClick}
             />
 
-            {token && isManager ? (
+            <Cell 
+                title="个人资料" 
+                align="center"
+                extra={<ArrowRight size={12} />}
+                clickable 
+                onClick={() => handleProtectedClick('/pages/mine/profile/index')}
+            />
+
+            {token && isManager && (
             /* Manager View */
             <>
                 <Cell 
@@ -100,19 +108,7 @@ function Mine() {
                     onClick={() => handleProtectedClick('/pages/employee/index')}
                 />
             </>
-          ) : (
-            /* Employee/Temp View */
-            <>
-                 <Cell 
-                    title="个人资料" 
-                    align="center"
-                    extra={<ArrowRight size={12} />}
-                    clickable 
-                    // Assume current user ID is available in userInfo.id
-                    onClick={() => handleProtectedClick(`/pages/employee/edit/index?id=${userInfo?.id || '1'}`)}
-                />
-            </>
-          )}
+            )}
         </CellGroup>
       </View>
 

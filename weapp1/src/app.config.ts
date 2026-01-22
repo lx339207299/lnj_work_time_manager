@@ -14,7 +14,8 @@ export default defineAppConfig({
     'pages/employee/index',
     'pages/employee/edit/index',
     'pages/org/list/index',
-    'pages/org/edit/index'
+    'pages/org/edit/index',
+    'pages/mine/profile/index'
   ],
   window: {
     backgroundTextStyle: 'light',
