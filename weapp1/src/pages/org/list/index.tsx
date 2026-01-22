@@ -1,16 +1,18 @@
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { Button, Cell, Dialog, Tag, Empty } from '@nutui/nutui-react-taro'
-import { Check, Plus } from '@nutui/icons-react-taro'
-import { useOrgStore } from '../../../store/orgStore'
+import { Button, Dialog, Tag, Empty, ActionSheet } from '@nutui/nutui-react-taro'
+import { Check, Plus, More } from '@nutui/icons-react-taro'
+import { useOrgStore, Organization } from '../../../store/orgStore'
 import { orgService } from '../../../services/orgService'
 import './index.scss'
 
 function OrgList() {
   const { orgList, currentOrg, setCurrentOrg, setOrgList } = useOrgStore()
   const [loading, setLoading] = useState(false)
+  const [actionVisible, setActionVisible] = useState(false)
+  const [selectedOrg, setSelectedOrg] = useState<any>(null)
 
   useDidShow(() => {
     fetchOrgs()
@@ -20,7 +22,7 @@ function OrgList() {
     setLoading(true)
     try {
       const list = await orgService.getUserOrgs()
-      setOrgList(list)
+      setOrgList(list as Organization[])
     } catch (error) {
       Taro.showToast({ title: '获取组织列表失败', icon: 'error' })
     } finally {
@@ -48,6 +50,42 @@ function OrgList() {
     })
   }
 
+  const handleMoreClick = (e: any, org: any) => {
+      e.stopPropagation()
+      setSelectedOrg(org)
+      setActionVisible(true)
+  }
+
+  const handleExitOrg = () => {
+      if (!selectedOrg) return
+
+      Dialog.open('exit-org', {
+          title: '退出组织',
+          content: `确定要退出“${selectedOrg.name}”吗？`,
+          onConfirm: async () => {
+              // Mock exit logic
+              const newList = orgList.filter(o => o.id !== selectedOrg.id)
+              setOrgList(newList)
+              
+              // If exiting current org
+              if (currentOrg?.id === selectedOrg.id) {
+                  if (newList.length > 0) {
+                      setCurrentOrg(newList[0]) // Auto switch to first available
+                  } else {
+                      setCurrentOrg(null as any) // No org left
+                  }
+              }
+
+              Taro.showToast({ title: '已退出', icon: 'success' })
+              Dialog.close('exit-org')
+              setActionVisible(false)
+          },
+          onCancel: () => {
+              Dialog.close('exit-org')
+          }
+      })
+  }
+
   const handleCreate = () => {
     Taro.navigateTo({ url: '/pages/org/edit/index' })
   }
@@ -59,17 +97,25 @@ function OrgList() {
           orgList.map(org => (
             <View 
                 key={org.id} 
-                className={`org-card ${currentOrg?.id === org.id ? 'active' : ''}`}
+                className={`org-card`}
                 onClick={() => handleSwitch(org)}
             >
               <View className="info">
-                <Text className="name">{org.name}</Text>
+                <View className="name-row">
+                    <Text className="name">{org.name}</Text>
+                    {currentOrg?.id === org.id && <Tag type="success">当前使用</Tag>}
+                </View>
                 <View className="tags">
-                    {org.role === 'owner' && <Tag type="primary" plain size="small">负责人</Tag>}
-                    {currentOrg?.id === org.id && <Tag type="success" size="small">当前使用</Tag>}
+                    <Tag type={org.role === 'owner' ? 'primary' : 'warning'} plain>
+                        {org.role === 'owner' ? '负责人' : '成员'}
+                    </Tag>
                 </View>
               </View>
-              {currentOrg?.id === org.id && <Check color="#1989fa" />}
+              <View className="actions">
+                <View className="more-btn" onClick={(e) => handleMoreClick(e, org)}>
+                    <More color="#999" />
+                </View>
+              </View>
             </View>
           ))
         ) : (
@@ -84,8 +130,17 @@ function OrgList() {
       </View>
 
       <Dialog id="switch-org" />
+      <Dialog id="exit-org" />
+      
+      <ActionSheet 
+        visible={actionVisible} 
+        options={[{ name: '退出组织', color: '#fa2c19' }]} 
+        onSelect={handleExitOrg}
+        onCancel={() => setActionVisible(false)}
+      />
     </View>
   )
 }
+
 
 export default OrgList

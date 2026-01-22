@@ -109,7 +109,7 @@ function ProjectList() {
 
       {/* Floating Action Button for Create (Only for allowed roles, check later) */}
       <View className="fab-container" onClick={handleCreate}>
-        <Button icon={<Plus />} shape="round" type="primary" className="fab-button" />
+        <Button icon={<Plus size={24} />} shape="round" type="primary" className="fab-button" />
       </View>
 
       <Dialog id="invite" />

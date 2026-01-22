@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react'
-import { View } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { Button, Cell, Input, Dialog } from '@nutui/nutui-react-taro'
+import { Button, Input } from '@nutui/nutui-react-taro'
+import { Shop } from '@nutui/icons-react-taro'
 import { orgService } from '../../../services/orgService'
 import { useOrgStore } from '../../../store/orgStore'
 import './index.scss'
@@ -10,7 +10,7 @@ import './index.scss'
 export default function OrgEdit() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const { setCurrentOrg, setOrgList, orgList } = useOrgStore()
+  const { setOrgList, orgList, setCurrentOrg } = useOrgStore()
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -24,7 +24,6 @@ export default function OrgEdit() {
       const newOrg = await orgService.createOrg(name)
       
       // Update Store
-      // In real app, fetchOrgList again is better
       // @ts-ignore
       const newList = [...orgList, newOrg]
       // @ts-ignore
@@ -35,9 +34,6 @@ export default function OrgEdit() {
       Taro.showToast({ title: '创建成功', icon: 'success' })
       
       setTimeout(() => {
-        // Go back to mine page or list page
-        // If from mine (no org), back to mine
-        // If from list, back to list
         Taro.navigateBack()
       }, 1000)
 
@@ -50,22 +46,36 @@ export default function OrgEdit() {
 
   return (
     <View className="org-edit-page">
-      <View className="form-card">
-        <Cell.Group>
-            <Cell title="组织名称">
-                <Input 
-                    placeholder="请输入组织名称" 
-                    value={name} 
-                    onChange={(val) => setName(val)}
-                    align="right"
-                    maxLength={20}
-                />
-            </Cell>
-        </Cell.Group>
+      <View className="header">
+        <View className="icon-wrapper">
+            <Shop size={32} color="#1989fa" />
+        </View>
+        <Text className="title">创建新组织</Text>
+        <Text className="subtitle">创建一个新的组织来管理项目和成员</Text>
+      </View>
+
+      <View className="form-section">
+          <View className="input-group">
+            <Text className="label">组织名称</Text>
+            <Input 
+                className="custom-input"
+                placeholder="请输入组织名称 (2-20个字)" 
+                value={name} 
+                onChange={(val) => setName(val)}
+                maxLength={20}
+            />
+            <Text className="helper-text">{name.length}/20</Text>
+          </View>
       </View>
 
       <View className="form-footer">
-        <Button block type="primary" loading={loading} onClick={handleCreate}>
+        <Button 
+            block 
+            type="primary" 
+            loading={loading} 
+            onClick={handleCreate}
+            disabled={!name.trim()}
+        >
             立即创建
         </Button>
       </View>

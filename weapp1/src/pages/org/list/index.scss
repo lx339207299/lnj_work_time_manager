@@ -1,20 +1,7 @@
-
 .org-list-page {
   min-height: 100vh;
   background-color: #f5f5f5;
   padding-bottom: 80px;
-
-  .current-org-section {
-    background: #fff;
-    padding: 16px;
-    margin-bottom: 12px;
-    
-    .section-title {
-      font-size: 14px;
-      color: #999;
-      margin-bottom: 12px;
-    }
-  }
 
   .list-container {
     background: #fff;
@@ -35,20 +22,44 @@
       }
 
       .info {
+        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 8px;
 
-        .name {
-          font-size: 16px;
-          color: #333;
-          font-weight: 500;
+        .name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .name {
+                font-size: 16px;
+                color: #333;
+                font-weight: 500;
+            }
         }
 
         .tags {
           display: flex;
           gap: 8px;
         }
+      }
+
+      .actions {
+          display: flex;
+          align-items: center;
+
+          .more-btn {
+              padding: 8px;
+              margin-right: -8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              
+              &:active {
+                  opacity: 0.7;
+              }
+          }
       }
     }
   }
