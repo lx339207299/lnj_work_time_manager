@@ -25,8 +25,8 @@ function Mine() {
     }
   })
 
-  // Mock Role Check (Should ideally come from userStore or orgStore)
-  const isManager = userInfo?.role === 'owner' || userInfo?.role === 'leader' || currentOrg?.role === 'owner'
+  // Role Check
+  const isManager = currentOrg?.role === 'owner' || currentOrg?.role === 'admin'
 
   const handleLogout = () => {
     logout()

@@ -15,13 +15,13 @@ export class OrganizationsController {
   @Post()
   @ApiOperation({ summary: 'Create new organization' })
   create(@Request() req: any, @Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(req.user.userId, createOrganizationDto);
+    return this.organizationsService.create(req.user.sub, createOrganizationDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get my organizations' })
   findAll(@Request() req: any) {
-    return this.organizationsService.findAll(req.user.userId);
+    return this.organizationsService.findAll(req.user.sub);
   }
 
   @Get(':id')
@@ -33,18 +33,18 @@ export class OrganizationsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update organization' })
   update(@Request() req: any, @Param('id') id: string, @Body() updateDto: any) {
-    return this.organizationsService.update(id, req.user.userId, updateDto);
+    return this.organizationsService.update(id, req.user.sub, updateDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete organization (Owner only)' })
   remove(@Request() req: any, @Param('id') id: string) {
-    return this.organizationsService.remove(id, req.user.userId);
+    return this.organizationsService.remove(id, req.user.sub);
   }
 
   @Post(':id/leave')
   @ApiOperation({ summary: 'Leave organization' })
   leave(@Request() req: any, @Param('id') id: string) {
-    return this.organizationsService.leave(id, req.user.userId);
+    return this.organizationsService.leave(id, req.user.sub);
   }
 }

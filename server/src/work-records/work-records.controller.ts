@@ -22,7 +22,23 @@ export class WorkRecordsController {
   @ApiOperation({ summary: 'Get work records list' })
   @ApiQuery({ name: 'projectId', required: true })
   @ApiQuery({ name: 'date', required: false })
-  findAll(@Query('projectId') projectId: string, @Query('date') date?: string) {
-    return this.workRecordsService.findAll(projectId, date);
+  @ApiQuery({ name: 'month', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'pageSize', required: false })
+  findAll(
+    @Query('projectId') projectId: string, 
+    @Query('date') date?: string,
+    @Query('month') month?: string,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number
+  ) {
+    return this.workRecordsService.findAll(projectId, date, month, page, pageSize);
+  }
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Get project member stats' })
+  @ApiQuery({ name: 'projectId', required: true })
+  getStats(@Query('projectId') projectId: string) {
+    return this.workRecordsService.getStats(projectId);
   }
 }

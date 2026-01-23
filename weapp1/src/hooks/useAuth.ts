@@ -50,11 +50,20 @@ export const useAuth = () => {
     if (!effectiveToken) {
         if (route && !whitelist.includes(route)) {
             // Prevent redirect loop
-            if (!window.location.hash.includes('pages/login/index')) {
-                Taro.redirectTo({ url: '/pages/login/index' })
+            if (process.env.TARO_ENV === 'h5') {
+                 if (!window.location.hash.includes('pages/login/index')) {
+                    Taro.redirectTo({ url: '/pages/login/index' })
+                 }
+            } else {
+                 Taro.redirectTo({ url: '/pages/login/index' })
             }
         }
         return
+    }
+
+    // Ensure token is in storage for request util
+    if (effectiveToken && !Taro.getStorageSync('token')) {
+        Taro.setStorageSync('token', effectiveToken)
     }
 
     // Strategy C: Time threshold check (5 minutes)

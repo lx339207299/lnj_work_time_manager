@@ -8,13 +8,14 @@ import { useProjectStore, Project } from '../../store/projectStore'
 import { projectService } from '../../services/projectService'
 import './index.scss'
 
+import { useOrgStore } from '../../store/orgStore'
 import { useUserStore } from '../../store/userStore'
-import { useAuth } from '../../hooks/useAuth'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
-  const { projectList, setProjectList, setCurrentProject } = useProjectStore()
+  const { projectList = [], setProjectList, setCurrentProject } = useProjectStore()
   const { token } = useUserStore() // Get token directly
+  const { currentOrg } = useOrgStore()
   
   const fetchData = async () => {
     if (!token) {
@@ -23,12 +24,20 @@ function ProjectList() {
         return
     }
 
+    if (!currentOrg?.id) {
+        setLoading(false)
+        setProjectList([])
+        return
+    }
+
     setLoading(true)
     try {
-      const res = await projectService.getProjects('current_org_id') // Mock Org ID
-      setProjectList(res)
+      const res = await projectService.getProjects(currentOrg.id)
+      // Ensure res is an array
+      setProjectList(Array.isArray(res) ? res : [])
     } catch (error) {
       console.error(error)
+      setProjectList([])
     } finally {
       setLoading(false)
     }
@@ -120,7 +129,7 @@ function ProjectList() {
           ) : (
             <Empty 
                 description={token ? "暂无项目" : "登录后管理项目"} 
-                actions={token ? undefined : [{ text: '去登录', onClick: () => Taro.navigateTo({ url: '/pages/login/index' }) }]}
+                actions={token ? [] : [{ text: '去登录', onClick: () => Taro.navigateTo({ url: '/pages/login/index' }) }]}
             />
           )
         )}

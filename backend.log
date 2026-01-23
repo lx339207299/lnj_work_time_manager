@@ -2,51 +2,32 @@
 > server@0.0.1 start:dev
 > nest start --watch
 
-[2J[3J[H[[90m15:48:46[0m] Starting compilation in watch mode...
+[2J[3J[H[[90m18:14:10[0m] Starting compilation in watch mode...
 
-[[90m15:48:47[0m] Found 0 errors. Watching for file changes.
+[96msrc/work-records/work-records.service.ts[0m:[93m102[0m:[93m20[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'user' does not exist in type 'ProjectMemberInclude<DefaultArgs>'.
 
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +7ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +2ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOrganizationsModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mProjectsModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEmployeesModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mWorkRecordsModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +10ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/users}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOrganizationsController {/organizations}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations/:id, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations/:id, PATCH} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations/:id, DELETE} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/organizations/:id/leave, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProjectsController {/projects}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects, POST} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects/:id, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects/:id/members, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects/:id/members, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects/:id/flows, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/projects/:id/flows, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEmployeesController {/employees}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees/:id, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees/:id, PATCH} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees/:id, DELETE} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/employees/:id/transfer-ownership, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mWorkRecordsController {/work-records}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/work-records, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/work-records, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login-or-register, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 5336  - [39m2026/01/23 15:48:47 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +1ms[39m
+[7m102[0m         include: { user: true }
+[7m   [0m [91m                   ~~~~[0m
+
+  [96mnode_modules/.prisma/client/index.d.ts[0m:[93m6432[0m:[93m5[0m
+    [7m6432[0m     include?: ProjectMemberInclude<ExtArgs> | null
+    [7m    [0m [96m    ~~~~~~~[0m
+    The expected type comes from property 'include' which is declared here on type '{ select?: ProjectMemberSelect<DefaultArgs>; include?: ProjectMemberInclude<DefaultArgs>; where?: ProjectMemberWhereInput; ... 4 more ...; distinct?: ProjectMemberScalarFieldEnum | ProjectMemberScalarFieldEnum[]; }'
+
+[96msrc/work-records/work-records.service.ts[0m:[93m109[0m:[93m31[0m - [91merror[0m[90m TS2339: [0mProperty 'name' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; role: string; projectId: string; memberId: string; }'.
+
+[7m109[0m             userName: member?.name || 'Unknown',
+[7m   [0m [91m                              ~~~~[0m
+
+[96msrc/work-records/work-records.service.ts[0m:[93m110[0m:[93m33[0m - [91merror[0m[90m TS2339: [0mProperty 'user' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; role: string; projectId: string; memberId: string; }'.
+
+[7m110[0m             userAvatar: member?.user?.avatar || '',
+[7m   [0m [91m                                ~~~~[0m
+
+[96msrc/work-records/work-records.service.ts[0m:[93m113[0m:[93m31[0m - [91merror[0m[90m TS2339: [0mProperty 'wageType' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; role: string; projectId: string; memberId: string; }'.
+
+[7m113[0m             wageType: member?.wageType || 'day'
+[7m   [0m [91m                              ~~~~~~~~[0m
+
+[[90m18:14:11[0m] Found 4 errors. Watching for file changes.
+

@@ -20,13 +20,13 @@ export class LoggingInterceptor implements NestInterceptor {
     const now = Date.now();
 
     this.logger.log(`Incoming Request: ${method} ${url}`);
-    if (Object.keys(body).length > 0) {
+    if (body && Object.keys(body).length > 0) {
         this.logger.debug(`Body: ${JSON.stringify(body)}`);
     }
-    if (Object.keys(query).length > 0) {
+    if (query && Object.keys(query).length > 0) {
         this.logger.debug(`Query: ${JSON.stringify(query)}`);
     }
-    if (Object.keys(params).length > 0) {
+    if (params && Object.keys(params).length > 0) {
         this.logger.debug(`Params: ${JSON.stringify(params)}`);
     }
 

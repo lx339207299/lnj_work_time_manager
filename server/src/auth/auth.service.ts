@@ -63,7 +63,7 @@ export class AuthService {
             avatar: newUser.avatar,
             phone: newUser.phone
         },
-        isNewUser: true
+        isNewUser: false
     };
   }
 
