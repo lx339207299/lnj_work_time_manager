@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 
-const baseUrl = process.env.TARO_APP_API_URL || 'https://api.example.com'
+const baseUrl = process.env.TARO_APP_API_URL || 'http://localhost:3000'
 
 export const request = async (options: Taro.request.Option) => {
   const { url, header = {} } = options

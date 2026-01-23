@@ -1,0 +1,26 @@
+
+> weapp@1.0.0 dev:h5
+> npm run build:h5 -- --watch
+
+
+> weapp@1.0.0 build:h5
+> NODE_OPTIONS=--openssl-legacy-provider taro build --type h5 --watch
+
+👽 Taro v3.6.38
+
+- 开始获取 taro 全局配置文件： /Users/lixiong/.taro-global-config/index.json
+⚠ 获取 taro 全局配置文件失败，不存在全局配置文件：/Users/lixiong/.taro-global-config/index.json
+
+- Compiling...
+- Compiling...
+[34mℹ[39m [90m｢wds｣[39m: Project is running at http://172.16.70.116:10086/
+[34mℹ[39m [90m｢wds｣[39m: webpack output is served from /
+[34mℹ[39m [90m｢wds｣[39m: Content not from webpack is served from /Users/lixiong/workspace_ai/lnj_work_time_manager/weapp1/dist
+[34mℹ[39m [90m｢wds｣[39m: 404s will fallback to /index.html
+
+ℹ️  Listening at http://172.16.70.116:10086/
+
+监听文件修改中...
+
+✅  Compiled successfully!
+

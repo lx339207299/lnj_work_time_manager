@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -41,5 +41,11 @@ export class EmployeesController {
   @ApiOperation({ summary: 'Remove employee' })
   remove(@Param('id') id: string) {
     return this.employeesService.remove(id);
+  }
+
+  @Post(':id/transfer-ownership')
+  @ApiOperation({ summary: 'Transfer organization ownership to employee' })
+  transferOwnership(@Request() req: any, @Param('id') id: string) {
+    return this.employeesService.transferOwnership(id, req.user.userId);
   }
 }

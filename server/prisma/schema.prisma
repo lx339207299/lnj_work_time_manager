@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -55,6 +56,7 @@ model OrganizationMember {
   updatedAt   DateTime @updatedAt
 
   workRecords WorkRecord[]
+  projectMemberships ProjectMember[]
   
   // Ensure unique phone per org? Or unique user per org.
   @@unique([orgId, userId])
@@ -73,6 +75,44 @@ model Project {
   updatedAt   DateTime @updatedAt
 
   workRecords WorkRecord[]
+  projectMembers ProjectMember[]
+  flows       ProjectFlow[]
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  
+  memberId  String
+  member    OrganizationMember @relation(fields: [memberId], references: [id])
+  
+  role      String   @default("member") // owner, member
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, memberId])
+}
+
+model ProjectFlow {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  
+  type        String   // income, expense
+  category    String   // 薪资, 收款, 福利, etc.
+  amount      Float
+  date        String   // YYYY-MM-DD
+  remark      String?
+  
+  // Optional: link to a specific member if it's a salary payment
+  relatedMemberId String?
+  // We can't easily link to OrgMember here if we want to keep it simple, but let's try
+  // For now just store the name or ID if needed, or leave it decoupled
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model WorkRecord {

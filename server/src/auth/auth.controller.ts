@@ -11,10 +11,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  @ApiOperation({ summary: 'User login' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  @Post('login-or-register')
+  @ApiOperation({ summary: 'Login or Register automatically' })
+  async loginOrRegister(@Body() loginDto: LoginDto) {
+    return this.authService.loginOrRegister(loginDto);
   }
 
   @Post('register')
@@ -27,7 +27,10 @@ export class AuthController {
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Request() req: any) {
-    return req.user;
+  async getProfile(@Request() req: any) {
+    // req.user only contains basic info from JWT payload
+    // We should fetch full user info from DB
+    const user = await this.authService.getUserProfile(req.user.sub);
+    return user;
   }
 }

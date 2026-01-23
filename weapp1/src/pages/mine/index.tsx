@@ -2,15 +2,28 @@ import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Dialog, Cell, CellGroup, Button, Avatar, ActionSheet } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { useUserStore } from '../../store/userStore'
 import { useOrgStore, Organization } from '../../store/orgStore'
+import { request } from '../../utils/request'
 import './index.scss'
 
 function Mine() {
   const { userInfo, token, logout } = useUserStore()
   const { currentOrg, orgList, setCurrentOrg } = useOrgStore()
   const [isVisible, setIsVisible] = useState(false)
+
+  useDidShow(() => {
+    // Strategy B: Sync profile when entering mine page
+    if (token) {
+        request({ url: '/auth/profile', method: 'GET' })
+            .then(user => {
+                // @ts-ignore
+                useUserStore.getState().setUserInfo(user)
+            })
+            .catch(console.error)
+    }
+  })
 
   // Mock Role Check (Should ideally come from userStore or orgStore)
   const isManager = userInfo?.role === 'owner' || userInfo?.role === 'leader' || currentOrg?.role === 'owner'

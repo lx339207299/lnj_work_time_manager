@@ -2,6 +2,8 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AddProjectMembersDto } from './dto/add-project-members.dto';
+import { CreateProjectFlowDto } from './dto/create-project-flow.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
@@ -29,5 +31,29 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Get project details' })
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
+  }
+
+  @Post(':id/members')
+  @ApiOperation({ summary: 'Add members to project' })
+  addMembers(@Param('id') id: string, @Body() dto: AddProjectMembersDto) {
+    return this.projectsService.addMembers(id, dto);
+  }
+
+  @Get(':id/members')
+  @ApiOperation({ summary: 'Get project members' })
+  getMembers(@Param('id') id: string) {
+    return this.projectsService.getMembers(id);
+  }
+
+  @Post(':id/flows')
+  @ApiOperation({ summary: 'Add project flow record' })
+  addFlow(@Param('id') id: string, @Body() dto: CreateProjectFlowDto) {
+    return this.projectsService.addFlow(id, dto);
+  }
+
+  @Get(':id/flows')
+  @ApiOperation({ summary: 'Get project flow records' })
+  getFlows(@Param('id') id: string) {
+    return this.projectsService.getFlows(id);
   }
 }

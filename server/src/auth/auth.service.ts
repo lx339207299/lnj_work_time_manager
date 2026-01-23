@@ -22,20 +22,48 @@ export class AuthService {
     return null;
   }
 
-  async login(loginDto: LoginDto) {
+  async loginOrRegister(loginDto: LoginDto) {
     const user = await this.usersService.findOne(loginDto.phone);
-    if (!user || !(await bcrypt.compare(loginDto.password || '', user.password))) {
-      throw new UnauthorizedException();
+    
+    // If user exists, try login
+    if (user) {
+        if (!(await bcrypt.compare(loginDto.password || '', user.password))) {
+             throw new UnauthorizedException('密码错误');
+        }
+        
+        const payload = { phone: user.phone, sub: user.id };
+        return {
+            access_token: this.jwtService.sign(payload),
+            user: {
+                id: user.id,
+                name: user.name,
+                role: 'user',
+                avatar: user.avatar,
+                phone: user.phone
+            },
+            isNewUser: false
+        };
     }
-    const payload = { phone: user.phone, sub: user.id };
+
+    // If user does not exist, register
+    const newUser = await this.usersService.create({
+        phone: loginDto.phone,
+        password: loginDto.password || '123456',
+        name: `用户${loginDto.phone.slice(-4)}`,
+        avatar: ''
+    });
+
+    const payload = { phone: newUser.phone, sub: newUser.id };
     return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-          id: user.id,
-          name: user.name,
-          role: 'user', // Default role for now, real role is in OrgMember
-          avatar: user.avatar
-      }
+        access_token: this.jwtService.sign(payload),
+        user: {
+            id: newUser.id,
+            name: newUser.name,
+            role: 'user',
+            avatar: newUser.avatar,
+            phone: newUser.phone
+        },
+        isNewUser: true
     };
   }
 
@@ -64,5 +92,14 @@ export class AuthService {
           avatar: user.avatar
       }
     };
+  }
+
+  async getUserProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) return null;
+    
+    // You might want to remove sensitive info like password
+    const { password, ...result } = user;
+    return result;
   }
 }

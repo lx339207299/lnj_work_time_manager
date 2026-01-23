@@ -55,4 +55,44 @@ export class EmployeesService {
       where: { id },
     });
   }
+
+  async transferOwnership(targetMemberId: string, currentUserId: string) {
+    const targetMember = await this.prisma.organizationMember.findUnique({
+        where: { id: targetMemberId }
+    });
+    if (!targetMember) throw new Error('Member not found');
+
+    const org = await this.prisma.organization.findUnique({
+        where: { id: targetMember.orgId }
+    });
+    if (!org) throw new Error('Organization not found');
+    if (org.ownerId !== currentUserId) throw new Error('Only owner can transfer ownership');
+
+    // Find current owner member record
+    const currentOwnerMember = await this.prisma.organizationMember.findFirst({
+        where: { orgId: org.id, userId: currentUserId }
+    });
+
+    return this.prisma.$transaction(async (tx: any) => {
+        // 1. Update Org owner
+        await tx.organization.update({
+            where: { id: org.id },
+            data: { ownerId: targetMember.userId || '' } // Ideally target must have userId
+        });
+
+        // 2. Downgrade current owner to member
+        if (currentOwnerMember) {
+            await tx.organizationMember.update({
+                where: { id: currentOwnerMember.id },
+                data: { role: 'member' }
+            });
+        }
+
+        // 3. Upgrade target to owner
+        await tx.organizationMember.update({
+            where: { id: targetMemberId },
+            data: { role: 'owner' }
+        });
+    });
+  }
 }

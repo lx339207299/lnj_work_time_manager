@@ -1,4 +1,5 @@
-// import { request } from '../utils/request'
+import { request } from '../utils/request'
+import Taro from '@tarojs/taro'
 
 export interface User {
   id: string
@@ -9,41 +10,35 @@ export interface User {
 }
 
 export const authService = {
-  // Send verification code
+  // Send verification code (Mock for now, or real API if implemented)
   sendCode: async (phone: string): Promise<boolean> => {
-    // Mock API
     return new Promise((resolve) => {
       setTimeout(() => {
-        console.log(`Verification code sent to ${phone}: 123456`)
+        Taro.showToast({ title: '验证码: 123456', icon: 'none' })
         resolve(true)
-      }, 1000)
+      }, 500)
     })
   },
 
-  // Login with phone and code
+  // Login (Using password for now as backend supports it)
   loginByPhone: async (phone: string, code: string): Promise<{ token: string, user: User, isProfileComplete: boolean }> => {
-    // Mock API
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (code === '123456') {
-          // Mock logic: if phone ends with 0, profile is incomplete
-          const isProfileComplete = !phone.endsWith('0')
-          
-          resolve({
-            token: 'mock_token_' + Date.now(),
-            user: {
-              id: 'u_' + phone,
-              name: isProfileComplete ? `用户${phone.slice(-4)}` : '', // Empty name if incomplete
-              phone: phone,
-              role: 'member', // Default role
-              avatar: 'https://img12.360buyimg.com/imagetools/jfs/t1/196430/38/8105/14329/60c806a4Ed506298a/e6de9fb7b8490f38.png'
-            },
-            isProfileComplete
-          })
-        } else {
-          reject(new Error('验证码错误'))
+    try {
+        const res: any = await request({
+            url: '/auth/login-or-register',
+            method: 'POST',
+            data: { phone, password: code }
+        })
+        
+        // Save token
+        Taro.setStorageSync('token', res.access_token)
+        
+        return {
+            token: res.access_token,
+            user: res.user,
+            isProfileComplete: !res.isNewUser && !!res.user.name
         }
-      }, 1000)
-    })
+    } catch (error) {
+        throw new Error('登录失败')
+    }
   }
 }

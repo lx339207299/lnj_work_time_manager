@@ -29,4 +29,22 @@ export class OrganizationsController {
   findOne(@Param('id') id: string) {
     return this.organizationsService.findOne(id);
   }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update organization' })
+  update(@Request() req: any, @Param('id') id: string, @Body() updateDto: any) {
+    return this.organizationsService.update(id, req.user.userId, updateDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete organization (Owner only)' })
+  remove(@Request() req: any, @Param('id') id: string) {
+    return this.organizationsService.remove(id, req.user.userId);
+  }
+
+  @Post(':id/leave')
+  @ApiOperation({ summary: 'Leave organization' })
+  leave(@Request() req: any, @Param('id') id: string) {
+    return this.organizationsService.leave(id, req.user.userId);
+  }
 }

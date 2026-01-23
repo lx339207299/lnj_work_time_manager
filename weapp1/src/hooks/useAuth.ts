@@ -1,11 +1,11 @@
 import Taro from '@tarojs/taro'
-import { useEffect } from 'react'
 import { useUserStore } from '../store/userStore'
+import { request } from '../utils/request'
 
 export const useAuth = () => {
-  const token = useUserStore((state) => state.token)
+  const { token, setUserInfo } = useUserStore()
   
-  const checkAuth = () => {
+  const checkAuth = async () => {
     // Whitelist
     const whitelist = [
         'pages/login/index',
@@ -47,11 +47,28 @@ export const useAuth = () => {
          }
     }
 
-    if (!effectiveToken && route && !whitelist.includes(route)) {
-      // Prevent redirect loop if we are already on login page (sometimes route check might fail slightly)
-      if (!window.location.hash.includes('pages/login/index')) {
-          Taro.redirectTo({ url: '/pages/login/index' })
-      }
+    if (!effectiveToken) {
+        if (route && !whitelist.includes(route)) {
+            // Prevent redirect loop
+            if (!window.location.hash.includes('pages/login/index')) {
+                Taro.redirectTo({ url: '/pages/login/index' })
+            }
+        }
+        return
+    }
+
+    // Strategy C: Time threshold check (5 minutes)
+    const lastSyncTime = Taro.getStorageSync('last_sync_time') || 0
+    const now = Date.now()
+    if (now - lastSyncTime > 5 * 60 * 1000) {
+        try {
+            const user = await request({ url: '/auth/profile', method: 'GET' })
+            setUserInfo(user)
+            Taro.setStorageSync('last_sync_time', now)
+        } catch (e) {
+            // If token invalid, request will handle 401
+            console.error('Sync profile failed', e)
+        }
     }
   }
 
