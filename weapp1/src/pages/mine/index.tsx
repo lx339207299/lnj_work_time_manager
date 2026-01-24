@@ -17,16 +17,54 @@ function Mine() {
     // Strategy B: Sync profile when entering mine page
     if (token) {
         request({ url: '/auth/profile', method: 'GET' })
-            .then(user => {
-                // @ts-ignore
+            .then((user: any) => {
+                // Update User Info
                 useUserStore.getState().setUserInfo(user)
+                
+                // Update Org Info (Sync from profile)
+                if (user.memberships && user.memberships.length > 0) {
+                    const orgs = user.memberships.map((m: any) => ({
+                        id: m.organization.id,
+                        name: m.organization.name,
+                        role: m.role
+                    }))
+                    useOrgStore.getState().setOrgList(orgs)
+                    
+                    // If no current org, or current org not in list, select first
+                    const current = useOrgStore.getState().currentOrg
+                    if (!current || !orgs.find(o => o.id === current.id)) {
+                        useOrgStore.getState().setCurrentOrg(orgs[0])
+                    } else {
+                        // Refresh current org role just in case
+                        const match = orgs.find(o => o.id === current.id)
+                        if (match) {
+                            useOrgStore.getState().setCurrentOrg(match)
+                        }
+                    }
+                } else {
+                    useOrgStore.getState().setOrgList([])
+                    useOrgStore.getState().setCurrentOrg(null)
+                }
             })
             .catch(console.error)
     }
   })
 
   // Role Check
-  const isManager = currentOrg?.role === 'owner' || currentOrg?.role === 'admin'
+  // We need to check if currentOrg is properly set
+  // If no org is selected, we might want to hide or show differently
+  // For debugging, let's print currentOrg
+  console.log('Mine Page - currentOrg:', currentOrg)
+  
+  // Use state to force re-render if store updates don't trigger it (though Zustand should)
+  // Or simply rely on useOrgStore hook which is reactive.
+  
+  // Issue might be: currentOrg reference changes but component doesn't re-render?
+  // Zustand hook `useOrgStore()` returns the state slice. If we destructure `{ currentOrg }`, it should be reactive.
+  
+  const isManager = React.useMemo(() => {
+      return currentOrg?.role === 'owner' || currentOrg?.role === 'admin' || currentOrg?.role === 'leader'
+  }, [currentOrg])
 
   const handleLogout = () => {
     logout()

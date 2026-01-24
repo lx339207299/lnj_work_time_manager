@@ -5,6 +5,8 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutui/nutui-react-taro'
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
+import { invitationService } from '../../services/invitationService'
+import { useOrgStore } from '../../store/orgStore'
 import './index.scss'
 
 const roleMap: Record<string, { text: string, type: string }> = {
@@ -17,6 +19,7 @@ const roleMap: Record<string, { text: string, type: string }> = {
 function EmployeeList() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
+  const { currentOrg } = useOrgStore()
 
   useDidShow(() => {
     fetchEmployees()
@@ -80,20 +83,40 @@ function EmployeeList() {
     })
   }
 
-  const handleInvite = () => {
+  const handleInvite = async () => {
     if (!['owner', 'leader'].includes(currentUserRole)) {
         Taro.showToast({ title: '无权邀请员工', icon: 'none' })
         return
     }
+
+    if (!currentOrg?.id) {
+        Taro.showToast({ title: '未选择组织', icon: 'none' })
+        return
+    }
     
-    // In real app: Open share dialog or copy invite link
-    Taro.showActionSheet({
-        itemList: ['发送微信邀请', '复制邀请链接', '生成邀请二维码']
-    }).then(() => {
-        Taro.showToast({ title: '已生成邀请', icon: 'success' })
-    }).catch(err => {
-        console.log('ActionSheet cancelled:', err.errMsg)
-    })
+    Taro.showLoading({ title: '生成邀请...' })
+    try {
+        const invite = await invitationService.create(currentOrg.id)
+        Taro.hideLoading()
+        
+        Taro.showActionSheet({
+            itemList: ['复制邀请码', '复制邀请链接']
+        }).then(res => {
+            if (res.tapIndex === 0) {
+                Taro.setClipboardData({ data: invite.code })
+            } else if (res.tapIndex === 1) {
+                // Assuming we have a way to deep link or just text description
+                // In real WeChat Mini Program, we might not have a URL scheme unless we use Link or QR Code
+                // For now, text is fine.
+                const link = `请在小程序中输入邀请码: ${invite.code}`
+                Taro.setClipboardData({ data: link })
+            }
+        }).catch(() => {})
+        
+    } catch (error) {
+        Taro.hideLoading()
+        Taro.showToast({ title: '生成邀请失败', icon: 'error' })
+    }
   }
 
   return (

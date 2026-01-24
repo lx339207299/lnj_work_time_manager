@@ -63,12 +63,6 @@ function Login() {
         
         Taro.showToast({ title: '登录成功', icon: 'success' })
         
-        // Mock pending invite check
-        const hasPendingInvite = true 
-        if (hasPendingInvite) {
-            Taro.setStorageSync('pending_invite', 'true')
-        }
-        
         setTimeout(() => {
             if (isProfileComplete) {
                 Taro.switchTab({ url: '/pages/project/index' })

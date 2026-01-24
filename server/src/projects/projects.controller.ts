@@ -1,11 +1,11 @@
 
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Headers } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMembersDto } from './dto/add-project-members.dto';
 import { CreateProjectFlowDto } from './dto/create-project-flow.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiHeader } from '@nestjs/swagger';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -16,14 +16,21 @@ export class ProjectsController {
 
   @Post()
   @ApiOperation({ summary: 'Create new project' })
-  create(@Body() createProjectDto: CreateProjectDto) {
+  @ApiHeader({ name: 'x-org-id', required: false, description: 'Organization ID' })
+  create(@Body() createProjectDto: CreateProjectDto, @Headers('x-org-id') orgId: string) {
+    // If orgId is not in body, try to use header
+    if (!createProjectDto.orgId && orgId) {
+        createProjectDto.orgId = orgId;
+    }
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get projects list' })
-  @ApiQuery({ name: 'orgId', required: true })
-  findAll(@Query('orgId') orgId: string) {
+  @ApiQuery({ name: 'orgId', required: false })
+  @ApiHeader({ name: 'x-org-id', required: false, description: 'Organization ID' })
+  findAll(@Query('orgId') queryOrgId: string, @Headers('x-org-id') headerOrgId: string) {
+    const orgId = queryOrgId || headerOrgId;
     return this.projectsService.findAll(orgId);
   }
 

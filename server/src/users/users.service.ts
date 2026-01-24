@@ -21,6 +21,19 @@ export class UsersService {
     });
   }
 
+  async findByIdWithOrgs(id: string) {
+    if (!id) return null;
+    return this.prisma.user.findUnique({
+        where: { id },
+        include: {
+            memberships: {
+                include: { organization: true },
+                where: { status: 'active' }
+            }
+        }
+    });
+  }
+
   async create(data: Prisma.UserCreateInput): Promise<User> {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(data.password, salt);

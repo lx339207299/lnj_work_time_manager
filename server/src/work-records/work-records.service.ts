@@ -95,7 +95,7 @@ export class WorkRecordsService {
     });
 
     // Fetch member details
-    const members = await this.prisma.projectMember.findMany({
+    const members = await this.prisma.organizationMember.findMany({
         where: {
             id: { in: stats.map(s => s.memberId) }
         },

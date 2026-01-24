@@ -6,6 +6,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
 import { useProjectStore, Project } from '../../store/projectStore'
 import { projectService } from '../../services/projectService'
+import { invitationService } from '../../services/invitationService'
 import './index.scss'
 
 import { useOrgStore } from '../../store/orgStore'
@@ -15,7 +16,7 @@ function ProjectList() {
   const [loading, setLoading] = useState(true)
   const { projectList = [], setProjectList, setCurrentProject } = useProjectStore()
   const { token } = useUserStore() // Get token directly
-  const { currentOrg } = useOrgStore()
+  const { currentOrg, setOrgList, setCurrentOrg } = useOrgStore()
   
   const fetchData = async () => {
     if (!token) {
@@ -43,25 +44,50 @@ function ProjectList() {
     }
   }
 
-  useDidShow(() => {
+  useDidShow(async () => {
     fetchData()
     
     // Check for pending invite
     if (token) {
-        const pendingInvite = Taro.getStorageSync('pending_invite')
-        if (pendingInvite === 'true') {
-            Taro.removeStorageSync('pending_invite')
-            Dialog.open('invite', {
-                title: '邀请加入',
-                content: '“某某建筑工程队”邀请您加入组织，是否同意？',
-                onConfirm: () => {
-                    Taro.showToast({ title: '已加入组织', icon: 'success' })
-                    Dialog.close('invite')
-                },
-                onCancel: () => {
-                    Dialog.close('invite')
-                }
-            })
+        const inviteCode = Taro.getStorageSync('pending_invite_code')
+        if (inviteCode) {
+            // Remove immediately to prevent loop if error, or keep until handled? 
+            // Better keep until handled, but remove if invalid.
+            
+            try {
+                Taro.showLoading({ title: '处理邀请...' })
+                const invite = await invitationService.get(inviteCode)
+                Taro.hideLoading()
+                
+                Dialog.open('invite', {
+                    title: '邀请加入',
+                    content: `“${invite.organization?.name || '未知组织'}”邀请您加入，是否同意？`,
+                    onConfirm: async () => {
+                        try {
+                            await invitationService.accept(inviteCode)
+                            Taro.showToast({ title: '已加入组织', icon: 'success' })
+                            Taro.removeStorageSync('pending_invite_code')
+                            Dialog.close('invite')
+                            
+                            // Refresh org list
+                            // We can't import orgService here easily if circular, but we can try
+                            // Or just let user switch manually. 
+                            // But better to switch to new org if it's the first one?
+                        } catch (err: any) {
+                            Taro.showToast({ title: err.message || '加入失败', icon: 'error' })
+                        }
+                    },
+                    onCancel: () => {
+                        Taro.removeStorageSync('pending_invite_code')
+                        Dialog.close('invite')
+                    }
+                })
+            } catch (error) {
+                Taro.hideLoading()
+                console.error('Invite error', error)
+                // Invalid invite
+                Taro.removeStorageSync('pending_invite_code')
+            }
         }
     }
   })

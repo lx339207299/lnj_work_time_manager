@@ -23,6 +23,8 @@ interface UserState {
   logout: () => void
 }
 
+import { useOrgStore } from './orgStore'
+
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
@@ -30,11 +32,16 @@ export const useUserStore = create<UserState>()(
       token: null,
       setUserInfo: (info) => set({ userInfo: info }),
       setToken: (token) => set({ token }),
-      logout: () => set({ userInfo: null, token: null }),
+      logout: () => {
+        set({ userInfo: null, token: null })
+        // Clear org data as well
+        useOrgStore.getState().clearOrgData()
+      },
     }),
     {
       name: 'user-storage',
       storage: createJSONStorage(() => taroStorage),
+      partialize: (state) => ({ token: state.token }), // Only persist token
     }
   )
 )

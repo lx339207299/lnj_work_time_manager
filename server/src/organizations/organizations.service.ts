@@ -34,7 +34,10 @@ export class OrganizationsService {
         },
       });
 
-      return org;
+      return {
+        ...org,
+        role: 'owner'
+      };
     });
   }
 

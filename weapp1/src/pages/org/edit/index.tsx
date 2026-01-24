@@ -33,8 +33,9 @@ export default function OrgEdit() {
 
       Taro.showToast({ title: '创建成功', icon: 'success' })
       
+      // Navigate to Home Tab instead of Back, to refresh project list context
       setTimeout(() => {
-        Taro.navigateBack()
+        Taro.switchTab({ url: '/pages/project/index' })
       }, 1000)
 
     } catch (error) {

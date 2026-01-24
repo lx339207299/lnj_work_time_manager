@@ -1,4 +1,5 @@
 import Taro from '@tarojs/taro'
+import { useOrgStore } from '../store/orgStore'
 
 const baseUrl = process.env.TARO_APP_API_URL || 'http://localhost:3000'
 
@@ -9,6 +10,13 @@ export const request = async (options: Taro.request.Option) => {
   const token = Taro.getStorageSync('token')
   if (token) {
     header['Authorization'] = `Bearer ${token}`
+  }
+
+  // Get current orgId from store state directly (Zustand)
+  // Note: We need to access the store outside of React components
+  const currentOrg = useOrgStore.getState().currentOrg
+  if (currentOrg?.id) {
+      header['x-org-id'] = currentOrg.id
   }
 
   try {

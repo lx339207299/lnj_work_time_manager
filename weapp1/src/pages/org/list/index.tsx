@@ -8,6 +8,13 @@ import { useOrgStore, Organization } from '../../../store/orgStore'
 import { orgService } from '../../../services/orgService'
 import './index.scss'
 
+const roleMap: Record<string, { text: string, type: string }> = {
+    owner: { text: '负责人', type: 'primary' },
+    admin: { text: '管理员', type: 'primary' },
+    leader: { text: '组长', type: 'success' },
+    member: { text: '成员', type: 'default' }
+}
+
 function OrgList() {
   const { orgList, currentOrg, setCurrentOrg, setOrgList } = useOrgStore()
   const [loading, setLoading] = useState(false)
@@ -106,8 +113,11 @@ function OrgList() {
                     {currentOrg?.id === org.id && <Tag type="success">当前使用</Tag>}
                 </View>
                 <View className="tags">
-                    <Tag type={org.role === 'owner' ? 'primary' : 'warning'} plain>
-                        {org.role === 'owner' ? '负责人' : '成员'}
+                    <Tag 
+                        type={roleMap[org.role]?.type as any || 'default'} 
+                        plain
+                    >
+                        {roleMap[org.role]?.text || org.role}
                     </Tag>
                 </View>
               </View>

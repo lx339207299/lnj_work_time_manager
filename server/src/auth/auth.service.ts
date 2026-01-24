@@ -95,11 +95,19 @@ export class AuthService {
   }
 
   async getUserProfile(userId: string) {
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersService.findByIdWithOrgs(userId);
     if (!user) return null;
     
-    // You might want to remove sensitive info like password
     const { password, ...result } = user;
+
+    // Determine current org logic
+    // 1. If user has memberships, pick the first one as default?
+    // Or return all memberships and let frontend decide?
+    // User wants "currentOrg" in profile.
+    
+    // For now, let's just return memberships and ownedOrgs.
+    // Frontend can pick the first one or last used.
+    
     return result;
   }
 }
