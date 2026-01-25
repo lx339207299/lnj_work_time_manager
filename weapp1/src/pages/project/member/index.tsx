@@ -5,11 +5,13 @@ import { Button, Avatar, Cell, Swipe, Empty, Skeleton, Popup, Checkbox } from '@
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'
+import { useOrgStore } from '../../../store/orgStore'
 import './index.scss'
 
 function ProjectMember() {
   const router = useRouter()
   const projectId = router.params.projectId || ''
+  const { currentOrg } = useOrgStore()
   
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -43,7 +45,7 @@ function ProjectMember() {
     // Load org employees
     try {
       Taro.showLoading({ title: '加载中...' })
-      const res = await employeeService.getEmployees()
+      const res = await employeeService.getEmployees(currentOrg?.id || '')
       // Filter out existing members
       const existingIds = members.map(m => m.id)
       const available = res.filter(e => !existingIds.includes(e.id))

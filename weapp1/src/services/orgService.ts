@@ -9,5 +9,10 @@ export const orgService = {
   // Create organization
   createOrg: async (name: string): Promise<any> => {
     return request({ url: '/organizations', method: 'POST', data: { name } })
+  },
+
+  // Exit organization
+  exitOrg: async (orgId: string): Promise<void> => {
+    return request({ url: `/organizations/${orgId}/exit`, method: 'POST' })
   }
 }

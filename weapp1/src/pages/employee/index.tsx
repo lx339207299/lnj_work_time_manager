@@ -7,10 +7,11 @@ import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { invitationService } from '../../services/invitationService'
 import { useOrgStore } from '../../store/orgStore'
+import { useUserStore } from '../../store/userStore'
 import './index.scss'
 
-const roleMap: Record<string, { text: string, type: string }> = {
-  owner: { text: '负责人', type: 'primary' },
+const roleMap: Record<string, { text: string, type: string, className?: string }> = {
+  owner: { text: '负责人', type: 'default', className: 'tag-owner' },
   leader: { text: '组长', type: 'success' },
   member: { text: '员工', type: 'default' },
   temp: { text: '临时工', type: 'warning' }
@@ -20,6 +21,7 @@ function EmployeeList() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
   const { currentOrg } = useOrgStore()
+  const { userInfo } = useUserStore()
 
   useDidShow(() => {
     fetchEmployees()
@@ -38,9 +40,8 @@ function EmployeeList() {
     }
   }
 
-  // Mock current user info
-  const currentUserId = '1' // Assume current user is '张三' (owner)
-  const currentUserRole = 'owner' 
+  const currentUserId = userInfo?.id || ''
+  const currentUserRole = currentOrg?.role || 'member' 
 
   const handleEdit = (targetId: string) => {
     // Permission check
@@ -146,16 +147,24 @@ function EmployeeList() {
                             align="center"
                             title={
                                 <View className="cell-title-content">
-                                    <Avatar size="normal" className="avatar">{emp.name[0]}</Avatar>
                                     <View className="info">
                                         <View className="name-row">
                                             <Text className="name">{emp.name}</Text>
-                                            <Tag type={roleMap[emp.role]?.type as any || 'default'} plain>
+                                            <Tag 
+                                                type={roleMap[emp.role]?.type as any || 'default'} 
+                                                plain
+                                                className={roleMap[emp.role]?.className}
+                                            >
                                                 {roleMap[emp.role]?.text || emp.role}
                                             </Tag>
                                             {/* Show red dot if wageAmount is not set */}
                                             {(!emp.wageAmount || emp.wageAmount <= 0) && (
-                                                <View className="red-dot" />
+                                                <Tag 
+                                                  type='danger'
+                                                  // plain
+                                              >
+                                                  未设置工资
+                                              </Tag>
                                             )}
                                         </View>
                                         <Text className="phone">{emp.phone}</Text>

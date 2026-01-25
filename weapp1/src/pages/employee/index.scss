@@ -19,6 +19,10 @@
     }
 
     .employee-cell {
+        .nut-cell__value {
+            flex: none;
+        }
+
         .cell-title-content {
             display: flex;
             align-items: center;
@@ -47,6 +51,12 @@
                         color: #333;
                     }
 
+                    .tag-owner {
+                        color: #1989fa !important;
+                        border-color: #1989fa !important;
+                        background-color: rgba(25, 137, 250, 0.1) !important;
+                    }
+
                     .red-dot {
                         width: 6px;
                         height: 6px;
@@ -61,6 +71,9 @@
                     color: #999;
                 }
             }
+        }
+        .nut-cell-extra {
+            flex: none;
         }
     }
   }

@@ -5,6 +5,7 @@ import { Button, Cell, InputNumber, TextArea, Calendar, Checkbox, CheckboxGroup,
 import { ArrowRight, Calendar as CalendarIcon, CheckChecked } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { projectService } from '../../services/projectService'
+import { workRecordService } from '../../services/workRecordService'
 import './index.scss'
 
 interface Member {
@@ -96,32 +97,37 @@ function WorkHour() {
     Taro.showToast({ title: '已重置为默认值', icon: 'none' })
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedMemberIds.length === 0) {
         Taro.showToast({ title: '请选择员工', icon: 'none' })
         return
     }
     
     // Prepare submission data
-    const submissionData = selectedMemberIds.map(id => ({
+    const records = selectedMemberIds.map(id => ({
         memberId: id,
-        date: selectedDate,
-        duration: workHours[id],
-        // wageType: members.find(m => m.id === id)?.wageType
+        duration: workHours[id]
     }))
-    
-    console.log('Submission:', submissionData)
 
     setSubmitting(true)
-    // Mock API call
-    setTimeout(() => {
-        setSubmitting(false)
+    try {
+        await workRecordService.batchAddWorkRecords({
+            projectId: projectId || '',
+            date: selectedDate,
+            records
+        })
+        
         const count = selectedMemberIds.length
         Taro.showToast({ title: `成功为${count}人记录`, icon: 'success' })
         setTimeout(() => {
             Taro.navigateBack()
         }, 1500)
-    }, 1000)
+    } catch (error) {
+        console.error(error)
+        Taro.showToast({ title: '提交失败', icon: 'error' })
+    } finally {
+        setSubmitting(false)
+    }
   }
 
   return (

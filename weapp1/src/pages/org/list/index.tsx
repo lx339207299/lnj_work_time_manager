@@ -70,22 +70,27 @@ function OrgList() {
           title: '退出组织',
           content: `确定要退出“${selectedOrg.name}”吗？`,
           onConfirm: async () => {
-              // Mock exit logic
-              const newList = orgList.filter(o => o.id !== selectedOrg.id)
-              setOrgList(newList)
-              
-              // If exiting current org
-              if (currentOrg?.id === selectedOrg.id) {
-                  if (newList.length > 0) {
-                      setCurrentOrg(newList[0]) // Auto switch to first available
-                  } else {
-                      setCurrentOrg(null as any) // No org left
+              try {
+                  await orgService.exitOrg(selectedOrg.id)
+                  
+                  const newList = orgList.filter(o => o.id !== selectedOrg.id)
+                  setOrgList(newList)
+                  
+                  // If exiting current org
+                  if (currentOrg?.id === selectedOrg.id) {
+                      if (newList.length > 0) {
+                          setCurrentOrg(newList[0]) // Auto switch to first available
+                      } else {
+                          setCurrentOrg(null as any) // No org left
+                      }
                   }
-              }
 
-              Taro.showToast({ title: '已退出', icon: 'success' })
-              Dialog.close('exit-org')
-              setActionVisible(false)
+                  Taro.showToast({ title: '已退出', icon: 'success' })
+                  Dialog.close('exit-org')
+                  setActionVisible(false)
+              } catch (error) {
+                  Taro.showToast({ title: '退出失败', icon: 'error' })
+              }
           },
           onCancel: () => {
               Dialog.close('exit-org')

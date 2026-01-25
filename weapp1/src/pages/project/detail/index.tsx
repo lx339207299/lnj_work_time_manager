@@ -5,6 +5,8 @@ import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { useProjectStore } from '../../../store/projectStore'
+import { useUserStore } from '../../../store/userStore'
+import { useOrgStore } from '../../../store/orgStore'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
 
@@ -46,11 +48,12 @@ function ProjectDetail() {
   ]
 
   // Mock current user ID (In real app, get from userStore)
-  const currentUserId = 'u1' 
+  const { userInfo } = useUserStore()
+  const { currentOrg } = useOrgStore()
+  const currentUserId = userInfo?.id || ''
   
   // Permission Logic
-  // TODO: Check org owner role from orgStore
-  const isOrgOwner = false 
+  const isOrgOwner = currentOrg?.role === 'owner' || currentOrg?.role === 'admin'
   const isProjectOwner = currentProject?.role === 'owner'
   const canEdit = isProjectOwner || isOrgOwner
   const canViewAll = isProjectOwner || isOrgOwner

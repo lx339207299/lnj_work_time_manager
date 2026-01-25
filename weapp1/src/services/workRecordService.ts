@@ -67,5 +67,14 @@ export const workRecordService = {
   // Delete record
   deleteWorkRecord: async (id: string): Promise<void> => {
     return request({ url: `/work-records/${id}`, method: 'DELETE' })
+  },
+
+  // Batch add work records
+  batchAddWorkRecords: async (data: {
+      projectId: string
+      date: string
+      records: { memberId: string; duration: number }[]
+  }): Promise<void> => {
+      return request({ url: '/work-records/batch', method: 'POST', data })
   }
 }
