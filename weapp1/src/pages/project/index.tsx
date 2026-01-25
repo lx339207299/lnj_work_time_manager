@@ -97,6 +97,25 @@ function ProjectList() {
         Taro.navigateTo({ url: '/pages/login/index' })
         return
     }
+    
+    // Check if has organization
+    if (!currentOrg || !currentOrg.id) {
+        Dialog.open('no-org-create', {
+            title: '需要创建组织',
+            content: '创建项目前，您需要先创建一个组织或加入一个现有组织。',
+            confirmText: '去创建组织',
+            cancelText: '取消',
+            onConfirm: () => {
+                Dialog.close('no-org-create')
+                Taro.navigateTo({ url: '/pages/org/edit/index' })
+            },
+            onCancel: () => {
+                Dialog.close('no-org-create')
+            }
+        })
+        return
+    }
+
     setCurrentProject(null as any) // Clear current project for create mode
     Taro.navigateTo({ url: '/pages/project/edit/index' })
   }
@@ -167,6 +186,7 @@ function ProjectList() {
       </View>
 
       <Dialog id="invite" />
+      <Dialog id="no-org-create" />
     </View>
   )
 }

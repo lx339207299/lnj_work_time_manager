@@ -23,13 +23,17 @@ export class AuthService {
   }
 
   async loginOrRegister(loginDto: LoginDto) {
+    console.log('验证码===', loginDto.code);
+    
+    // For fixed verification code '123456', direct string comparison is sufficient.
+    // bcrypt.compare is for hashing passwords.
+    if (loginDto.code !== '123456') {
+      throw new UnauthorizedException('验证码错误');
+    }
     const user = await this.usersService.findOne(loginDto.phone);
     
     // If user exists, try login
     if (user) {
-        if (!(await bcrypt.compare(loginDto.password || '', user.password))) {
-             throw new UnauthorizedException('密码错误');
-        }
         
         const payload = { phone: user.phone, sub: user.id };
         return {
@@ -48,8 +52,8 @@ export class AuthService {
     // If user does not exist, register
     const newUser = await this.usersService.create({
         phone: loginDto.phone,
-        password: loginDto.password || '123456',
-        name: `用户${loginDto.phone.slice(-4)}`,
+        password: '',
+        name: '',
         avatar: ''
     });
 
@@ -63,7 +67,7 @@ export class AuthService {
             avatar: newUser.avatar,
             phone: newUser.phone
         },
-        isNewUser: false
+        isNewUser: true
     };
   }
 
@@ -76,7 +80,7 @@ export class AuthService {
     
     const user = await this.usersService.create({
         phone: registerDto.phone,
-        password: registerDto.password || '123456', // Default password if not provided
+        password: '', // Default password if not provided
         name: registerDto.name,
         avatar: registerDto.avatar
     });

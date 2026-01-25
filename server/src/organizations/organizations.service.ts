@@ -28,8 +28,8 @@ export class OrganizationsService {
           name: user.name || user.phone, // Default name
           phone: user.phone,
           role: 'owner',
-          wageType: 'month', // Owner usually doesn't count wage like this but needed default
-          wageAmount: 0,
+          wageType: 'month', // Owner salary default: month
+          wageAmount: 0,     // Owner salary default: 0
           status: 'active',
         },
       });

@@ -1,5 +1,6 @@
 export default defineAppConfig({
   pages: [
+    'pages/loading/index', // Set as first page (entry)
     'pages/project/index',
     'pages/home/index',
     'pages/login/index',

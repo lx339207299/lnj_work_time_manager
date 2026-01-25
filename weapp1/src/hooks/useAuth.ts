@@ -68,7 +68,6 @@ export const useAuth = () => {
     const shouldSync = !userInfo || (now - lastSyncTime > 10 * 1000)
 
     if (shouldSync) {
-        // If userInfo is missing, it means we are in "initializing" state
         if (!userInfo) {
             setInitialized(false)
         }

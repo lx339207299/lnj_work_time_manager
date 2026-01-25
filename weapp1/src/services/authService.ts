@@ -26,7 +26,7 @@ export const authService = {
         const res: any = await request({
             url: '/auth/login-or-register',
             method: 'POST',
-            data: { phone, password: code }
+            data: { phone, code }
         })
         
         // Save token

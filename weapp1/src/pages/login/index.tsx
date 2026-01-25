@@ -67,14 +67,29 @@ function Login() {
             if (isProfileComplete) {
                 Taro.switchTab({ url: '/pages/project/index' })
             } else {
-                Taro.showToast({ title: '请完善个人资料', icon: 'none' })
+                Taro.showToast({ title: '请先完善个人资料', icon: 'none', duration: 2000 })
+                // Clear token from store to enforce profile completion before accessing app
+                // Or better: keep token but redirect to profile with a flag
+                // User said: "必须完善用户信息才能记录token" -> means we shouldn't persist token if incomplete?
+                // But we need token to call updateProfile API!
+                // So we keep token in memory/storage but treat user as "partially logged in".
+                // But current architecture persists token immediately.
+                
+                // Let's redirect to profile. If they kill app and restart, they will be logged in but might be redirected again?
+                // We should handle this in useAuth check.
+                
                 setTimeout(() => {
                     Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true` })
                 }, 500)
             }
         }, 1500)
     } catch (error: any) {
-        Taro.showToast({ title: error.message || '登录失败', icon: 'error' })
+        console.error('Login error:', error)
+        // Ensure toast is shown even if error object is weird
+        const msg = error.message || error.errMsg || '登录失败'
+        console.error('Login error: msg === ', msg)
+        // Use 'none' icon because 'error' icon is not standard in all Taro platforms or might be ignored
+        Taro.showToast({ title: msg, icon: 'none', duration: 2000 })
     } finally {
         setLoading(false)
     }

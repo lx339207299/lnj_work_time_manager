@@ -28,7 +28,7 @@ function EmployeeList() {
   const fetchEmployees = async () => {
     setLoading(true)
     try {
-      const res = await employeeService.getEmployees()
+      const res = await employeeService.getEmployees(currentOrg?.id || '')
       setEmployees(res)
     } catch (error) {
       console.error(error)
