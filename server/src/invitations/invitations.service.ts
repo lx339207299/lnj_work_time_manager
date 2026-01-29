@@ -54,12 +54,10 @@ export class InvitationsService {
     const invite = await this.findOne(code);
     
     // Check if already a member
-    const existingMember = await this.prisma.organizationMember.findUnique({
+    const existingMember = await this.prisma.organizationMember.findFirst({
       where: {
-        orgId_userId: {
-          orgId: invite.orgId,
-          userId,
-        },
+        orgId: invite.orgId,
+        userId: userId,
       },
     });
 

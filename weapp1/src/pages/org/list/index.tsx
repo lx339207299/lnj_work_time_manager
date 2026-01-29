@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
@@ -42,7 +41,7 @@ function OrgList() {
 
     Dialog.open('switch-org', {
       title: '切换组织',
-      content: `确定要切换到“${org.name}”吗？`,
+      content: `确定要切换到"${org.name}"吗？`,
       onConfirm: () => {
         setCurrentOrg(org)
         Taro.showToast({ title: '切换成功', icon: 'success' })
@@ -66,9 +65,28 @@ function OrgList() {
   const handleExitOrg = () => {
       if (!selectedOrg) return
 
+      // Check if user is owner
+      if (selectedOrg.role === 'owner') {
+          Dialog.open('owner-exit-warning', {
+              title: '无法退出组织',
+              content: '您是组织负责人，无法直接退出组织。\n\n如需退出，请先：\n1. 转移负责人权限给其他成员\n2. 或删除整个组织',
+              confirmText: '去转移权限',
+              cancelText: '我知道了',
+              onConfirm: () => {
+                  Dialog.close('owner-exit-warning')
+                  // Navigate to employee management to transfer ownership
+                  Taro.navigateTo({ url: '/pages/employee/index' })
+              },
+              onCancel: () => {
+                  Dialog.close('owner-exit-warning')
+              }
+          })
+          return
+      }
+
       Dialog.open('exit-org', {
           title: '退出组织',
-          content: `确定要退出“${selectedOrg.name}”吗？`,
+          content: `确定要退出"${selectedOrg.name}"吗？`,
           onConfirm: async () => {
               try {
                   await orgService.exitOrg(selectedOrg.id)
@@ -88,8 +106,9 @@ function OrgList() {
                   Taro.showToast({ title: '已退出', icon: 'success' })
                   Dialog.close('exit-org')
                   setActionVisible(false)
-              } catch (error) {
-                  Taro.showToast({ title: '退出失败', icon: 'error' })
+              } catch (error: any) {
+                  console.error('Exit org error:', error)
+                  Taro.showToast({ title: error.message || '退出失败', icon: 'none' })
               }
           },
           onCancel: () => {
@@ -146,6 +165,7 @@ function OrgList() {
 
       <Dialog id="switch-org" />
       <Dialog id="exit-org" />
+      <Dialog id="owner-exit-warning" />
       
       <ActionSheet 
         visible={actionVisible} 

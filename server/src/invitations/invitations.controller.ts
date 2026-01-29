@@ -1,19 +1,19 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
-// Assuming AuthGuard is available globally or imported
-// If not, I'll need to check where AuthGuard is. 
-// Based on context, it seems standard NestJS JWT auth.
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('invitations')
 @Controller('invitations')
+@UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth()
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
   @Post()
   create(@Body() createInvitationDto: CreateInvitationDto, @Request() req) {
-    // req.user should be populated by AuthGuard
-    // If not using global guard, I might need @UseGuards(JwtAuthGuard)
-    return this.invitationsService.create(createInvitationDto, req.user.userId);
+    return this.invitationsService.create(createInvitationDto, req.user.sub);
   }
 
   @Get(':code')
@@ -23,6 +23,6 @@ export class InvitationsController {
 
   @Post(':code/accept')
   accept(@Param('code') code: string, @Request() req) {
-    return this.invitationsService.accept(code, req.user.userId);
+    return this.invitationsService.accept(code, req.user.sub);
   }
 }

@@ -13,6 +13,6 @@ export const orgService = {
 
   // Exit organization
   exitOrg: async (orgId: string): Promise<void> => {
-    return request({ url: `/organizations/${orgId}/exit`, method: 'POST' })
+    return request({ url: `/organizations/${orgId}/leave`, method: 'POST' })
   }
 }

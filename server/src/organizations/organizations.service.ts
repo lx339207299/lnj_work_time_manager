@@ -94,8 +94,8 @@ export class OrganizationsService {
 
   async leave(id: string, userId: string) {
     const org = await this.prisma.organization.findUnique({ where: { id } });
-    if (!org) throw new Error('Organization not found');
-    if (org.ownerId === userId) throw new Error('Owner cannot leave organization');
+    if (!org) throw new Error('组织不存在');
+    if (org.ownerId === userId) throw new Error('负责人无法退出，请先转移权限');
 
     return this.prisma.organizationMember.deleteMany({
       where: {
