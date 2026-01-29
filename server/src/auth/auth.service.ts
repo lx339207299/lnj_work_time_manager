@@ -35,7 +35,11 @@ export class AuthService {
     // If user exists, try login
     if (user) {
         
-        const payload = { phone: user.phone, sub: user.id };
+        const payload = { 
+          phone: user.phone, 
+          sub: user.id,
+          orgId: (user as any).currentOrgId || null 
+        };
         return {
             access_token: this.jwtService.sign(payload),
             user: {
@@ -43,7 +47,8 @@ export class AuthService {
                 name: user.name,
                 role: 'user',
                 avatar: user.avatar,
-                phone: user.phone
+                phone: user.phone,
+                currentOrgId: (user as any).currentOrgId
             },
             isNewUser: false
         };
@@ -57,7 +62,11 @@ export class AuthService {
         avatar: ''
     });
 
-    const payload = { phone: newUser.phone, sub: newUser.id };
+    const payload = { 
+      phone: newUser.phone, 
+      sub: newUser.id,
+      orgId: (newUser as any).currentOrgId || null 
+    };
     return {
         access_token: this.jwtService.sign(payload),
         user: {
@@ -86,14 +95,19 @@ export class AuthService {
     });
     
     // Auto login
-    const payload = { phone: user.phone, sub: user.id };
+    const payload = { 
+      phone: user.phone, 
+      sub: user.id,
+      orgId: (user as any).currentOrgId || null 
+    };
     return {
       access_token: this.jwtService.sign(payload),
       user: {
           id: user.id,
           name: user.name,
           role: 'user',
-          avatar: user.avatar
+          avatar: user.avatar,
+          currentOrgId: (user as any).currentOrgId
       }
     };
   }
@@ -103,15 +117,25 @@ export class AuthService {
     if (!user) return null;
     
     const { password, ...result } = user;
+    
+    // 确保包含 currentOrgId 字段
+    const userProfile = {
+      ...result,
+      currentOrgId: user.currentOrg?.id || null,
+      currentOrg: user.currentOrg || null
+    };
+    
+    return userProfile;
+  }
 
-    // Determine current org logic
-    // 1. If user has memberships, pick the first one as default?
-    // Or return all memberships and let frontend decide?
-    // User wants "currentOrg" in profile.
-    
-    // For now, let's just return memberships and ownedOrgs.
-    // Frontend can pick the first one or last used.
-    
-    return result;
+  async issueTokenForUser(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException('用户不存在');
+    const payload = {
+      phone: user.phone,
+      sub: user.id,
+      orgId: (user as any).currentOrgId || null
+    };
+    return this.jwtService.sign(payload);
   }
 }

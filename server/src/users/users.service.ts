@@ -29,6 +29,12 @@ export class UsersService {
             memberships: {
                 include: { organization: true },
                 where: { status: 'active' }
+            },
+            currentOrg: {
+                select: {
+                    id: true,
+                    name: true
+                }
             }
         }
     });

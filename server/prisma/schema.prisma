@@ -14,12 +14,14 @@ model User {
   name      String?
   password  String
   avatar    String?
+  currentOrgId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   ownedOrgs Organization[] @relation("OrgOwner")
   memberships OrganizationMember[]
   invitations Invitation[]
+  currentOrg Organization? @relation("CurrentOrg", fields: [currentOrgId], references: [id])
 }
 
 model Organization {
@@ -34,6 +36,7 @@ model Organization {
   members     OrganizationMember[]
   projects    Project[]
   invitations Invitation[]
+  users       User[]   @relation("CurrentOrg")
 }
 
 model OrganizationMember {
