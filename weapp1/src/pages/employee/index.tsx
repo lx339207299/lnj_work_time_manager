@@ -6,8 +6,8 @@ import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutu
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { invitationService } from '../../services/invitationService'
-import { useOrgStore } from '../../store/orgStore'
 import { useUserStore } from '../../store/userStore'
+import { request } from '../../utils/request'
 import './index.scss'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
@@ -20,7 +20,8 @@ const roleMap: Record<string, { text: string, type: string, className?: string }
 function EmployeeList() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
-  const { currentOrg } = useOrgStore()
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
+  const [currentUserRole, setCurrentUserRole] = useState<string>('member')
   const { userInfo } = useUserStore()
 
   useDidShow(() => {
@@ -30,7 +31,13 @@ function EmployeeList() {
   const fetchEmployees = async () => {
     setLoading(true)
     try {
-      const res = await employeeService.getEmployees(currentOrg?.id || '')
+      if (!currentOrgId) {
+        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        setCurrentOrgId(profile.currentOrgId || null)
+        const role = profile.memberships?.find((m: any) => m.organization.id === profile.currentOrgId)?.role
+        setCurrentUserRole(role || 'member')
+      }
+      const res = await employeeService.getEmployees(currentOrgId as string)
       setEmployees(res)
     } catch (error) {
       console.error(error)
@@ -41,7 +48,7 @@ function EmployeeList() {
   }
 
   const currentUserId = userInfo?.id || ''
-  const currentUserRole = currentOrg?.role || 'member' 
+  
 
   const handleEdit = (targetId: string) => {
     // Permission check
@@ -90,14 +97,14 @@ function EmployeeList() {
         return
     }
 
-    if (!currentOrg?.id) {
+    if (!currentOrgId) {
         Taro.showToast({ title: '未选择组织', icon: 'none' })
         return
     }
     
     Taro.showLoading({ title: '生成邀请...' })
     try {
-        const invite = await invitationService.create(currentOrg.id)
+        const invite = await invitationService.create(currentOrgId)
         Taro.hideLoading()
         
         Taro.showActionSheet({

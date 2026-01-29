@@ -5,13 +5,13 @@ import { Button, Avatar, Cell, Swipe, Empty, Skeleton, Popup, Checkbox } from '@
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'
-import { useOrgStore } from '../../../store/orgStore'
+import { request } from '../../../utils/request'
 import './index.scss'
 
 function ProjectMember() {
   const router = useRouter()
   const projectId = router.params.projectId || ''
-  const { currentOrg } = useOrgStore()
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -45,7 +45,11 @@ function ProjectMember() {
     // Load org employees
     try {
       Taro.showLoading({ title: '加载中...' })
-      const res = await employeeService.getEmployees(currentOrg?.id || '')
+      if (!currentOrgId) {
+        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        setCurrentOrgId(profile.currentOrgId || null)
+      }
+      const res = await employeeService.getEmployees(currentOrgId as string)
       // Filter out existing members
       const existingIds = members.map(m => m.id)
       const available = res.filter(e => !existingIds.includes(e.id))
@@ -67,7 +71,9 @@ function ProjectMember() {
     
     setAdding(true)
     try {
-      await projectService.addProjectMembers(projectId, selectedEmpIds)
+      for (const uid of selectedEmpIds) {
+        await projectService.addProjectMembers({ projectId, userId: uid, role: 'member' })
+      }
       Taro.showToast({ title: '添加成功', icon: 'success' })
       setAddVisible(false)
       fetchMembers()

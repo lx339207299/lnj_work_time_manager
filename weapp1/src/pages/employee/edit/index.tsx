@@ -7,6 +7,7 @@ import { ArrowRight } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { useUserStore } from '../../../store/userStore'
 import { employeeService, Employee } from '../../../services/employeeService'
+import { request } from '../../../utils/request'
 import './index.scss'
 
 const roleOptions = [
@@ -25,6 +26,8 @@ const wageTypeOptions = [
 function EmployeeEdit() {
   const router = useRouter()
   const { id } = router.params
+  const { token } = useUserStore()
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   // Form State
   const [name, setName] = useState('')
@@ -48,6 +51,14 @@ function EmployeeEdit() {
       fetchEmployee(id)
     } else {
       Taro.setNavigationBarTitle({ title: '添加员工' })
+    }
+    // Fetch current org id from profile
+    if (token) {
+      request({ url: '/auth/profile', method: 'GET' })
+        .then((user: any) => {
+          setCurrentOrgId(user.currentOrgId || null)
+        })
+        .catch(() => {})
     }
   }, [id])
 
@@ -89,7 +100,12 @@ function EmployeeEdit() {
         await employeeService.updateEmployee(id, data)
         Taro.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        await employeeService.addEmployee(data)
+        if (!currentOrgId) {
+          Taro.showToast({ title: '未选择组织', icon: 'none' })
+          setSubmitting(false)
+          return
+        }
+        await employeeService.addEmployee({ ...data, orgId: currentOrgId })
         Taro.showToast({ title: '添加成功', icon: 'success' })
       }
 

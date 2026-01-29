@@ -4,9 +4,7 @@ import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
-import { useProjectStore, Project } from '../../../store/projectStore'
 import { useUserStore } from '../../../store/userStore'
-import { useOrgStore } from '../../../store/orgStore'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
 
@@ -25,7 +23,7 @@ interface CalendarCardDay {
 function ProjectDetail() {
   const router = useRouter()
   // const { currentProject, setCurrentProject } = useProjectStore() // Removed
-  const [currentProject, setCurrentProject] = useState<Project | null>(null)
+  const [currentProject, setCurrentProject] = useState<any>(null)
   
   // State
   const [currentMonth, setCurrentMonth] = useState(dayjs())
@@ -50,14 +48,12 @@ function ProjectDetail() {
 
   // Mock current user ID (In real app, get from userStore)
   const { userInfo } = useUserStore()
-  const { currentOrg } = useOrgStore()
   const currentUserId = userInfo?.id || ''
   
   // Permission Logic
-  const isOrgOwner = currentOrg?.role === 'owner' || currentOrg?.role === 'admin'
   const isProjectOwner = currentProject?.role === 'owner'
-  const canEdit = isProjectOwner || isOrgOwner
-  const canViewAll = isProjectOwner || isOrgOwner
+  const canEdit = isProjectOwner
+  const canViewAll = isProjectOwner
 
   const fetchRecords = async (date: string, projectId?: string) => {
     const pid = projectId || currentProject?.id

@@ -8,14 +8,15 @@ import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
 import './index.scss'
 
-import { useOrgStore } from '../../store/orgStore'
 import { useUserStore } from '../../store/userStore'
+import { request } from '../../utils/request'
+import type { Project } from '../../../types/global'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
-  const [projectList, setProjectList] = useState<Project[]>([])
+  const [projectList, setProjectList] = useState<any[]>([])
   const { token } = useUserStore() // Get token directly
-  const { currentOrg, setOrgList, setCurrentOrg } = useOrgStore()
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   const fetchData = async () => {
     if (!token) {
@@ -24,15 +25,20 @@ function ProjectList() {
         return
     }
 
-    if (!currentOrg?.id) {
+    if (!currentOrgId) {
+      try {
+        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        setCurrentOrgId(profile.currentOrgId || null)
+      } catch (e) {
         setLoading(false)
         setProjectList([])
         return
+      }
     }
 
     setLoading(true)
     try {
-      const res = await projectService.getProjects(currentOrg.id)
+      const res = await projectService.getProjects(currentOrgId as string)
       // Ensure res is an array
       setProjectList(Array.isArray(res) ? res : [])
     } catch (error) {
@@ -98,7 +104,7 @@ function ProjectList() {
     }
     
     // Check if has organization
-    if (!currentOrg || !currentOrg.id) {
+    if (!currentOrgId) {
         Dialog.open('no-org-create', {
             title: '需要创建组织',
             content: '创建项目前，您需要先创建一个组织或加入一个现有组织。',

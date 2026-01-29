@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, InputNumber, TextArea, Calendar, Checkbox, CheckboxGroup, Avatar, Radio, RadioGroup } from '@nutui/nutui-react-taro'
-import { ArrowRight, Calendar as CalendarIcon, CheckChecked } from '@nutui/icons-react-taro'
+import { Button, Cell, InputNumber, TextArea, Calendar, Checkbox } from '@nutui/nutui-react-taro'
+import { Calendar as CalendarIcon } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { projectService } from '../../services/projectService'
 import { workRecordService } from '../../services/workRecordService'
@@ -38,16 +38,21 @@ function WorkHour() {
     if (projectId) {
         try {
             const res = await projectService.getProjectMembers(projectId)
-            setMembers(res)
+            const mapped = res.map((m: any) => ({
+              id: m.id,
+              name: m.userId,
+              avatar: '',
+              role: m.role,
+              wageType: 'day' as const
+            }))
+            setMembers(mapped)
             
             // Initialize selection and work hours
-            setSelectedMemberIds(res.map(m => m.id))
+            setSelectedMemberIds(mapped.map(m => m.id))
             
             const initialHours: Record<string, number> = {}
-            res.forEach(m => {
-                initialHours[m.id] = m.wageType === 'hour' ? 9 : 1 // Default: 9h for hour-wage (standard?), 1d for day-wage
-                // User said "Default 1 day, 8 hours". Let's use 8 for hour.
-                initialHours[m.id] = m.wageType === 'hour' ? 8 : 1
+            mapped.forEach(m => {
+                initialHours[m.id] = 1
             })
             setWorkHours(initialHours)
 
@@ -87,7 +92,7 @@ function WorkHour() {
     selectedMemberIds.forEach(id => {
         const member = members.find(m => m.id === id)
         if (member) {
-            newHours[id] = member.wageType === 'hour' ? 8 : 1
+            newHours[id] = 1
         }
     })
     setWorkHours(newHours)

@@ -3,8 +3,8 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Button, Dialog, Tag, Empty, ActionSheet } from '@nutui/nutui-react-taro'
 import { Check, Plus, More } from '@nutui/icons-react-taro'
-import { useOrgStore, Organization } from '../../../store/orgStore'
 import { orgService } from '../../../services/orgService'
+import { request } from '../../../utils/request'
 import './index.scss'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
@@ -15,7 +15,8 @@ const roleMap: Record<string, { text: string, type: string, className?: string }
 }
 
 function OrgList() {
-  const { orgList, currentOrg, setCurrentOrg, setOrgList } = useOrgStore()
+  const [orgList, setOrgList] = useState<any[]>([])
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [actionVisible, setActionVisible] = useState(false)
   const [selectedOrg, setSelectedOrg] = useState<any>(null)
@@ -27,8 +28,10 @@ function OrgList() {
   const fetchOrgs = async () => {
     setLoading(true)
     try {
+      const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+      setCurrentOrgId(profile.currentOrgId || null)
       const list = await orgService.getUserOrgs()
-      setOrgList(list as Organization[])
+      setOrgList(list)
     } catch (error) {
       Taro.showToast({ title: '获取组织列表失败', icon: 'error' })
     } finally {
@@ -37,18 +40,28 @@ function OrgList() {
   }
 
   const handleSwitch = (org: any) => {
-    if (org.id === currentOrg?.id) return
+    if (org.id === currentOrgId) return
 
     Dialog.open('switch-org', {
       title: '切换组织',
       content: `确定要切换到"${org.name}"吗？`,
-      onConfirm: () => {
-        setCurrentOrg(org)
-        Taro.showToast({ title: '切换成功', icon: 'success' })
-        Dialog.close('switch-org')
-        setTimeout(() => {
+      onConfirm: async () => {
+        try {
+          const res: any = await request({ url: `/organizations/${org.id}/switch`, method: 'POST' })
+          if (res?.access_token) {
+            Taro.setStorageSync('token', res.access_token)
+          }
+          setCurrentOrgId(org.id)
+          Taro.showToast({ title: '切换成功', icon: 'success' })
+          Dialog.close('switch-org')
+          setTimeout(() => {
             Taro.navigateBack()
-        }, 500)
+          }, 500)
+        } catch (e) {
+          console.error('Switch org error:', e)
+          Taro.showToast({ title: '切换失败', icon: 'none' })
+          Dialog.close('switch-org')
+        }
       },
       onCancel: () => {
         Dialog.close('switch-org')
@@ -93,14 +106,8 @@ function OrgList() {
                   
                   const newList = orgList.filter(o => o.id !== selectedOrg.id)
                   setOrgList(newList)
-                  
-                  // If exiting current org
-                  if (currentOrg?.id === selectedOrg.id) {
-                      if (newList.length > 0) {
-                          setCurrentOrg(newList[0]) // Auto switch to first available
-                      } else {
-                          setCurrentOrg(null as any) // No org left
-                      }
+                  if (currentOrgId === selectedOrg.id) {
+                      setCurrentOrgId(null)
                   }
 
                   Taro.showToast({ title: '已退出', icon: 'success' })
@@ -134,7 +141,7 @@ function OrgList() {
               <View className="info">
                 <View className="name-row">
                     <Text className="name">{org.name}</Text>
-                    {currentOrg?.id === org.id && <Tag type="success">当前使用</Tag>}
+                    {currentOrgId === org.id && <Tag type="success">当前使用</Tag>}
                 </View>
                 <View className="tags">
                     <Tag 

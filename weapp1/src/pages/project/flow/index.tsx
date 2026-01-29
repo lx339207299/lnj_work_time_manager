@@ -221,7 +221,6 @@ function ProjectFlow() {
                         <Cell 
                             title={selectedUser ? selectedUser.name : "请选择员工"} 
                             onClick={() => setShowMemberSelect(true)}
-                            desc={selectedUser ? '' : '点击选择'}
                         />
                     </View>
                 )}

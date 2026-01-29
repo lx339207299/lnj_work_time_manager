@@ -11,7 +11,7 @@ export interface User {
 
 export const authService = {
   // Send verification code (Mock for now, or real API if implemented)
-  sendCode: async (phone: string): Promise<boolean> => {
+  sendCode: async (_phone: string): Promise<boolean> => {
     return new Promise((resolve) => {
       setTimeout(() => {
         Taro.showToast({ title: '验证码: 123456', icon: 'none' })

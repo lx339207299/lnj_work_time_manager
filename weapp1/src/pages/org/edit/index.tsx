@@ -4,13 +4,11 @@ import Taro from '@tarojs/taro'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import { Shop } from '@nutui/icons-react-taro'
 import { orgService } from '../../../services/orgService'
-import { useOrgStore } from '../../../store/orgStore'
 import './index.scss'
 
 export default function OrgEdit() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const { setOrgList, orgList, setCurrentOrg } = useOrgStore()
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -21,15 +19,10 @@ export default function OrgEdit() {
     setLoading(true)
     try {
       // Mock create API
-      const newOrg = await orgService.createOrg(name)
-      
-      // Update Store
-      // @ts-ignore
-      const newList = [...orgList, newOrg]
-      // @ts-ignore
-      setOrgList(newList)
-      // @ts-ignore
-      setCurrentOrg(newOrg) // Auto switch to new org
+      const res: any = await orgService.createOrg(name)
+      if (res?.access_token) {
+        Taro.setStorageSync('token', res.access_token)
+      }
 
       Taro.showToast({ title: '创建成功', icon: 'success' })
       

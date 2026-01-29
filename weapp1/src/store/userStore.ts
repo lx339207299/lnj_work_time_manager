@@ -23,7 +23,6 @@ interface UserState {
   logout: () => void
 }
 
-import { useOrgStore } from './orgStore'
 
 export const useUserStore = create<UserState>()(
   persist(
@@ -34,8 +33,6 @@ export const useUserStore = create<UserState>()(
       setToken: (token) => set({ token }),
       logout: () => {
         set({ userInfo: null, token: null })
-        // Clear org data as well
-        useOrgStore.getState().clearOrgData()
       },
     }),
     {
@@ -45,4 +42,3 @@ export const useUserStore = create<UserState>()(
     }
   )
 )
-

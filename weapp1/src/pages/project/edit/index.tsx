@@ -3,12 +3,14 @@ import { View } from '@tarojs/components'
 import { Form, Button, Input, TextArea } from '@nutui/nutui-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import { projectService } from '../../../services/projectService'
+import { request } from '../../../utils/request'
 import './index.scss'
 
 function ProjectEdit() {
   const router = useRouter()
   const { id } = router.params
   const [loading, setLoading] = useState(false)
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   // Form state
   const [name, setName] = useState('')
@@ -19,7 +21,7 @@ function ProjectEdit() {
       Taro.setNavigationBarTitle({ title: '编辑项目' })
       projectService.getProjectDetail(id).then(project => {
           setName(project.name)
-          setDescription(project.description)
+          setDescription(project.description || '')
       }).catch(err => {
           console.error(err)
           Taro.showToast({ title: '获取项目失败', icon: 'error' })
@@ -27,6 +29,12 @@ function ProjectEdit() {
     } else {
       Taro.setNavigationBarTitle({ title: '创建项目' })
     }
+    // Fetch current org id for creation
+    request({ url: '/auth/profile', method: 'GET' })
+      .then((user: any) => {
+        setCurrentOrgId(user.currentOrgId || null)
+      })
+      .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -44,7 +52,12 @@ function ProjectEdit() {
         Taro.showToast({ title: '保存成功', icon: 'success' })
       } else {
         // Create
-        const newProject = await projectService.createProject({ name, description })
+        if (!currentOrgId) {
+          Taro.showToast({ title: '未选择组织', icon: 'none' })
+          setLoading(false)
+          return
+        }
+        const newProject = await projectService.createProject({ name, description, orgId: currentOrgId })
         Taro.showToast({ title: '创建成功', icon: 'success' })
       }
       
