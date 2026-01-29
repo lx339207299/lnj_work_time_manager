@@ -14,7 +14,6 @@ import { useUserStore } from '../../store/userStore'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
-  const { projectList = [], setProjectList, setCurrentProject } = useProjectStore()
   const { token } = useUserStore() // Get token directly
   const { currentOrg, setOrgList, setCurrentOrg } = useOrgStore()
   
@@ -116,12 +115,10 @@ function ProjectList() {
         return
     }
 
-    setCurrentProject(null as any) // Clear current project for create mode
     Taro.navigateTo({ url: '/pages/project/edit/index' })
   }
 
   const handleCardClick = (project: Project) => {
-    setCurrentProject(project)
     Taro.navigateTo({ url: `/pages/project/detail/index?id=${project.id}` })
   }
 

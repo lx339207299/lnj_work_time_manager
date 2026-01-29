@@ -7,8 +7,8 @@ import { useOrgStore, Organization } from '../../../store/orgStore'
 import { orgService } from '../../../services/orgService'
 import './index.scss'
 
-const roleMap: Record<string, { text: string, type: string }> = {
-    owner: { text: '负责人', type: 'primary' },
+const roleMap: Record<string, { text: string, type: string, className?: string }> = {
+    owner: { text: '负责人', type: 'default', className: 'tag-owner' },
     admin: { text: '管理员', type: 'primary' },
     leader: { text: '组长', type: 'success' },
     member: { text: '成员', type: 'default' }
@@ -139,7 +139,8 @@ function OrgList() {
                 <View className="tags">
                     <Tag 
                         type={roleMap[org.role]?.type as any || 'default'} 
-                        plain
+                        plain={org.role !== 'owner'}
+                        className={roleMap[org.role]?.className || ''}
                     >
                         {roleMap[org.role]?.text || org.role}
                     </Tag>

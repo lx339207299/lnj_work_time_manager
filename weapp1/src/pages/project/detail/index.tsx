@@ -4,7 +4,7 @@ import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
-import { useProjectStore } from '../../../store/projectStore'
+import { useProjectStore, Project } from '../../../store/projectStore'
 import { useUserStore } from '../../../store/userStore'
 import { useOrgStore } from '../../../store/orgStore'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
@@ -24,7 +24,8 @@ interface CalendarCardDay {
 
 function ProjectDetail() {
   const router = useRouter()
-  const { currentProject, setCurrentProject } = useProjectStore()
+  // const { currentProject, setCurrentProject } = useProjectStore() // Removed
+  const [currentProject, setCurrentProject] = useState<Project | null>(null)
   
   // State
   const [currentMonth, setCurrentMonth] = useState(dayjs())
@@ -58,24 +59,14 @@ function ProjectDetail() {
   const canEdit = isProjectOwner || isOrgOwner
   const canViewAll = isProjectOwner || isOrgOwner
 
-  // Fallback
-  if (!currentProject) {
-    return <View className="p-4">Loading...</View>
-  }
+  const fetchRecords = async (date: string, projectId?: string) => {
+    const pid = projectId || currentProject?.id
+    if (!pid) return
 
-  // Effects
-  useEffect(() => {
-    fetchMonthStats(dayjs().format('YYYY-MM'))
-    fetchRecords(selectedDate)
-  }, [])
-
-  const fetchRecords = async (date: string) => {
     setLoadingRecords(true)
     try {
-      const res = await workRecordService.getProjectWorkRecords(currentProject.id, date)
-      // Filter records based on permission
-      const filtered = canViewAll ? res : res.filter(r => r.userId === currentUserId)
-      setRecords(filtered)
+      const res = await workRecordService.getProjectWorkRecords(pid, date)
+      setRecords(res)
     } catch (error) {
       console.error(error)
       Taro.showToast({ title: '获取记录失败', icon: 'error' })
@@ -84,14 +75,46 @@ function ProjectDetail() {
     }
   }
 
-  const fetchMonthStats = async (month: string) => {
+  const fetchMonthStats = async (month: string, projectId?: string) => {
+    const pid = projectId || currentProject?.id
+    if (!pid) return
+    
     try {
-      const res = await workRecordService.getProjectMonthStats(currentProject.id, month)
+      const res = await workRecordService.getProjectMonthStats(pid, month)
       console.log(res);
       setMonthStats(res)
     } catch (error) {
       console.error(error)
     }
+  }
+
+  // Effects
+  useEffect(() => {
+    const init = async () => {
+      const { id } = router.params
+      if (id) {
+        try {
+          // Fetch project details first
+          const project = await projectService.getProjectDetail(id)
+          setCurrentProject(project)
+          
+          // Then fetch related data
+          await Promise.all([
+            fetchMonthStats(dayjs().format('YYYY-MM'), project.id),
+            fetchRecords(selectedDate, project.id)
+          ])
+        } catch (error) {
+          console.error(error)
+          Taro.showToast({ title: '获取项目详情失败', icon: 'error' })
+        }
+      }
+    }
+    init()
+  }, [])
+
+  // Fallback
+  if (!currentProject) {
+    return <View className="p-4">Loading...</View>
   }
 
   // Handlers
