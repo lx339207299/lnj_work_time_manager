@@ -9,7 +9,7 @@ import './index.scss'
 function ProjectEdit() {
   const router = useRouter()
   const { id } = router.params
-  const { currentProject, addProject, updateProject } = useProjectStore()
+  const { addProject, updateProject } = useProjectStore()
   const [loading, setLoading] = useState(false)
   
   // Form state
@@ -17,10 +17,15 @@ function ProjectEdit() {
   const [description, setDescription] = useState('')
 
   useEffect(() => {
-    if (id && currentProject && currentProject.id === id) {
-      setName(currentProject.name)
-      setDescription(currentProject.description)
+    if (id) {
       Taro.setNavigationBarTitle({ title: '编辑项目' })
+      projectService.getProjectDetail(id).then(project => {
+          setName(project.name)
+          setDescription(project.description)
+      }).catch(err => {
+          console.error(err)
+          Taro.showToast({ title: '获取项目失败', icon: 'error' })
+      })
     } else {
       Taro.setNavigationBarTitle({ title: '创建项目' })
     }

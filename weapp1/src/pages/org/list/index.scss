@@ -42,6 +42,12 @@
         .tags {
           display: flex;
           gap: 8px;
+
+          .tag-owner {
+            color: #fa8c16 !important;
+            border-color: #ffd591 !important;
+            background-color: #fff7e6 !important;
+          }
         }
       }
 
