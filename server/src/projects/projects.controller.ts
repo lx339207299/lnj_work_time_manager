@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Headers, Patch, Delete, Req } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMembersDto } from './dto/add-project-members.dto';
@@ -29,15 +29,15 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Get projects list' })
   @ApiQuery({ name: 'orgId', required: false })
   @ApiHeader({ name: 'x-org-id', required: false, description: 'Organization ID' })
-  findAll(@Query('orgId') queryOrgId: string, @Headers('x-org-id') headerOrgId: string) {
+  findAll(@Query('orgId') queryOrgId: string, @Headers('x-org-id') headerOrgId: string, @Req() req: any) {
     const orgId = queryOrgId || headerOrgId;
-    return this.projectsService.findAll(orgId);
+    return this.projectsService.findAll(orgId, req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get project details' })
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.projectsService.findOne(id, req.user);
   }
 
   @Post(':id/members')
@@ -56,6 +56,18 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Add project flow record' })
   addFlow(@Param('id') id: string, @Body() dto: CreateProjectFlowDto) {
     return this.projectsService.addFlow(id, dto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update project' })
+  update(@Param('id') id: string, @Body() updateDto: any) {
+    return this.projectsService.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete project' })
+  remove(@Param('id') id: string) {
+    return this.projectsService.remove(id);
   }
 
   @Get(':id/flows')

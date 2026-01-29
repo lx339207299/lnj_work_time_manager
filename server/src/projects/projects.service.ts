@@ -24,7 +24,7 @@ export class ProjectsService {
     });
   }
 
-  async findAll(orgId: string) {
+  async findAll(orgId: string, user: any) {
     const projects = await this.prisma.project.findMany({
       where: { orgId },
       include: {
@@ -33,19 +33,34 @@ export class ProjectsService {
       },
     });
 
+    // Get current user's organization member record to determine their role
+    const userMember = await this.prisma.organizationMember.findFirst({
+      where: {
+        orgId: orgId,
+        userId: user.sub
+      }
+    });
+
     // Map to match frontend Project interface with stats
-    return projects.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      role: 'owner', // TODO: Determine role based on requesting user
-      memberCount: p.projectMembers.length,
-      totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-      totalDays: Math.ceil(p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0) / 8), // Rough estimate
-    }));
+    return projects.map((p: any) => {
+      // Check if current user is project owner (created the project)
+      const isOwner = p.projectMembers.some((pm: any) => 
+        pm.userId === user.sub && pm.role === 'owner'
+      );
+      
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
+        memberCount: p.projectMembers.length,
+        totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
+        totalDays: Math.ceil(p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0) / 8), // Rough estimate
+      };
+    });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: any) {
     const p: any = await this.prisma.project.findUnique({
       where: { id },
       include: {
@@ -56,11 +71,24 @@ export class ProjectsService {
 
     if (!p) return null;
 
+    // Get current user's organization member record
+    const userMember = await this.prisma.organizationMember.findFirst({
+      where: {
+        orgId: p.orgId,
+        userId: user.sub
+      }
+    });
+
+    // Check if current user is project owner
+    const isOwner = p.projectMembers.some((pm: any) => 
+      pm.userId === user.sub && pm.role === 'owner'
+    );
+
     return {
       id: p.id,
       name: p.name,
       description: p.description,
-      role: 'owner', // TODO
+      role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
       memberCount: p.projectMembers.length,
       totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
       totalDays: Math.ceil(p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0) / 8),
@@ -118,6 +146,19 @@ export class ProjectsService {
     return this.prisma.projectFlow.findMany({
       where: { projectId: id },
       orderBy: { date: 'desc' }
+    });
+  }
+
+  async update(id: string, updateDto: any) {
+    return this.prisma.project.update({
+      where: { id },
+      data: updateDto,
+    });
+  }
+
+  async remove(id: string) {
+    return this.prisma.project.delete({
+      where: { id },
     });
   }
 }

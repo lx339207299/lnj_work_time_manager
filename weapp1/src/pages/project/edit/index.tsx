@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { View } from '@tarojs/components'
 import { Form, Button, Input, TextArea } from '@nutui/nutui-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
-import { useProjectStore } from '../../../store/projectStore'
 import { projectService } from '../../../services/projectService'
 import './index.scss'
 
 function ProjectEdit() {
   const router = useRouter()
   const { id } = router.params
-  const { addProject, updateProject } = useProjectStore()
   const [loading, setLoading] = useState(false)
   
   // Form state
@@ -42,13 +40,11 @@ function ProjectEdit() {
     try {
       if (id) {
         // Update
-        // await projectService.updateProject(id, { name, description }) // Mock API needed
-        updateProject(id, { name, description })
+        await projectService.updateProject(id, { name, description })
         Taro.showToast({ title: '保存成功', icon: 'success' })
       } else {
         // Create
         const newProject = await projectService.createProject({ name, description })
-        addProject(newProject as any)
         Taro.showToast({ title: '创建成功', icon: 'success' })
       }
       

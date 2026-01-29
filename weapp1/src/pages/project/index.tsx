@@ -4,7 +4,6 @@ import { Button, Tag, Empty, Skeleton, Dialog } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
 import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
-import { useProjectStore, Project } from '../../store/projectStore'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
 import './index.scss'
@@ -14,6 +13,7 @@ import { useUserStore } from '../../store/userStore'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
+  const [projectList, setProjectList] = useState<Project[]>([])
   const { token } = useUserStore() // Get token directly
   const { currentOrg, setOrgList, setCurrentOrg } = useOrgStore()
   

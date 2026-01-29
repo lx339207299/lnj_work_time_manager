@@ -1090,6 +1090,11 @@
   dependencies:
     stackframe "^1.1.1"
 
+"@esbuild/darwin-x64@0.19.12":
+  version "0.19.12"
+  resolved "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.19.12.tgz"
+  integrity sha512-hKoVkKzFiToTgn+41qGhsUJXFlIjxI/jSYeZf3ugemDYZldIXIxhvwN6erJGlX4t5h417iFuheZ7l+YVn05N3A==
+
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.9.1"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.9.1.tgz"
@@ -1343,6 +1348,11 @@
   resolved "https://registry.npmjs.org/@open-wc/webpack-import-meta-loader/-/webpack-import-meta-loader-0.4.7.tgz"
   integrity sha512-F3d1EHRckk2+ZpgEEAgVITp8BU9DYLBhKOhNMREeQ1BwILRIhrt+V1bebpnd0Mz595jzd7Yh1wSibLsXibkCpg==
 
+"@parcel/watcher-darwin-x64@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.npmjs.org/@parcel/watcher-darwin-x64/-/watcher-darwin-x64-2.5.4.tgz"
+  integrity sha512-UKaQFhCtNJW1A9YyVz3Ju7ydf6QgrpNQfRZ35wNKUhTQ3dxJ/3MULXN5JN/0Z80V/KUBDGa3RZaKq1EQT2a2gg==
+
 "@parcel/watcher@^2.4.1":
   version "2.5.4"
   resolved "https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.4.tgz"
@@ -1468,15 +1478,15 @@
   resolved "https://registry.npmjs.org/@stencil/core/-/core-2.22.3.tgz"
   integrity sha512-kmVA0M/HojwsfkeHsifvHVIYe4l5tin7J5+DLgtl8h6WWfiMClND5K3ifCXXI2ETDNKiEk21p6jql3Fx9o2rng==
 
-"@swc/core-darwin-arm64@1.3.92":
+"@swc/core-darwin-x64@1.3.92":
   version "1.3.92"
-  resolved "https://registry.npmmirror.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.92.tgz"
-  integrity sha512-v7PqZUBtIF6Q5Cp48gqUiG8zQQnEICpnfNdoiY3xjQAglCGIQCjJIDjreZBoeZQZspB27lQN4eZ43CX18+2SnA==
+  resolved "https://registry.npmmirror.com/@swc/core-darwin-x64/-/core-darwin-x64-1.3.92.tgz"
+  integrity sha512-Q3XIgQfXyxxxms3bPN+xGgvwk0TtG9l89IomApu+yTKzaIIlf051mS+lGngjnh9L0aUiCp6ICyjDLtutWP54fw==
 
-"@swc/core-darwin-arm64@1.3.96":
+"@swc/core-darwin-x64@1.3.96":
   version "1.3.96"
-  resolved "https://registry.npmmirror.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.96.tgz"
-  integrity sha512-8hzgXYVd85hfPh6mJ9yrG26rhgzCmcLO0h1TIl8U31hwmTbfZLzRitFQ/kqMJNbIBCwmNH1RU2QcJnL3d7f69A==
+  resolved "https://registry.npmmirror.com/@swc/core-darwin-x64/-/core-darwin-x64-1.3.96.tgz"
+  integrity sha512-mFp9GFfuPg+43vlAdQZl0WZpZSE8sEzqL7sr/7Reul5McUHP0BaLsEzwjvD035ESfkY8GBZdLpMinblIbFNljQ==
 
 "@swc/core@^1.0.46", "@swc/core@^1.3.92", "@swc/core@>=1.2.50":
   version "1.3.92"
@@ -1552,6 +1562,11 @@
     "@babel/runtime" "^7.14.5"
     "@tarojs/runtime" "3.6.38"
     "@tarojs/shared" "3.6.38"
+
+"@tarojs/binding-darwin-x64@3.6.38":
+  version "3.6.38"
+  resolved "https://registry.npmjs.org/@tarojs/binding-darwin-x64/-/binding-darwin-x64-3.6.38.tgz"
+  integrity sha512-/zRdKaZ0eHJMLmweuooLKzuo79Vlmp2K1v9AXzN818GuCTI3DaOQZkl899Oj/hZ2H4q9tp/UlcvrjSkcRpY5wA==
 
 "@tarojs/binding@3.6.38":
   version "3.6.38"
@@ -1725,6 +1740,11 @@
   version "0.0.11"
   resolved "https://registry.npmjs.org/@tarojs/plugin-doctor-darwin-universal/-/plugin-doctor-darwin-universal-0.0.11.tgz"
   integrity sha512-iZXID/UBsFGkouXJV/g/UTogPJ9IqCNmqCQ/bTZYNnIPHxxCUVZj7R1or8f/RJk3IHi0WroZHVbkz/NF9IqMVA==
+
+"@tarojs/plugin-doctor-darwin-x64@0.0.11":
+  version "0.0.11"
+  resolved "https://registry.npmjs.org/@tarojs/plugin-doctor-darwin-x64/-/plugin-doctor-darwin-x64-0.0.11.tgz"
+  integrity sha512-wNFty0LOq0lX2WMG3ea0IYsvSq0Y1Z24zIumSfnsL8R3x3AaKQBf0d/nzY++Wp0Kc7rEskS9gtYR7Z0b4oB9tA==
 
 "@tarojs/plugin-doctor@^0.0.11":
   version "0.0.11"
