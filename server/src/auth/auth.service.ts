@@ -34,22 +34,15 @@ export class AuthService {
     
     // If user exists, try login
     if (user) {
-        
+        const userProfile = await this.getUserProfile(user.id);
         const payload = { 
           phone: user.phone, 
           sub: user.id,
-          orgId: (user as any).currentOrgId || null 
+          orgId: userProfile?.orgId || null 
         };
         return {
             access_token: this.jwtService.sign(payload),
-            user: {
-                id: user.id,
-                name: user.name,
-                role: 'user',
-                avatar: user.avatar,
-                phone: user.phone,
-                currentOrgId: (user as any).currentOrgId
-            },
+            user: userProfile,
             isNewUser: false
         };
     }
@@ -62,20 +55,16 @@ export class AuthService {
         avatar: ''
     });
 
+    const userProfile = await this.getUserProfile(newUser.id);
+
     const payload = { 
       phone: newUser.phone, 
       sub: newUser.id,
-      orgId: (newUser as any).currentOrgId || null 
+      orgId: null 
     };
     return {
         access_token: this.jwtService.sign(payload),
-        user: {
-            id: newUser.id,
-            name: newUser.name,
-            role: 'user',
-            avatar: newUser.avatar,
-            phone: newUser.phone
-        },
+        user: userProfile,
         isNewUser: true
     };
   }
@@ -95,20 +84,16 @@ export class AuthService {
     });
     
     // Auto login
+    const userProfile = await this.getUserProfile(user.id);
+    
     const payload = { 
       phone: user.phone, 
       sub: user.id,
-      orgId: (user as any).currentOrgId || null 
+      orgId: null 
     };
     return {
       access_token: this.jwtService.sign(payload),
-      user: {
-          id: user.id,
-          name: user.name,
-          role: 'user',
-          avatar: user.avatar,
-          currentOrgId: (user as any).currentOrgId
-      }
+      user: userProfile
     };
   }
 
@@ -118,10 +103,22 @@ export class AuthService {
     
     const { password, ...result } = user;
     
+    let role = 'user';
+    // @ts-ignore
+    if (user.currentOrgId && user.memberships) {
+        // @ts-ignore
+        const membership = user.memberships.find(m => m.orgId === user.currentOrgId);
+        if (membership) {
+            role = membership.role;
+        }
+    }
+    
     // 确保包含 currentOrgId 字段
     const userProfile = {
       ...result,
       currentOrgId: user.currentOrg?.id || null,
+      orgId: user.currentOrg?.id || null,
+      role,
       currentOrg: user.currentOrg || null
     };
     

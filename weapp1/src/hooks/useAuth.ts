@@ -1,5 +1,4 @@
 import Taro from '@tarojs/taro'
-import { request } from '../utils/request'
 
 export const useAuth = () => {
   
@@ -50,23 +49,20 @@ export const useAuth = () => {
       }
       return
     }
-    if (effectiveToken && !Taro.getStorageSync('token')) {
-      Taro.setStorageSync('token', effectiveToken)
-    }
 
     // Sync Profile Logic
-    const now = Date.now()
-    const lastSyncTime = Taro.getStorageSync('last_sync_time') || 0
-    const shouldSync = !effectiveToken || (now - lastSyncTime > 10 * 1000)
+    // const now = Date.now()
+    // const lastSyncTime = Taro.getStorageSync('last_sync_time') || 0
+    // const shouldSync = !effectiveToken || (now - lastSyncTime > 10 * 1000)
 
-    if (shouldSync) {
-      try {
-        const user: any = await request({ url: '/auth/profile', method: 'GET' })
-        Taro.setStorageSync('last_sync_time', now)
-      } catch (e) {
-        console.error('Sync profile failed', e)
-      }
-    }
+    // if (shouldSync) {
+    //   try {
+    //     const user: any = await request({ url: '/auth/profile', method: 'GET' })
+    //     Taro.setStorageSync('last_sync_time', now)
+    //   } catch (e) {
+    //     console.error('Sync profile failed', e)
+    //   }
+    // }
 
   }
   return { checkAuth }
