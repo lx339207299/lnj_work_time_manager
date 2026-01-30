@@ -48,11 +48,11 @@ function ProfileEdit() {
         birthday: userInfo?.birthday
       }
       
+      // Update profile via API
+      await userService.updateUserInfo(data)
+      
       // Update store
       setUserInfo({ ...userInfo, ...data } as UserInfo)
-      
-      // Mock API call delay
-      await new Promise(resolve => setTimeout(resolve, 500))
 
       Taro.showToast({ title: '保存成功', icon: 'success' })
       

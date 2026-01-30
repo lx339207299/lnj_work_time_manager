@@ -123,6 +123,10 @@ export class AuthService {
     return userProfile;
   }
 
+  async updateProfile(userId: string, data: any) {
+    return this.usersService.update(userId, data);
+  }
+
   async issueTokenForUser(userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new UnauthorizedException('用户不存在');

@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
@@ -39,5 +40,14 @@ export class AuthController {
     // We should fetch full user info from DB
     const user = await this.authService.getUserProfile(req.user.sub);
     return user;
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('update-profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile' })
+  @ApiResponse({ status: 200, description: 'Return updated user profile.', type: UserProfileDto })
+  async updateProfile(@Request() req: any, @Body() updateProfileDto: UpdateProfileDto) {
+    return this.authService.updateProfile(req.user.sub, updateProfileDto);
   }
 }

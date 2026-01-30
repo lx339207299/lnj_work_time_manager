@@ -20,5 +20,10 @@ export const userService = {
     } catch (error) {
       throw new Error('获取用户信息失败')
     }
+  },
+
+  // Update user profile
+  updateUserInfo: async (data: Partial<UserInfo>): Promise<UserInfo> => {
+    return request({ url: '/auth/update-profile', method: 'POST', data })
   }
 }

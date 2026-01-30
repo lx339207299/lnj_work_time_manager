@@ -18,7 +18,7 @@ export default function OrgEdit() {
 
     setLoading(true)
     try {
-      // Mock create API
+      // Create organization
       const res: any = await orgService.createOrg(name)
       if (res?.access_token) {
         Taro.setStorageSync('token', res.access_token)
