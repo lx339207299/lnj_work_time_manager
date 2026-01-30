@@ -29,7 +29,6 @@ export interface Project {
 export interface CreateProjectData {
   name: string;
   description?: string;
-  orgId: string;
 }
 
 export interface UpdateProjectData {
@@ -59,7 +58,12 @@ export interface UserInfo {
   avatar: string?;
   birthday?: string;
   orgId?: string;
+  currentOrg?: {
+    id: string;
+    name: string;
+  };
   role?: string;
+  memberships?: any[]; // Keep flexible for now, or define strict type if needed
 }
 
 declare namespace NodeJS {

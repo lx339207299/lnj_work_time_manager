@@ -7,35 +7,26 @@ import { request } from '../../utils/request'
 import './index.scss'
 import { UserInfo } from '../../../types/global'
 
+import { userService } from '../../services/userService'
+
 function Mine() {
-  const [currentOrg, setCurrentOrg] = useState<any>(null)
-  const [orgList, setOrgList] = useState<any[]>([])
-  const [isVisible, setIsVisible] = useState(false)
   const [token, setToken] = useState<string | null>(Taro.getStorageSync('token'))
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
 
   useDidShow(() => {
     const token = Taro.getStorageSync('token')
     if (token) {
-      request({ url: '/auth/profile', method: 'GET' })
-        .then((user: any) => {
+      userService.getUserInfo()
+        .then((user) => {
           setUserInfo(user)
-          const orgs = (user.memberships || []).map((m: any) => ({
-            id: m.organization.id,
-            name: m.organization.name,
-            role: m.role
-          }))
-          setOrgList(orgs)
-          const current = orgs.find((o: any) => o.id === user.currentOrgId) || orgs[0] || null
-          setCurrentOrg(current)
         })
         .catch(console.error)
     }
   })
 
   const isManager = React.useMemo(() => {
-    return currentOrg?.role === 'owner' || currentOrg?.role === 'admin' || currentOrg?.role === 'leader'
-  }, [currentOrg])
+    return userInfo?.role === 'owner' || userInfo?.role === 'admin' || userInfo?.role === 'leader'
+  }, [userInfo])
 
   const handleLogout = () => {
     Taro.removeStorageSync('token')
@@ -52,25 +43,7 @@ function Mine() {
         handleLogin()
         return
     }
-    // Scenario 1: No Org
-    if (!orgList || orgList.length === 0) {
-        Dialog.open('no-org', {
-            title: '暂无组织',
-            content: '您暂未加入任何组织。\n如果您是团队负责人，请创建新组织；\n如果您是团队成员，请联系负责人邀请您加入。',
-            confirmText: '创建组织',
-            cancelText: '我知道了',
-            onConfirm: () => {
-                Dialog.close('no-org')
-                Taro.navigateTo({ url: '/pages/org/edit/index' })
-            },
-            onCancel: () => {
-                Dialog.close('no-org')
-            }
-        })
-    } else {
-        // Scenario 2: Has Org -> Go to List
-        Taro.navigateTo({ url: '/pages/org/list/index' })
-    }
+    Taro.navigateTo({ url: '/pages/org/list/index' })
   }
   
   const handleProtectedClick = (url: string) => {
@@ -101,8 +74,8 @@ function Mine() {
                 align="center"
                 extra={
                 <View style={{ display: 'flex', alignItems: 'center' }}>
-                    <Text style={{ marginRight: 4, color: currentOrg ? '#333' : '#999' }}>
-                        {currentOrg?.name || '暂无组织'}
+                    <Text style={{ marginRight: 4, color: userInfo?.currentOrg ? '#333' : '#999' }}>
+                        {userInfo?.currentOrg?.name || '暂无组织'}
                     </Text>
                     <ArrowRight size={12} />
                 </View>

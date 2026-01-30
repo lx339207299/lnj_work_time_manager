@@ -21,17 +21,17 @@ export interface Invitation {
 
 export const invitationService = {
   // Create invitation
-  create: async (orgId: string): Promise<Invitation> => {
-    return request({ url: '/invitations', method: 'POST', data: { orgId } })
+  create: async (): Promise<Invitation> => {
+    return request({ url: '/invitations/create', method: 'POST' })
   },
 
   // Get invitation info
   get: async (code: string): Promise<Invitation> => {
-    return request({ url: `/invitations/${code}`, method: 'GET' })
+    return request({ url: '/invitations/detail', method: 'POST', data: { code } })
   },
 
   // Accept invitation
   accept: async (code: string): Promise<any> => {
-    return request({ url: `/invitations/${code}/accept`, method: 'POST' })
+    return request({ url: '/invitations/accept', method: 'POST', data: { code } })
   }
 }

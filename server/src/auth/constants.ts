@@ -1,4 +1,4 @@
 
 export const jwtConstants = {
-  secret: 'secretKey', // In production, use environment variable
+  secret: 'lnj_work_time_manager_secretKey', // In production, use environment variable
 };

@@ -11,7 +11,6 @@ import './index.scss'
 function ProjectMember() {
   const router = useRouter()
   const projectId = router.params.projectId || ''
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -45,11 +44,7 @@ function ProjectMember() {
     // Load org employees
     try {
       Taro.showLoading({ title: '加载中...' })
-      if (!currentOrgId) {
-        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
-        setCurrentOrgId(profile.currentOrgId || null)
-      }
-      const res = await employeeService.getEmployees(currentOrgId as string)
+      const res = await employeeService.getEmployees()
       // Filter out existing members
       const existingIds = members.map(m => m.id)
       const available = res.filter(e => !existingIds.includes(e.id))

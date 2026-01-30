@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { InvitationCodeDto } from './dto/invitation-code.dto';
+import { InvitationResponseDto } from './dto/invitation-response.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('invitations')
 @Controller('invitations')
@@ -11,18 +13,26 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
-  @Post()
-  create(@Body() createInvitationDto: CreateInvitationDto, @Request() req) {
+  @Post('create')
+  @ApiOperation({ summary: 'Create invitation' })
+  @ApiResponse({ status: 201, type: InvitationResponseDto })
+  create(@Request() req) {
+    const createInvitationDto = new CreateInvitationDto();
+    createInvitationDto.orgId = req.user.orgId;
     return this.invitationsService.create(createInvitationDto, req.user.sub);
   }
 
-  @Get(':code')
-  findOne(@Param('code') code: string) {
-    return this.invitationsService.findOne(code);
+  @Post('detail')
+  @ApiOperation({ summary: 'Get invitation details' })
+  @ApiResponse({ status: 200, type: InvitationResponseDto })
+  findOne(@Body() body: InvitationCodeDto) {
+    return this.invitationsService.findOne(body.code);
   }
 
-  @Post(':code/accept')
-  accept(@Param('code') code: string, @Request() req) {
-    return this.invitationsService.accept(code, req.user.sub);
+  @Post('accept')
+  @ApiOperation({ summary: 'Accept invitation' })
+  @ApiResponse({ status: 200, description: 'Member created' })
+  accept(@Body() body: InvitationCodeDto, @Request() req) {
+    return this.invitationsService.accept(body.code, req.user.sub);
   }
 }

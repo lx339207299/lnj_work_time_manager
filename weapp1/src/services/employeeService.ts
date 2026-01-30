@@ -13,28 +13,28 @@ export interface Employee {
 
 export const employeeService = {
   // Get all employees for current org
-  getEmployees: async (orgId: string): Promise<Employee[]> => {
-    return request({ url: '/employees', method: 'GET', data: { orgId } })
+  getEmployees: async (): Promise<Employee[]> => {
+    return request({ url: '/employees/list', method: 'POST' })
   },
 
   // Get employee by ID
   getEmployeeById: async (id: string): Promise<Employee | undefined> => {
-    return request({ url: `/employees/${id}`, method: 'GET' })
+    return request({ url: '/employees/detail', method: 'POST', data: { id } })
   },
 
   // Add employee
-  addEmployee: async (data: Omit<Employee, 'id'> & { orgId: string }): Promise<Employee> => {
-    return request({ url: '/employees', method: 'POST', data })
+  addEmployee: async (data: Omit<Employee, 'id'>): Promise<Employee> => {
+    return request({ url: '/employees/create', method: 'POST', data })
   },
 
   // Update employee
   updateEmployee: async (id: string, data: Partial<Employee>): Promise<Employee> => {
-    return request({ url: `/employees/${id}`, method: 'PATCH', data })
+    return request({ url: '/employees/update', method: 'POST', data: { id, ...data } })
   },
 
   // Delete employee
   deleteEmployee: async (id: string): Promise<void> => {
-    return request({ url: `/employees/${id}`, method: 'DELETE' })
+    return request({ url: '/employees/delete', method: 'POST', data: { id } })
   },
 
   // Transfer ownership (New API needed in backend if not exists)

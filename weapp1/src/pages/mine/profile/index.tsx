@@ -7,6 +7,8 @@ import { UserInfo } from '../../../../types/global'
 import './index.scss'
 import { request } from '../../../utils/request'
 
+import { userService } from '../../../services/userService'
+
 function ProfileEdit() {
   const router = useRouter()
   const { isNew } = router.params
@@ -20,7 +22,7 @@ function ProfileEdit() {
     // 从接口获取数据
     const fetchProfile = async () => {
       try {
-        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        const profile = await userService.getUserInfo()
         setUserInfo(profile)
       } catch (error) {
         console.error(error)

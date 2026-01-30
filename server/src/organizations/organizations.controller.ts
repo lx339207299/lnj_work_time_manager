@@ -1,9 +1,18 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { OrganizationIdDto } from './dto/organization-id.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { 
+  CreateOrganizationResponseDto, 
+  OrganizationListResponseDto, 
+  OrganizationDetailResponseDto, 
+  OrganizationResponseDto, 
+  SwitchOrganizationResponseDto 
+} from './dto/organization-response.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 
 @ApiTags('organizations')
@@ -16,48 +25,56 @@ export class OrganizationsController {
     private readonly authService: AuthService
   ) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({ summary: 'Create new organization' })
+  @ApiResponse({ status: 201, type: CreateOrganizationResponseDto })
   async create(@Request() req: any, @Body() createOrganizationDto: CreateOrganizationDto) {
     const org = await this.organizationsService.create(req.user.sub, createOrganizationDto);
     const access_token = await this.authService.issueTokenForUser(req.user.sub);
     return { ...org, access_token };
   }
 
-  @Get()
+  @Post('list')
   @ApiOperation({ summary: 'Get my organizations' })
+  @ApiResponse({ status: 200, type: [OrganizationListResponseDto] })
   findAll(@Request() req: any) {
     return this.organizationsService.findAll(req.user.sub);
   }
 
-  @Get(':id')
+  @Post('detail')
   @ApiOperation({ summary: 'Get organization details' })
-  findOne(@Param('id') id: string) {
-    return this.organizationsService.findOne(id);
+  @ApiResponse({ status: 200, type: OrganizationDetailResponseDto })
+  findOne(@Body() body: OrganizationIdDto) {
+    return this.organizationsService.findOne(body.id);
   }
 
-  @Patch(':id')
+  @Post('update')
   @ApiOperation({ summary: 'Update organization' })
-  update(@Request() req: any, @Param('id') id: string, @Body() updateDto: any) {
-    return this.organizationsService.update(id, req.user.sub, updateDto);
+  @ApiResponse({ status: 200, type: OrganizationResponseDto })
+  update(@Request() req: any, @Body() updateOrganizationDto: UpdateOrganizationDto) {
+    const { id, ...updateData } = updateOrganizationDto;
+    return this.organizationsService.update(id, req.user.sub, updateData);
   }
 
-  @Delete(':id')
+  @Post('delete')
   @ApiOperation({ summary: 'Delete organization (Owner only)' })
-  remove(@Request() req: any, @Param('id') id: string) {
-    return this.organizationsService.remove(id, req.user.sub);
+  @ApiResponse({ status: 200, type: OrganizationResponseDto })
+  remove(@Request() req: any, @Body() body: OrganizationIdDto) {
+    return this.organizationsService.remove(body.id, req.user.sub);
   }
 
-  @Post(':id/leave')
+  @Post('leave')
   @ApiOperation({ summary: 'Leave organization' })
-  leave(@Request() req: any, @Param('id') id: string) {
-    return this.organizationsService.leave(id, req.user.sub);
+  @ApiResponse({ status: 200, description: 'Batch payload' })
+  leave(@Request() req: any, @Body() body: OrganizationIdDto) {
+    return this.organizationsService.leave(body.id, req.user.sub);
   }
 
-  @Post(':id/switch')
+  @Post('switch')
   @ApiOperation({ summary: 'Switch current organization' })
-  async switchOrg(@Request() req: any, @Param('id') id: string) {
-    const res = await this.organizationsService.switchToOrg(req.user.sub, id);
+  @ApiResponse({ status: 200, type: SwitchOrganizationResponseDto })
+  async switchOrg(@Request() req: any, @Body() body: OrganizationIdDto) {
+    const res = await this.organizationsService.switchToOrg(req.user.sub, body.id);
     const access_token = await this.authService.issueTokenForUser(req.user.sub);
     return { ...res, access_token };
   }

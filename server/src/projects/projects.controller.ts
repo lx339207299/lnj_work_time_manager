@@ -1,11 +1,14 @@
 
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Headers, Patch, Delete, Req } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Req, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMembersDto } from './dto/add-project-members.dto';
 import { CreateProjectFlowDto } from './dto/create-project-flow.dto';
+import { ProjectIdDto } from './dto/project-id.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
+import { ProjectResponseDto, ProjectMemberDto, ProjectFlowDto } from './dto/project-response.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiHeader } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiHeader, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -14,65 +17,75 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiHeader } from '@nest
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({ summary: 'Create new project' })
-  @ApiHeader({ name: 'x-org-id', required: false, description: 'Organization ID' })
-  create(@Body() createProjectDto: CreateProjectDto, @Headers('x-org-id') orgId: string) {
-    // If orgId is not in body, try to use header
-    if (!createProjectDto.orgId && orgId) {
-        createProjectDto.orgId = orgId;
-    }
+  @ApiResponse({ status: 201, type: ProjectResponseDto })
+  create(@Body() createProjectDto: CreateProjectDto, @Req() req: any) {
+    createProjectDto.orgId = req.user.orgId;
     return this.projectsService.create(createProjectDto);
   }
 
-  @Get()
+  @Post('list')
   @ApiOperation({ summary: 'Get projects list' })
-  @ApiQuery({ name: 'orgId', required: false })
-  @ApiHeader({ name: 'x-org-id', required: false, description: 'Organization ID' })
-  findAll(@Query('orgId') queryOrgId: string, @Headers('x-org-id') headerOrgId: string, @Req() req: any) {
-    const orgId = queryOrgId || headerOrgId;
-    return this.projectsService.findAll(orgId, req.user);
+  @ApiResponse({ status: 200, type: [ProjectResponseDto] })
+  findAll(@Req() req: any) {
+    return this.projectsService.findAll(req.user.orgId, req.user);
   }
 
-  @Get(':id')
+  @Post('detail')
   @ApiOperation({ summary: 'Get project details' })
-  findOne(@Param('id') id: string, @Req() req: any) {
-    return this.projectsService.findOne(id, req.user);
+  @ApiResponse({ status: 200, type: ProjectResponseDto })
+  findOne(@Body() body: ProjectIdDto, @Req() req: any) {
+    return this.projectsService.findOne(body.id, req.user);
   }
 
-  @Post(':id/members')
+  @Post('add-members')
   @ApiOperation({ summary: 'Add members to project' })
-  addMembers(@Param('id') id: string, @Body() dto: AddProjectMembersDto) {
-    return this.projectsService.addMembers(id, dto);
+  @ApiResponse({ status: 200, description: 'Success' })
+  addMembers(@Body() dto: AddProjectMembersDto) {
+    // Note: If 'id' is in dto, use it. But existing code uses @Body('id').
+    // Since we updated DTO to include optional 'id', we can assume frontend sends it in body.
+    // However, the original code used `@Body('id') id: string, @Body() dto: AddProjectMembersDto`.
+    // Swagger doesn't like multiple @Body.
+    // We should use a single @Body() dto: AddProjectMembersDto and make sure 'id' is required there if we want strictly typed.
+    // But since I made it optional in DTO to match "if passed in body", I should probably enforce it here or extract it.
+    // Let's assume the body is { id: "...", memberIds: [...] }
+    return this.projectsService.addMembers(dto.id!, dto);
   }
 
-  @Get(':id/members')
+  @Post('list-members')
   @ApiOperation({ summary: 'Get project members' })
-  getMembers(@Param('id') id: string) {
-    return this.projectsService.getMembers(id);
+  @ApiResponse({ status: 200, type: [ProjectMemberDto] })
+  getMembers(@Body() body: ProjectIdDto) {
+    return this.projectsService.getMembers(body.id);
   }
 
-  @Post(':id/flows')
+  @Post('add-flow')
   @ApiOperation({ summary: 'Add project flow record' })
-  addFlow(@Param('id') id: string, @Body() dto: CreateProjectFlowDto) {
-    return this.projectsService.addFlow(id, dto);
+  @ApiResponse({ status: 201, type: ProjectFlowDto })
+  addFlow(@Body() dto: CreateProjectFlowDto) {
+    return this.projectsService.addFlow(dto.id!, dto);
   }
 
-  @Patch(':id')
+  @Post('update')
   @ApiOperation({ summary: 'Update project' })
-  update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.projectsService.update(id, updateDto);
+  @ApiResponse({ status: 200, type: ProjectResponseDto })
+  update(@Body() updateDto: UpdateProjectDto) {
+    const { id, ...data } = updateDto;
+    return this.projectsService.update(id, data);
   }
 
-  @Delete(':id')
+  @Post('delete')
   @ApiOperation({ summary: 'Delete project' })
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  @ApiResponse({ status: 200, type: ProjectResponseDto })
+  remove(@Body() body: ProjectIdDto) {
+    return this.projectsService.remove(body.id);
   }
 
-  @Get(':id/flows')
+  @Post('list-flows')
   @ApiOperation({ summary: 'Get project flow records' })
-  getFlows(@Param('id') id: string) {
-    return this.projectsService.getFlows(id);
+  @ApiResponse({ status: 200, type: [ProjectFlowDto] })
+  getFlows(@Body() body: ProjectIdDto) {
+    return this.projectsService.getFlows(body.id);
   }
 }

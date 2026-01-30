@@ -26,7 +26,7 @@ function ProjectList() {
 
     if (!currentOrgId) {
       try {
-        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        const profile: any = await request({ url: '/auth/profile', method: 'POST' })
         setCurrentOrgId(profile.currentOrgId || null)
       } catch (e) {
         setLoading(false)
@@ -37,7 +37,7 @@ function ProjectList() {
 
     setLoading(true)
     try {
-      const res = await projectService.getProjects(currentOrgId as string)
+      const res = await projectService.getProjects()
       // Ensure res is an array
       setProjectList(Array.isArray(res) ? res : [])
     } catch (error) {

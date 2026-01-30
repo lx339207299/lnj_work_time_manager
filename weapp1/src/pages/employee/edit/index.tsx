@@ -22,6 +22,8 @@ const wageTypeOptions = [
   { text: '时薪 (按时)', value: 'hour' },
 ]
 
+import { userService } from '../../../services/userService'
+
 function EmployeeEdit() {
   const router = useRouter()
   const { id } = router.params
@@ -50,14 +52,6 @@ function EmployeeEdit() {
       fetchEmployee(id)
     } else {
       Taro.setNavigationBarTitle({ title: '添加员工' })
-    }
-    // Fetch current org id from profile
-    if (token) {
-      request({ url: '/auth/profile', method: 'GET' })
-        .then((user: any) => {
-          setCurrentOrgId(user.currentOrgId || null)
-        })
-        .catch(() => {})
     }
   }, [id])
 
@@ -99,12 +93,7 @@ function EmployeeEdit() {
         await employeeService.updateEmployee(id, data)
         Taro.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        if (!currentOrgId) {
-          Taro.showToast({ title: '未选择组织', icon: 'none' })
-          setSubmitting(false)
-          return
-        }
-        await employeeService.addEmployee({ ...data, orgId: currentOrgId })
+        await employeeService.addEmployee({ ...data })
         Taro.showToast({ title: '添加成功', icon: 'success' })
       }
 

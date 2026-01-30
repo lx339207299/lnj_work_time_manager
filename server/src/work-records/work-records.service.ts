@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkRecordDto } from './dto/create-work-record.dto';
+import { CustomResponse } from '../common/responses/custom.response';
 
 @Injectable()
 export class WorkRecordsService {
@@ -68,20 +69,20 @@ export class WorkRecordsService {
     ]);
 
     // Map to frontend structure
-    return {
-        list: list.map(record => ({
-            id: record.id,
-            projectId: record.projectId,
-            userId: record.memberId, // Use memberId as userId reference
-            userName: record.member.name,
-            userRole: record.member.role,
-            avatar: record.member.user?.avatar || '',
-            date: record.date,
-            duration: record.duration,
-            content: record.content
-        })),
-        total
-    };
+    const data = list.map(record => ({
+        id: record.id,
+        projectId: record.projectId,
+        userId: record.memberId, // Use memberId as userId reference
+        userName: record.member.name,
+        userRole: record.member.role,
+        avatar: record.member.user?.avatar || '',
+        date: record.date,
+        duration: record.duration,
+        content: record.content
+    }));
+
+    // Use CustomResponse to return data and property (pagination info)
+    return CustomResponse.success(data, {}, { total, pageSize: +pageSize, currentPage: +page });
   }
 
   async getStats(projectId: string) {
@@ -113,5 +114,54 @@ export class WorkRecordsService {
             wageType: member?.wageType || 'day'
         };
     });
+  }
+
+  async update(id: string, data: any) {
+    return this.prisma.workRecord.update({
+      where: { id },
+      data: {
+        duration: data.duration,
+        content: data.content,
+        date: data.date
+      }
+    });
+  }
+
+  async remove(id: string) {
+    return this.prisma.workRecord.delete({
+      where: { id }
+    });
+  }
+
+  async batchCreate(data: { projectId: string, date: string, records: { memberId: string, duration: number }[] }) {
+      const { projectId, date, records } = data;
+      // Get all members to verify and get snapshots
+      const members = await this.prisma.organizationMember.findMany({
+          where: {
+              id: { in: records.map(r => r.memberId) }
+          }
+      });
+
+      const operations = records.map(record => {
+          const member = members.find(m => m.id === record.memberId);
+          if (!member) return null; // Skip invalid members
+          
+          return this.prisma.workRecord.create({
+              data: {
+                  projectId,
+                  date,
+                  memberId: record.memberId,
+                  duration: record.duration,
+                  content: '', // Default empty for batch
+                  wageSnapshot: member.wageAmount,
+                  wageTypeSnapshot: member.wageType
+              }
+          });
+      }).filter(op => op !== null);
+
+      // Filter out nulls safely (TS might complain about type)
+      const validOps = operations as any[]; 
+
+      return this.prisma.$transaction(validOps);
   }
 }

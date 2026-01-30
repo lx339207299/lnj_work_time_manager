@@ -3,16 +3,16 @@ import { request } from '../utils/request'
 export const orgService = {
   // Get user's organization list
   getUserOrgs: async () => {
-    return request({ url: '/organizations', method: 'GET' })
+    return request({ url: '/organizations/list', method: 'POST' })
   },
 
   // Create organization
   createOrg: async (name: string): Promise<any> => {
-    return request({ url: '/organizations', method: 'POST', data: { name } })
+    return request({ url: '/organizations/create', method: 'POST', data: { name } })
   },
 
   // Exit organization
   exitOrg: async (orgId: string): Promise<void> => {
-    return request({ url: `/organizations/${orgId}/leave`, method: 'POST' })
+    return request({ url: '/organizations/leave', method: 'POST', data: { id: orgId } })
   }
 }

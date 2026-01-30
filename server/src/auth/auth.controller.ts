@@ -3,6 +3,7 @@ import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common'
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
@@ -13,7 +14,7 @@ export class AuthController {
 
   @Post('login-or-register')
   @ApiOperation({ summary: 'Login or Register automatically' })
-  @ApiResponse({ status: 201, description: 'User successfully logged in or registered.' })
+  @ApiResponse({ status: 201, description: 'User successfully logged in or registered.', type: AuthResponseDto })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginOrRegister(@Body() loginDto: LoginDto) {
     return this.authService.loginOrRegister(loginDto);
@@ -21,17 +22,17 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'User register' })
-  @ApiResponse({ status: 201, description: 'User successfully registered.' })
+  @ApiResponse({ status: 201, description: 'User successfully registered.', type: AuthResponseDto })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('profile')
+  @Post('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, description: 'Return current user profile.' })
+  @ApiResponse({ status: 200, description: 'Return current user profile.', type: UserProfileDto })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async getProfile(@Request() req: any) {
     // req.user only contains basic info from JWT payload

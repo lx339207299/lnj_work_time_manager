@@ -1,9 +1,12 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { EmployeeIdDto } from './dto/employee-id.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { EmployeeResponseDto, EmployeeListResponseDto } from './dto/employee-response.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('employees')
 @Controller('employees')
@@ -12,40 +15,46 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({ summary: 'Add employee to organization' })
+  @ApiResponse({ status: 201, type: EmployeeResponseDto })
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeesService.create(createEmployeeDto);
   }
 
-  @Get()
+  @Post('list')
   @ApiOperation({ summary: 'Get employees list' })
-  @ApiQuery({ name: 'orgId', required: true })
-  findAll(@Query('orgId') orgId: string) {
-    return this.employeesService.findAll(orgId);
+  @ApiResponse({ status: 200, type: [EmployeeListResponseDto] })
+  findAll(@Request() req: any) {
+    return this.employeesService.findAll(req.user.orgId);
   }
 
-  @Get(':id')
+  @Post('detail')
   @ApiOperation({ summary: 'Get employee details' })
-  findOne(@Param('id') id: string) {
-    return this.employeesService.findOne(id);
+  @ApiResponse({ status: 200, type: EmployeeResponseDto })
+  findOne(@Body() body: EmployeeIdDto) {
+    return this.employeesService.findOne(body.id);
   }
 
-  @Patch(':id')
+  @Post('update')
   @ApiOperation({ summary: 'Update employee details' })
-  update(@Param('id') id: string, @Body() updateEmployeeDto: any) {
-    return this.employeesService.update(id, updateEmployeeDto);
+  @ApiResponse({ status: 200, type: EmployeeResponseDto })
+  update(@Body() updateEmployeeDto: UpdateEmployeeDto) {
+    const { id, ...updateData } = updateEmployeeDto;
+    return this.employeesService.update(id, updateData);
   }
 
-  @Delete(':id')
+  @Post('delete')
   @ApiOperation({ summary: 'Remove employee' })
-  remove(@Param('id') id: string) {
-    return this.employeesService.remove(id);
+  @ApiResponse({ status: 200, type: EmployeeResponseDto })
+  remove(@Body() body: EmployeeIdDto) {
+    return this.employeesService.remove(body.id);
   }
 
-  @Post(':id/transfer-ownership')
+  @Post('transfer-ownership')
   @ApiOperation({ summary: 'Transfer organization ownership to employee' })
-  transferOwnership(@Request() req: any, @Param('id') id: string) {
-    return this.employeesService.transferOwnership(id, req.user.userId);
+  @ApiResponse({ status: 200, description: 'Transaction result' })
+  transferOwnership(@Request() req: any, @Body() body: EmployeeIdDto) {
+    return this.employeesService.transferOwnership(body.id, req.user.userId);
   }
 }

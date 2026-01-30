@@ -1,8 +1,7 @@
-
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProjectDto {
-  @ApiProperty({ example: 'uuid-org-id' })
+  // @ApiProperty({ description: 'Organization ID', required: false, hidden: true })
   orgId: string;
 
   @ApiProperty({ example: 'Project Name' })

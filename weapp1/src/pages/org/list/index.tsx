@@ -5,6 +5,7 @@ import { Button, Dialog, Tag, Empty, ActionSheet } from '@nutui/nutui-react-taro
 import { Check, Plus, More } from '@nutui/icons-react-taro'
 import { orgService } from '../../../services/orgService'
 import { request } from '../../../utils/request'
+import { userService } from '../../../services/userService'
 import './index.scss'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
@@ -28,8 +29,8 @@ function OrgList() {
   const fetchOrgs = async () => {
     setLoading(true)
     try {
-      const profile: any = await request({ url: '/auth/profile', method: 'GET' })
-      setCurrentOrgId(profile.currentOrgId || null)
+      const profile = await userService.getUserInfo()
+      setCurrentOrgId(profile?.currentOrg?.id || null)
       const list = await orgService.getUserOrgs()
       setOrgList(list)
     } catch (error) {

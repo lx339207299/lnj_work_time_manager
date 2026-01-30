@@ -1,7 +1,9 @@
-
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProjectFlowDto {
+  @ApiProperty({ description: 'Project ID (if passed in body)', required: false, example: 'uuid-project' })
+  id?: string;
+
   @ApiProperty({ example: 'income', enum: ['income', 'expense'] })
   type: string;
 

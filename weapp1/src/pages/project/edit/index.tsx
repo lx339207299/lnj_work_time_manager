@@ -10,7 +10,6 @@ function ProjectEdit() {
   const router = useRouter()
   const { id } = router.params
   const [loading, setLoading] = useState(false)
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   // Form state
   const [name, setName] = useState('')
@@ -29,12 +28,6 @@ function ProjectEdit() {
     } else {
       Taro.setNavigationBarTitle({ title: '创建项目' })
     }
-    // Fetch current org id for creation
-    request({ url: '/auth/profile', method: 'GET' })
-      .then((user: any) => {
-        setCurrentOrgId(user.currentOrgId || null)
-      })
-      .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -52,12 +45,7 @@ function ProjectEdit() {
         Taro.showToast({ title: '保存成功', icon: 'success' })
       } else {
         // Create
-        if (!currentOrgId) {
-          Taro.showToast({ title: '未选择组织', icon: 'none' })
-          setLoading(false)
-          return
-        }
-        const newProject = await projectService.createProject({ name, description, orgId: currentOrgId })
+        const newProject = await projectService.createProject({ name, description })
         Taro.showToast({ title: '创建成功', icon: 'success' })
       }
       

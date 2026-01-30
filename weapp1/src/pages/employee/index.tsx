@@ -6,8 +6,10 @@ import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutu
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { invitationService } from '../../services/invitationService'
+import { userService } from '../../services/userService'
 import { request } from '../../utils/request'
 import './index.scss'
+import type { UserInfo } from '../../../types/global'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
   owner: { text: '负责人', type: 'default', className: 'tag-owner' },
@@ -17,9 +19,10 @@ const roleMap: Record<string, { text: string, type: string, className?: string }
 }
 
 function EmployeeList() {
+  const router = Taro.useRouter()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [currentUserRole, setCurrentUserRole] = useState<string>('member')
 
   useDidShow(() => {
@@ -29,14 +32,12 @@ function EmployeeList() {
   const fetchEmployees = async () => {
     setLoading(true)
     try {
-      if (!currentOrgId) {
-        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
-        setCurrentOrgId(profile.currentOrgId || null)
-        const role = profile.memberships?.find((m: any) => m.organization.id === profile.currentOrgId)?.role
-        setCurrentUserRole(role || 'member')
-      }
-      const res = await employeeService.getEmployees(currentOrgId as string)
-      setEmployees(res)
+        const profile = await userService.getUserInfo()
+        setUserInfo(profile)
+        setCurrentUserRole(profile?.role || 'member')
+
+        const res = await employeeService.getEmployees()
+        setEmployees(res)
     } catch (error) {
       console.error(error)
       Taro.showToast({ title: '获取员工列表失败', icon: 'error' })
@@ -91,14 +92,14 @@ function EmployeeList() {
         return
     }
 
-    if (!currentOrgId) {
+    if (!userInfo?.currentOrg?.id) {
         Taro.showToast({ title: '未选择组织', icon: 'none' })
         return
     }
     
     Taro.showLoading({ title: '生成邀请...' })
     try {
-        const invite = await invitationService.create(currentOrgId)
+        const invite = await invitationService.create()
         Taro.hideLoading()
         
         Taro.showActionSheet({
