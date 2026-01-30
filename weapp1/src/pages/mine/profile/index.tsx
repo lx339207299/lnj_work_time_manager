@@ -3,33 +3,35 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Cell, Input, DatePicker } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
-import { useUserStore } from '../../../store/userStore'
-import { employeeService } from '../../../services/employeeService'
+import { UserInfo } from '../../../../types/global'
 import './index.scss'
+import { request } from '../../../utils/request'
 
 function ProfileEdit() {
   const router = useRouter()
   const { isNew } = router.params
-  const { userInfo, setUserInfo } = useUserStore()
   
   // Form State
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [birthday, setBirthday] = useState('')
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [loading, setLoading] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
 
   useEffect(() => {
-    // Load initial data from userInfo
-    if (userInfo) {
-      setName(userInfo.name || '')
-      setPhone(userInfo.phone || '')
-      setBirthday(userInfo.birthday || '')
+    // 从接口获取数据
+    const fetchProfile = async () => {
+      try {
+        const profile: any = await request({ url: '/auth/profile', method: 'GET' })
+        setUserInfo(profile)
+      } catch (error) {
+        console.error(error)
+        Taro.showToast({ title: '获取个人信息失败', icon: 'error' })
+      }
     }
-  }, [userInfo])
+    fetchProfile()
+  }, [])
 
   const handleSave = async () => {
-    if (!name) {
+    if (!userInfo?.name) {
       Taro.showToast({ title: '请填写姓名', icon: 'none' })
       return
     }
@@ -40,12 +42,12 @@ function ProfileEdit() {
       // For now, reuse updateEmployee but only for personal fields
       // In a real app, this might be userService.updateProfile(data)
       const data = {
-        name,
-        birthday
+        name: userInfo?.name,
+        birthday: userInfo?.birthday
       }
       
       // Update store
-      setUserInfo({ ...userInfo, ...data })
+      setUserInfo({ ...userInfo, ...data } as UserInfo)
       
       // Mock API call delay
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -73,15 +75,15 @@ function ProfileEdit() {
             <Cell title="姓名" extra={
                 <Input 
                     placeholder="请输入姓名" 
-                    value={name} 
-                    onChange={(val) => setName(val)}
+                    value={userInfo?.name || ''} 
+                    onChange={(val) => setUserInfo({ ...userInfo, name: val } as UserInfo)}
                     align="right"
                     style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
                 />
             } />
             <Cell title="手机号" extra={
                 <Input 
-                    value={phone} 
+                    value={userInfo?.phone || ''} 
                     disabled
                     align="right"
                     style={{ border: 'none', padding: 0, textAlign: 'right', color: '#999' }}
@@ -91,7 +93,7 @@ function ProfileEdit() {
                 title="生日" 
                 extra={
                     <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Text style={{ color: birthday ? '#333' : '#ccc' }}>{birthday || '请选择(选填)'}</Text>
+                        <Text style={{ color: userInfo?.birthday ? '#333' : '#ccc' }}>{userInfo?.birthday || '请选择(选填)'}</Text>
                         <ArrowRight size={14} color="#999" />
                     </View>
                 }
@@ -113,7 +115,7 @@ function ProfileEdit() {
         endDate={new Date()}
         onConfirm={(list, values) => {
             const dateStr = values.join('-')
-            setBirthday(dateStr)
+            setUserInfo({ ...userInfo, birthday: dateStr } as UserInfo)
             setShowDatePicker(false)
         }}
         onClose={() => setShowDatePicker(false)}

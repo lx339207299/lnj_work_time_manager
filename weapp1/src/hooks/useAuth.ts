@@ -1,9 +1,7 @@
 import Taro from '@tarojs/taro'
-import { useUserStore } from '../store/userStore'
 import { request } from '../utils/request'
 
 export const useAuth = () => {
-  const { token, userInfo, setUserInfo } = useUserStore()
   
   const checkAuth = async () => {
     // ... whitelist ...
@@ -26,7 +24,7 @@ export const useAuth = () => {
     route = route.replace(/^\//, '')
 
     // ... token retrieval ...
-    let effectiveToken = token
+    let effectiveToken = Taro.getStorageSync('token')
     if (!effectiveToken && process.env.TARO_ENV === 'h5') {
          const storage = localStorage.getItem('user-storage')
          if (storage) {
@@ -59,12 +57,11 @@ export const useAuth = () => {
     // Sync Profile Logic
     const now = Date.now()
     const lastSyncTime = Taro.getStorageSync('last_sync_time') || 0
-    const shouldSync = !userInfo || (now - lastSyncTime > 10 * 1000)
+    const shouldSync = !effectiveToken || (now - lastSyncTime > 10 * 1000)
 
     if (shouldSync) {
       try {
         const user: any = await request({ url: '/auth/profile', method: 'GET' })
-        setUserInfo(user)
         Taro.setStorageSync('last_sync_time', now)
       } catch (e) {
         console.error('Sync profile failed', e)
@@ -72,5 +69,5 @@ export const useAuth = () => {
     }
 
   }
-  return { token, checkAuth }
+  return { checkAuth }
 }

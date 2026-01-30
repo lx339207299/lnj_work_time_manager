@@ -4,7 +4,6 @@ import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import dayjs from 'dayjs'
-import { useUserStore } from '../../../store/userStore'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
 
@@ -46,14 +45,9 @@ function ProjectDetail() {
     { name: '刷新', key: 'refresh' }
   ]
 
-  // Mock current user ID (In real app, get from userStore)
-  const { userInfo } = useUserStore()
-  const currentUserId = userInfo?.id || ''
-  
   // Permission Logic
   const isProjectOwner = currentProject?.role === 'owner'
   const canEdit = isProjectOwner
-  const canViewAll = isProjectOwner
 
   const fetchRecords = async (date: string, projectId?: string) => {
     const pid = projectId || currentProject?.id
@@ -168,7 +162,7 @@ function ProjectDetail() {
 
   const handleRecordClick = (record: WorkRecord) => {
     // Only allow edit if owner or self
-    if (canEdit || record.userId === currentUserId) {
+    if (canEdit) {
         setCurrentRecord(record)
         setActionSheetVisible(true)
     }

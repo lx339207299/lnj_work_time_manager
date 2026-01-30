@@ -3,21 +3,23 @@ import { View, Text } from '@tarojs/components'
 import { Dialog, Cell, CellGroup, Button, Avatar, ActionSheet } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { useUserStore } from '../../store/userStore'
 import { request } from '../../utils/request'
 import './index.scss'
+import { UserInfo } from '../../../types/global'
 
 function Mine() {
-  const { userInfo, token, logout } = useUserStore()
   const [currentOrg, setCurrentOrg] = useState<any>(null)
   const [orgList, setOrgList] = useState<any[]>([])
   const [isVisible, setIsVisible] = useState(false)
+  const [token, setToken] = useState<string | null>(Taro.getStorageSync('token'))
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
 
   useDidShow(() => {
+    const token = Taro.getStorageSync('token')
     if (token) {
       request({ url: '/auth/profile', method: 'GET' })
         .then((user: any) => {
-          useUserStore.getState().setUserInfo(user)
+          setUserInfo(user)
           const orgs = (user.memberships || []).map((m: any) => ({
             id: m.organization.id,
             name: m.organization.name,
@@ -36,7 +38,7 @@ function Mine() {
   }, [currentOrg])
 
   const handleLogout = () => {
-    logout()
+    Taro.removeStorageSync('token')
     // No need to relaunch, just stay on mine page and UI updates
     Taro.showToast({ title: '已退出', icon: 'success' })
   }
@@ -46,7 +48,7 @@ function Mine() {
   }
 
   const handleOrgClick = () => {
-    if (!token) {
+    if (!Taro.getStorageSync('token')) {
         handleLogin()
         return
     }
@@ -72,7 +74,7 @@ function Mine() {
   }
   
   const handleProtectedClick = (url: string) => {
-      if (!token) {
+      if (!Taro.getStorageSync('token')) {
           handleLogin()
           return
       }

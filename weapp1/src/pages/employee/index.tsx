@@ -6,7 +6,6 @@ import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutu
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { invitationService } from '../../services/invitationService'
-import { useUserStore } from '../../store/userStore'
 import { request } from '../../utils/request'
 import './index.scss'
 
@@ -22,7 +21,6 @@ function EmployeeList() {
   const [loading, setLoading] = useState(false)
   const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   const [currentUserRole, setCurrentUserRole] = useState<string>('member')
-  const { userInfo } = useUserStore()
 
   useDidShow(() => {
     fetchEmployees()
@@ -47,16 +45,12 @@ function EmployeeList() {
     }
   }
 
-  const currentUserId = userInfo?.id || ''
-  
-
   const handleEdit = (targetId: string) => {
     // Permission check
     // Owner/Leader can edit anyone
     // Others can only edit themselves
     const canEdit = 
-        ['owner', 'leader'].includes(currentUserRole) || 
-        targetId === currentUserId
+        ['owner', 'leader'].includes(currentUserRole)
 
     if (canEdit) {
         Taro.navigateTo({ url: `/pages/employee/edit/index?id=${targetId}` })
@@ -179,7 +173,7 @@ function EmployeeList() {
                                 </View>
                             }
                             extra={
-                                (['owner', 'leader'].includes(currentUserRole) || emp.id === currentUserId) ? (
+                                (['owner', 'leader'].includes(currentUserRole)) ? (
                                     <ArrowRight color="#999" />
                                 ) : null
                             }

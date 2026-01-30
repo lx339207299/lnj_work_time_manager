@@ -8,14 +8,13 @@ import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
 import './index.scss'
 
-import { useUserStore } from '../../store/userStore'
 import { request } from '../../utils/request'
 import type { Project } from '../../../types/global'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
   const [projectList, setProjectList] = useState<any[]>([])
-  const { token } = useUserStore() // Get token directly
+  const { token } = Taro.getStorageSync('token') // Get token directly
   const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   const fetchData = async () => {

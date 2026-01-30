@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
-import { useUserStore } from '../../store/userStore'
 import { authService } from '../../services/authService'
 import './index.scss'
 
 function Login() {
-  const setUserInfo = useUserStore((state) => state.setUserInfo)
-  const setToken = useUserStore((state) => state.setToken)
   
   // Form State
   const [phone, setPhone] = useState('')
@@ -58,8 +55,7 @@ function Login() {
     try {
         const { token, user, isProfileComplete } = await authService.loginByPhone(phone, code)
         
-        setToken(token)
-        setUserInfo(user)
+        Taro.setStorageSync('token', token)
         
         Taro.showToast({ title: '登录成功', icon: 'success' })
         

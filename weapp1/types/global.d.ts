@@ -52,6 +52,16 @@ export interface AddProjectMemberData {
   role: string;
 }
 
+export interface UserInfo {
+  id: string;
+  name: string;
+  phone: string;
+  avatar: string?;
+  birthday?: string;
+  orgId?: string;
+  role?: string;
+}
+
 declare namespace NodeJS {
   interface ProcessEnv {
     TARO_ENV: 'weapp' | 'swan' | 'alipay' | 'h5' | 'rn' | 'tt' | 'quickapp' | 'qq' | 'jd'
