@@ -12,6 +12,7 @@ import { userService } from '../../../services/userService'
 function ProfileEdit() {
   const router = useRouter()
   const { isNew } = router.params
+  const { token } = router.params
   
   // Form State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
@@ -40,9 +41,6 @@ function ProfileEdit() {
 
     setLoading(true)
     try {
-      // Assuming employeeService has a method to update profile or we use a user service
-      // For now, reuse updateEmployee but only for personal fields
-      // In a real app, this might be userService.updateProfile(data)
       const data = {
         name: userInfo?.name,
         birthday: userInfo?.birthday
@@ -55,6 +53,9 @@ function ProfileEdit() {
       setUserInfo({ ...userInfo, ...data } as UserInfo)
 
       Taro.showToast({ title: '保存成功', icon: 'success' })
+      if (token) {
+        Taro.setStorageSync('token', token)
+      }
       
       setTimeout(() => {
           if (isNew === 'true') {
