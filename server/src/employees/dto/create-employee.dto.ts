@@ -1,8 +1,7 @@
-
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEmployeeDto {
-  @ApiProperty({ example: 'uuid-org-id' })
+  // @ApiProperty({ example: 'uuid-org-id', hidden: true })
   orgId: string;
 
   @ApiProperty({ example: 'Employee Name' })

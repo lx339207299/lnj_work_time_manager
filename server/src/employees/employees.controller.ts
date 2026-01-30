@@ -18,7 +18,8 @@ export class EmployeesController {
   @Post('create')
   @ApiOperation({ summary: 'Add employee to organization' })
   @ApiResponse({ status: 201, type: EmployeeResponseDto })
-  create(@Body() createEmployeeDto: CreateEmployeeDto) {
+  create(@Body() createEmployeeDto: CreateEmployeeDto, @Request() req: any) {
+    createEmployeeDto.orgId = req.user.orgId;
     return this.employeesService.create(createEmployeeDto);
   }
 
