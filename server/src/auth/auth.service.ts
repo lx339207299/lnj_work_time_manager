@@ -38,7 +38,7 @@ export class AuthService {
         const payload = { 
           phone: user.phone, 
           sub: user.id,
-          orgId: userProfile?.orgId || null 
+          orgId: userProfile?.currentOrg?.id || null 
         };
         return {
             access_token: this.jwtService.sign(payload),
@@ -113,13 +113,11 @@ export class AuthService {
         }
     }
     
-    // 确保包含 currentOrgId 字段
     const userProfile = {
       ...result,
-      currentOrgId: user.currentOrg?.id || null,
-      orgId: user.currentOrg?.id || null,
-      role,
-      currentOrg: user.currentOrg || null
+      // 返回currentOrg
+      currentOrg: user.currentOrg || null,
+      role: role,
     };
     
     return userProfile;

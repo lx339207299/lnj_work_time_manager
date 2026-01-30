@@ -40,5 +40,18 @@ export const authService = {
     } catch (error) {
         throw new Error('登录失败')
     }
+  },
+
+  // 调用profile
+  getProfile: async (): Promise<User> => {
+    try {
+        const res: any = await request({
+            url: '/auth/profile',
+            method: 'GET'
+        })
+        return res
+    } catch (error) {
+        throw new Error('获取用户信息失败')
+    }
   }
 }
