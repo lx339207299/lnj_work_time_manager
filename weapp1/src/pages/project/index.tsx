@@ -14,11 +14,14 @@ import type { Project } from '../../../types/global'
 function ProjectList() {
   const [loading, setLoading] = useState(true)
   const [projectList, setProjectList] = useState<any[]>([])
-  const { token } = Taro.getStorageSync('token') // Get token directly
+  const [token, setToken] = useState<string>('')
   const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   const fetchData = async () => {
-    if (!token) {
+    const t = Taro.getStorageSync('token')
+    setToken(t)
+
+    if (!t) {
         setLoading(false)
         setProjectList([]) // Clear list if not logged in
         return

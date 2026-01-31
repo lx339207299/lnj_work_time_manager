@@ -3,11 +3,12 @@ import { UserInfo } from '../../types/global'
 
 export const userService = {
   // Get user profile
-  getUserInfo: async (): Promise<UserInfo> => {
+  getUserInfo: async (token?: string): Promise<UserInfo> => {
     try {
       const res: any = await request({
         url: '/auth/profile',
-        method: 'POST'
+        method: 'POST',
+        token
       })
       
       const resData = res.data
@@ -26,8 +27,8 @@ export const userService = {
   },
 
   // Update user profile
-  updateUserInfo: async (data: Partial<UserInfo>): Promise<UserInfo> => {
-    const { data: resData } = (await request({ url: '/auth/update-profile', method: 'POST', data })) as any
+  updateUserInfo: async (data: Partial<UserInfo>, token?: string): Promise<UserInfo> => {
+    const { data: resData } = (await request({ url: '/auth/update-profile', method: 'POST', data, token })) as any
     return Array.isArray(resData) ? resData[0] : resData
   }
 }

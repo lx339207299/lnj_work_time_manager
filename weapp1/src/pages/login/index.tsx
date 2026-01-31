@@ -4,6 +4,7 @@ import { Button, Input } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
 import { authService } from '../../services/authService'
 import './index.scss'
+import { debug } from 'console'
 
 function Login() {
   
@@ -55,20 +56,23 @@ function Login() {
     try {
         const { token, user, isProfileComplete } = await authService.loginByPhone(phone, code)
         if (isProfileComplete) {
-          setTimeout(
-            () => {
-              Taro.setStorageSync('token', token)
-                Taro.showToast({ title: '登录成功', icon: 'success' })
-                Taro.switchTab({ url: '/pages/project/index' })
-            },
-            500
-          )
+            Taro.setStorageSync('token', token)
+            debugger
+            setTimeout(
+                () => {
+                    Taro.showToast({ title: '登录成功', icon: 'success' })
+                    Taro.switchTab({ url: '/pages/project/index' })
+                },
+                500
+            )
         } else {
-                Taro.showToast({ title: '请先完善个人资料', icon: 'none', duration: 2000 })
-                setTimeout(() => {
-                    Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true&token=${token}` })
-                }, 500)
-            }
+            Taro.showToast({ title: '请先完善个人资料', icon: 'none', duration: 2000 })
+            // Do NOT store token yet. Pass it to profile page.
+            setTimeout(() => {
+                // Encode token just in case, though JWT is usually URL safe enough
+                Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true&token=${encodeURIComponent(token)}` })
+            }, 500)
+        }
     } catch (error: any) {
         console.error('Login error:', error)
         // Ensure toast is shown even if error object is weird

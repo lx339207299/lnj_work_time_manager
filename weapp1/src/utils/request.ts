@@ -15,11 +15,15 @@ export class CustomError extends Error {
 
 const baseUrl = process.env.TARO_APP_API_URL || 'http://localhost:3000'
 
-export const request = async (options: Taro.request.Option) => {
-  const { url, header = {} } = options
+export interface RequestOptions extends Taro.request.Option {
+  token?: string
+}
+
+export const request = async (options: RequestOptions) => {
+  const { url, header = {}, token: manualToken } = options
   
-  // Get token from storage or store (pseudo code)
-  const token = Taro.getStorageSync('token')
+  // Get token from storage or manual param
+  const token = manualToken || Taro.getStorageSync('token')
   if (token) {
     header['Authorization'] = `Bearer ${token}`
   }

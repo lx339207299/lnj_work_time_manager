@@ -10,17 +10,20 @@ import { UserInfo } from '../../../types/global'
 import { userService } from '../../services/userService'
 
 function Mine() {
-  const [token, setToken] = useState<string | null>(Taro.getStorageSync('token'))
+  const [token, setToken] = useState<string | null>(null)
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
 
   useDidShow(() => {
-    const token = Taro.getStorageSync('token')
-    if (token) {
+    const t = Taro.getStorageSync('token')
+    setToken(t)
+    if (t) {
       userService.getUserInfo()
         .then((user) => {
           setUserInfo(user)
         })
         .catch(console.error)
+    } else {
+        setUserInfo(null)
     }
   })
 
@@ -32,6 +35,8 @@ function Mine() {
     Taro.removeStorageSync('token')
     // No need to relaunch, just stay on mine page and UI updates
     Taro.showToast({ title: '已退出', icon: 'success' })
+    setUserInfo(null)
+    setToken(null)
   }
   
   const handleLogin = () => {

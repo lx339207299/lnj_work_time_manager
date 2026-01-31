@@ -12,7 +12,7 @@ import { userService } from '../../../services/userService'
 function ProfileEdit() {
   const router = useRouter()
   const { isNew } = router.params
-  const { token } = router.params
+  const token = router.params.token ? decodeURIComponent(router.params.token) : undefined
   
   // Form State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
@@ -23,7 +23,7 @@ function ProfileEdit() {
     // 从接口获取数据
     const fetchProfile = async () => {
       try {
-        const profile = await userService.getUserInfo()
+        const profile = await userService.getUserInfo(token)
         setUserInfo(profile)
       } catch (error) {
         console.error(error)
@@ -47,7 +47,7 @@ function ProfileEdit() {
       }
       
       // Update profile via API
-      await userService.updateUserInfo(data)
+      await userService.updateUserInfo(data, token)
       
       // Update store
       setUserInfo({ ...userInfo, ...data } as UserInfo)
