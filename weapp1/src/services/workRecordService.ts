@@ -24,28 +24,29 @@ export interface ProjectMemberStat {
 export const workRecordService = {
   // Get project member statistics (aggregated work hours)
   getProjectMemberStats: async (projectId: string): Promise<ProjectMemberStat[]> => {
-    return request({ url: '/work-records/stats', method: 'POST', data: { projectId } })
+    const { data } = (await request({ url: '/work-records/stats', method: 'POST', data: { projectId } })) as any
+    return data
   },
 
   // Get work records by project and date
   getProjectWorkRecords: async (projectId: string, date: string): Promise<WorkRecord[]> => {
-    const res = await request({ 
+    const { data } = (await request({ 
         url: '/work-records/list', 
         method: 'POST', 
         data: { projectId, date } 
-    })
-    return res || []
+    })) as any
+    return data || []
   },
 
   // Get monthly stats to show dots on calendar
   getProjectMonthStats: async (projectId: string, month: string): Promise<string[]> => {
     // Return array of dates that have records
-    const res = await request({ 
+    const { data } = (await request({ 
         url: '/work-records/list', 
         method: 'POST', 
         data: { projectId, month, pageSize: 1000 } // Fetch all for month
-    })
-    const list = Array.isArray(res) ? res : []
+    })) as any
+    const list = Array.isArray(data) ? data : []
     // Extract unique dates
     const dates = list.map((r: WorkRecord) => r.date)
     return Array.from(new Set(dates))
@@ -53,26 +54,26 @@ export const workRecordService = {
 
   // Get all records list (pagination supported)
   getProjectRecordsList: async (projectId: string, page: number = 1, pageSize: number = 10): Promise<{ list: WorkRecord[], total: number }> => {
-    const res: any = await request({ 
+    const { data, property } = (await request({ 
         url: '/work-records/list', 
         method: 'POST', 
         data: { projectId, page, pageSize } 
-    })
+    })) as any
     
     return {
-        list: res || [],
-        total: res?.property?.total || 0
+        list: data || [],
+        total: property?.total || 0
     }
   },
 
   // Update record
   updateWorkRecord: async (id: string, data: Partial<WorkRecord>): Promise<void> => {
-    return request({ url: '/work-records/update', method: 'POST', data: { id, ...data } })
+    await request({ url: '/work-records/update', method: 'POST', data: { id, ...data } })
   },
 
   // Delete record
   deleteWorkRecord: async (id: string): Promise<void> => {
-    return request({ url: '/work-records/delete', method: 'POST', data: { id } })
+    await request({ url: '/work-records/delete', method: 'POST', data: { id } })
   },
 
   // Batch add work records
@@ -81,6 +82,6 @@ export const workRecordService = {
       date: string
       records: { memberId: string; duration: number }[]
   }): Promise<void> => {
-      return request({ url: '/work-records/batch', method: 'POST', data })
+      await request({ url: '/work-records/batch', method: 'POST', data })
   }
 }

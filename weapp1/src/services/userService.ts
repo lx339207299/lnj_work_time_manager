@@ -10,12 +10,15 @@ export const userService = {
         method: 'POST'
       })
       
+      const resData = res.data
+      const data = Array.isArray(resData) ? resData[0] : resData
+
       // Adapt server response to frontend UserInfo interface
       // Server returns { ...user, currentOrg: { id, name }, role }
       // We ensure orgId is available for frontend compatibility
       return {
-        ...res,
-        orgId: res.currentOrg?.id || res.currentOrgId || null
+        ...data,
+        orgId: data.currentOrg?.id || data.currentOrgId || null
       }
     } catch (error) {
       throw new Error('获取用户信息失败')
@@ -24,6 +27,7 @@ export const userService = {
 
   // Update user profile
   updateUserInfo: async (data: Partial<UserInfo>): Promise<UserInfo> => {
-    return request({ url: '/auth/update-profile', method: 'POST', data })
+    const { data: resData } = (await request({ url: '/auth/update-profile', method: 'POST', data })) as any
+    return Array.isArray(resData) ? resData[0] : resData
   }
 }

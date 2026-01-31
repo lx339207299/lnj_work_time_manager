@@ -1,5 +1,18 @@
 import Taro from '@tarojs/taro'
 
+export class CustomError extends Error {
+  code: number
+  data?: any
+  property?: any
+  
+  constructor(code: number, message: string, extra?: { data?: any, property?: any }) {
+    super(message)
+    this.code = code
+    this.data = extra?.data
+    this.property = extra?.property
+  }
+}
+
 const baseUrl = process.env.TARO_APP_API_URL || 'http://localhost:3000'
 
 export const request = async (options: Taro.request.Option) => {
@@ -31,38 +44,19 @@ export const request = async (options: Taro.request.Option) => {
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
       const body = res.data
-      
+      console.log(body);
       // Handle unified response format
-      if (body && typeof body === 'object' && 'status' in body && 'data' in body) {
         const { status, data, property } = body
-        
-        if (status.code === 0) {
-          // Success
-          // Attach property to data if possible (for pagination etc.)
-          if (property && typeof data === 'object' && data !== null) {
-            try {
-              Object.defineProperty(data, 'property', {
-                value: property,
-                enumerable: false,
-                writable: true,
-                configurable: true
-              })
-            } catch (e) {
-              // Ignore if cannot attach
-            }
-          }
-          return data
-        } else if (status.code === 99) {
+        if (status.code == 0) {
+          return body
+        }
+        if (status.code === 99) {
           // Auth fail
           Taro.removeStorageSync('token')
           Taro.reLaunch({ url: '/pages/login/index' })
           throw new Error(status.msg || '登录失效')
-        } else {
-          throw new Error(status.msg || '请求失败')
         }
-      }
-      
-      return body
+        throw new CustomError(status.code, status.msg || '登录失效', {data, property})
     }
   } catch (err: any) {
     // 如果是网络错误（Taro.request 抛出的异常）

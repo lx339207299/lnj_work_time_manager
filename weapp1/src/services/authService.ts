@@ -29,13 +29,16 @@ export const authService = {
             data: { phone, code }
         })
         
+        const resData = res.data
+        const data = Array.isArray(resData) ? resData[0] : resData
+
         // Save token
-        Taro.setStorageSync('token', res.access_token)
+        // Taro.setStorageSync('token', data.access_token)
         
         return {
-            token: res.access_token,
-            user: res.user,
-            isProfileComplete: !res.isNewUser && !!res.user.name
+            token: data.access_token,
+            user: data.user,
+            isProfileComplete: !data.isNewUser && !!data.user.name
         }
     } catch (error) {
         throw new Error('登录失败')

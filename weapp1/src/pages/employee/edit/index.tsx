@@ -22,13 +22,9 @@ const wageTypeOptions = [
   { text: '时薪 (按时)', value: 'hour' },
 ]
 
-import { userService } from '../../../services/userService'
-
 function EmployeeEdit() {
   const router = useRouter()
   const { id } = router.params
-  const { token } = Taro.getStorageSync('token')
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
   
   // Form State
   const [name, setName] = useState('')

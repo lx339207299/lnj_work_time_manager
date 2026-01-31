@@ -28,7 +28,7 @@ export class AuthService {
     // For fixed verification code '123456', direct string comparison is sufficient.
     // bcrypt.compare is for hashing passwords.
     if (loginDto.code !== '123456') {
-      throw new UnauthorizedException('验证码错误');
+      throw new Error('验证码错误');
     }
     const user = await this.usersService.findOne(loginDto.phone);
     
