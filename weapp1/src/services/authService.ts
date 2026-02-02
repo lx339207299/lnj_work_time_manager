@@ -1,5 +1,6 @@
 import { request } from '../utils/request'
 import Taro from '@tarojs/taro'
+import { orgManager } from '../utils/orgManager'
 
 export interface User {
   id: string
@@ -7,6 +8,10 @@ export interface User {
   phone: string
   avatar?: string
   role: 'owner' | 'admin' | 'member'
+  currentOrg?: {
+    id: string
+    name: string
+  }
 }
 
 export const authService = {
@@ -32,9 +37,11 @@ export const authService = {
         const resData = res.data
         const data = Array.isArray(resData) ? resData[0] : resData
 
-        // Save token
-        // Taro.setStorageSync('token', data.access_token)
-        
+        // 缓存组织ID
+        if (data.user?.currentOrg?.id) {
+          orgManager.setCurrentOrgId(data.user.currentOrg.id)
+        }
+
         return {
             token: data.access_token,
             user: data.user,

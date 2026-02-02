@@ -1,4 +1,5 @@
 import { request } from '../utils/request'
+import { orgManager } from '../utils/orgManager'
 
 export const orgService = {
   // Get user's organization list
@@ -10,7 +11,14 @@ export const orgService = {
   // Create organization
   createOrg: async (name: string): Promise<any> => {
     const { data: resData } = (await request({ url: '/organizations/create', method: 'POST', data: { name } })) as any
-    return Array.isArray(resData) ? resData[0] : resData
+    const data = Array.isArray(resData) ? resData[0] : resData
+    
+    // 缓存新创建的组织ID
+    if (data?.id) {
+      orgManager.setCurrentOrgId(data.id)
+    }
+    
+    return data
   },
 
   // Exit organization

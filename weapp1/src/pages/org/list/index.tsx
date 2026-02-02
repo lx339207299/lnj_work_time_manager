@@ -6,6 +6,7 @@ import { Check, Plus, More } from '@nutui/icons-react-taro'
 import { orgService } from '../../../services/orgService'
 import { request } from '../../../utils/request'
 import { userService } from '../../../services/userService'
+import { orgManager } from '../../../utils/orgManager'
 import './index.scss'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
@@ -48,11 +49,17 @@ function OrgList() {
       content: `确定要切换到"${org.name}"吗？`,
       onConfirm: async () => {
         try {
-          const res: any = await request({ url: `/organizations/${org.id}/switch`, method: 'POST' })
-          if (res?.access_token) {
-            Taro.setStorageSync('token', res.access_token)
+          const res: any = await request({ url: `/organizations/switch`, method: 'POST', data: { id: org.id } })
+          console.log(1111, res);
+          const { data } = res
+          if (data != null && data.length > 0 && data[0]?.access_token) {
+            Taro.setStorageSync('token', data[0]?.access_token)
           }
+          
+          // 缓存切换后的组织ID
+          orgManager.setCurrentOrgId(org.id)
           setCurrentOrgId(org.id)
+          
           Taro.showToast({ title: '切换成功', icon: 'success' })
           Dialog.close('switch-org')
           setTimeout(() => {
@@ -107,8 +114,19 @@ function OrgList() {
                   
                   const newList = orgList.filter(o => o.id !== selectedOrg.id)
                   setOrgList(newList)
+                  
+                  // 处理缓存的组织ID
                   if (currentOrgId === selectedOrg.id) {
+                      // 如果退出的是当前使用的组织，清理缓存
+                      orgManager.clearCurrentOrgId()
                       setCurrentOrgId(null)
+                      
+                      // 如果还有其他组织，可以设置为第一个组织（可选）
+                      if (newList.length > 0) {
+                          // 这里可以选择是否自动切换到第一个组织
+                          // orgManager.setCurrentOrgId(newList[0].id)
+                          // setCurrentOrgId(newList[0].id)
+                      }
                   }
 
                   Taro.showToast({ title: '已退出', icon: 'success' })

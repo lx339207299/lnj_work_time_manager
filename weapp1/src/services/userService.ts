@@ -17,10 +17,7 @@ export const userService = {
       // Adapt server response to frontend UserInfo interface
       // Server returns { ...user, currentOrg: { id, name }, role }
       // We ensure orgId is available for frontend compatibility
-      return {
-        ...data,
-        orgId: data.currentOrg?.id || data.currentOrgId || null
-      }
+      return data
     } catch (error) {
       throw new Error('获取用户信息失败')
     }

@@ -8,6 +8,7 @@ import './index.scss'
 import { UserInfo } from '../../../types/global'
 
 import { userService } from '../../services/userService'
+import { orgManager } from '../../utils/orgManager'
 
 function Mine() {
   const [token, setToken] = useState<string | null>(null)
@@ -33,6 +34,8 @@ function Mine() {
 
   const handleLogout = () => {
     Taro.removeStorageSync('token')
+    // 清理组织ID缓存
+    orgManager.clearCurrentOrgId()
     // No need to relaunch, just stay on mine page and UI updates
     Taro.showToast({ title: '已退出', icon: 'success' })
     setUserInfo(null)

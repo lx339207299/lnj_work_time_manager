@@ -1,4 +1,5 @@
 import Taro from '@tarojs/taro'
+import { orgManager } from '../utils/orgManager'
 
 export const useAuth = () => {
   

@@ -3,6 +3,7 @@ import { View, Text } from '@tarojs/components'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
 import { authService } from '../../services/authService'
+import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 import { debug } from 'console'
 
@@ -57,7 +58,12 @@ function Login() {
         const { token, user, isProfileComplete } = await authService.loginByPhone(phone, code)
         if (isProfileComplete) {
             Taro.setStorageSync('token', token)
-            debugger
+            
+            // 确保组织ID已缓存（双重保险）
+            if (user?.currentOrg?.id) {
+              orgManager.setCurrentOrgId(user.currentOrg.id)
+            }
+            
             setTimeout(
                 () => {
                     Taro.showToast({ title: '登录成功', icon: 'success' })

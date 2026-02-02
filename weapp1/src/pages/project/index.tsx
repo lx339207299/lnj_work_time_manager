@@ -6,10 +6,12 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
+import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
 import { request } from '../../utils/request'
 import type { Project } from '../../../types/global'
+import { userService } from 'src/services/userService'
 
 function ProjectList() {
   const [loading, setLoading] = useState(true)
@@ -27,10 +29,23 @@ function ProjectList() {
         return
     }
 
-    if (!currentOrgId) {
+    // 使用缓存的组织ID
+    const cachedOrgId = orgManager.getCurrentOrgId()
+    if (currentOrgId != cachedOrgId) {
+      setCurrentOrgId(cachedOrgId)
+    }
+
+    // 如果没有缓存的组织ID，尝试从API获取
+    if (!cachedOrgId) {
       try {
         const profile: any = await request({ url: '/auth/profile', method: 'POST' })
-        setCurrentOrgId(profile.currentOrgId || null)
+        const profileOrgId = profile.currentOrgId || null
+        setCurrentOrgId(profileOrgId)
+        
+        // 缓存组织ID
+        if (profileOrgId) {
+          orgManager.setCurrentOrgId(profileOrgId)
+        }
       } catch (e) {
         setLoading(false)
         setProjectList([])
@@ -51,10 +66,7 @@ function ProjectList() {
     }
   }
 
-  useDidShow(async () => {
-    fetchData()
-    
-    // Check for pending invite
+  const dealInvitation = async () => {
     if (token) {
         const inviteCode = Taro.getStorageSync('pending_invite_code')
         if (inviteCode) {
@@ -97,6 +109,24 @@ function ProjectList() {
             }
         }
     }
+  }
+
+  useDidShow(async () => {
+    // 请求接口更新本地组织id和token
+    const userInfo = await userService.getUserInfo()
+    console.log(userInfo);
+    
+    // if (userInfo?.currentOrgId) {
+    //   setCurrentOrgId(userInfo.currentOrgId)
+    // }
+    // 查看页面中和缓存中的组织ID是否一致
+    const cachedOrgId = orgManager.getCurrentOrgId()
+    if (currentOrgId != cachedOrgId) {
+      setCurrentOrgId(cachedOrgId)
+    }
+    
+    // Check for pending invite
+    dealInvitation()
   })
 
   const handleCreate = () => {
@@ -106,7 +136,7 @@ function ProjectList() {
     }
     
     // Check if has organization
-    if (!currentOrgId) {
+    if (!Taro.getStorageSync('currentOrgId')) {
         Dialog.open('no-org-create', {
             title: '需要创建组织',
             content: '创建项目前，您需要先创建一个组织或加入一个现有组织。',

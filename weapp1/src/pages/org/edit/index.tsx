@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import { Shop } from '@nutui/icons-react-taro'
 import { orgService } from '../../../services/orgService'
+import { orgManager } from '../../../utils/orgManager'
 import './index.scss'
 
 export default function OrgEdit() {
