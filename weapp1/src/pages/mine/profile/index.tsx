@@ -23,7 +23,7 @@ function ProfileEdit() {
     // 从接口获取数据
     const fetchProfile = async () => {
       try {
-        const profile = await userService.getUserInfo(token)
+        const profile = await userService.getUserInfo({token, ignoreTokenInvalid: token ? true : false})
         setUserInfo(profile)
       } catch (error) {
         console.error(error)
