@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class OrganizationResponseDto {
   @ApiProperty({ description: 'Organization ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Organization Name' })
   name: string;
@@ -11,7 +11,7 @@ export class OrganizationResponseDto {
   description?: string;
 
   @ApiProperty({ description: 'Owner User ID' })
-  ownerId: string;
+  ownerId: number;
 
   @ApiProperty({ description: 'Creation timestamp' })
   createdAt: Date;
@@ -27,10 +27,10 @@ export class OrganizationListResponseDto extends OrganizationResponseDto {
 
 export class OrganizationMemberDto {
     @ApiProperty()
-    id: string;
+    id: number;
     
     @ApiProperty()
-    userId: string;
+    userId: number;
     
     @ApiProperty()
     name: string;
@@ -55,7 +55,7 @@ export class SwitchOrganizationResponseDto {
   success: boolean;
 
   @ApiProperty({ description: 'Current Organization ID' })
-  currentOrgId: string;
+  currentOrgId: number;
 
   @ApiProperty({ type: OrganizationResponseDto })
   org: OrganizationResponseDto;

@@ -2,10 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEmployeeDto {
   // @ApiProperty({ example: 'uuid-org-id', hidden: true })
-  orgId: string;
-
-  @ApiProperty({ example: 'Employee Name' })
-  name: string;
+  orgId: number;
 
   @ApiProperty({ example: '13900139000' })
   phone: string;
@@ -18,7 +15,4 @@ export class CreateEmployeeDto {
 
   @ApiProperty({ example: 100, required: false })
   wageAmount?: number;
-
-  @ApiProperty({ example: '1990-01-01', required: false })
-  birthday?: string;
 }

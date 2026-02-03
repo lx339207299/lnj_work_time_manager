@@ -7,7 +7,7 @@ export const orgManager = {
    * 设置当前组织ID到本地存储
    * @param orgId 组织ID
    */
-  setCurrentOrgId: (orgId: string | null) => {
+  setCurrentOrgId: (orgId: number | null) => {
     try {
       if (orgId) {
         Taro.setStorageSync(ORG_ID_KEY, orgId)
@@ -23,10 +23,10 @@ export const orgManager = {
    * 从本地存储获取当前组织ID
    * @returns 组织ID或null
    */
-  getCurrentOrgId: (): string | null => {
+  getCurrentOrgId: (): number | null => {
     try {
       const orgId = Taro.getStorageSync(ORG_ID_KEY)
-      return orgId || null
+      return orgId ? Number(orgId) : null
     } catch (error) {
       console.error('获取组织ID缓存失败:', error)
       return null

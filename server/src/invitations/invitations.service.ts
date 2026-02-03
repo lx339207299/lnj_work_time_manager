@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class InvitationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createInvitationDto: CreateInvitationDto, inviterId: string) {
+  async create(createInvitationDto: CreateInvitationDto, inviterId: number) {
     // Check if org exists and user is member (or owner)
     const org = await this.prisma.organization.findUnique({
       where: { id: createInvitationDto.orgId },
@@ -50,7 +50,7 @@ export class InvitationsService {
     return invite;
   }
 
-  async accept(code: string, userId: string) {
+  async accept(code: string, userId: number) {
     const invite = await this.findOne(code);
     
     // Check if already a member
@@ -72,10 +72,8 @@ export class InvitationsService {
     // Create member
     const member = await this.prisma.organizationMember.create({
       data: {
-        orgId: invite.orgId,
-        userId: userId,
-        name: user.name || '新成员', // Fallback
-        phone: user.phone,
+        organization: { connect: { id: invite.orgId } },
+        user: { connect: { id: userId } },
         role: 'member',
         status: 'active',
       },

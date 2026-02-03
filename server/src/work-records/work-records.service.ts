@@ -30,7 +30,7 @@ export class WorkRecordsService {
   }
 
   async findAll(
-    projectId: string, 
+    projectId: number, 
     date?: string, 
     month?: string, 
     page: number = 1, 
@@ -73,7 +73,7 @@ export class WorkRecordsService {
         id: record.id,
         projectId: record.projectId,
         userId: record.memberId, // Use memberId as userId reference
-        userName: record.member.name,
+        userName: record.member.user?.name || record.member.user?.phone,
         userRole: record.member.role,
         avatar: record.member.user?.avatar || '',
         date: record.date,
@@ -85,7 +85,7 @@ export class WorkRecordsService {
     return CustomResponse.success(data, {}, { total, pageSize: +pageSize, currentPage: +page });
   }
 
-  async getStats(projectId: string) {
+  async getStats(projectId: number) {
     // Aggregate total duration by member
     const stats = await this.prisma.workRecord.groupBy({
         by: ['memberId'],
@@ -107,7 +107,7 @@ export class WorkRecordsService {
         const member = members.find(m => m.id === s.memberId);
         return {
             userId: s.memberId,
-            userName: member?.name || 'Unknown',
+            userName: member?.user?.name || member?.user?.phone || 'Unknown',
             userAvatar: member?.user?.avatar || '',
             userRole: member?.role || 'member',
             totalDuration: s._sum.duration || 0,
@@ -116,7 +116,7 @@ export class WorkRecordsService {
     });
   }
 
-  async update(id: string, data: any) {
+  async update(id: number, data: any) {
     return this.prisma.workRecord.update({
       where: { id },
       data: {
@@ -127,13 +127,13 @@ export class WorkRecordsService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     return this.prisma.workRecord.delete({
       where: { id }
     });
   }
 
-  async batchCreate(data: { projectId: string, date: string, records: { memberId: string, duration: number }[] }) {
+  async batchCreate(data: { projectId: number, date: string, records: { memberId: number, duration: number }[] }) {
       const { projectId, date, records } = data;
       // Get all members to verify and get snapshots
       const members = await this.prisma.organizationMember.findMany({

@@ -18,7 +18,7 @@ const roleMap: Record<string, { text: string, type: string, className?: string }
 
 function OrgList() {
   const [orgList, setOrgList] = useState<any[]>([])
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
+  const [currentOrgId, setCurrentOrgId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [actionVisible, setActionVisible] = useState(false)
   const [selectedOrg, setSelectedOrg] = useState<any>(null)

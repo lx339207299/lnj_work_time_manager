@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class WorkRecordStatsDto {
-  @ApiProperty({ example: 'uuid-user-id' })
-  userId: string;
+  @ApiProperty({ example: 1 })
+  userId: number;
 
   @ApiProperty({ example: 'John Doe' })
   userName: string;

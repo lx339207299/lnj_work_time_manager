@@ -22,7 +22,7 @@ export const orgService = {
   },
 
   // Exit organization
-  exitOrg: async (orgId: string): Promise<void> => {
+  exitOrg: async (orgId: number): Promise<void> => {
     await request({ url: '/organizations/leave', method: 'POST', data: { id: orgId } })
   }
 }

@@ -100,6 +100,7 @@ function ProjectList() {
     const newToken = Taro.getStorageSync('token') ?? ''
     if (newToken != token) {
       setToken(newToken)
+      setNeedFetchData(true)
     }
     // Check for pending invite
     dealInvitation()

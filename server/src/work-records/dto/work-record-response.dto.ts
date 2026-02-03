@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class WorkRecordResponseDto {
-  @ApiProperty({ example: 'uuid-record-id' })
-  id: string;
+  @ApiProperty({ example: 1 })
+  id: number;
 
-  @ApiProperty({ example: 'uuid-project-id' })
-  projectId: string;
+  @ApiProperty({ example: 1 })
+  projectId: number;
 
-  @ApiProperty({ example: 'uuid-user-id' })
-  userId: string;
+  @ApiProperty({ example: 1 })
+  userId: number;
 
   @ApiProperty({ example: 'John Doe' })
   userName: string;

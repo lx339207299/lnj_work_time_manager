@@ -7,7 +7,7 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 export class OrganizationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, createOrganizationDto: CreateOrganizationDto) {
+  async create(userId: number, createOrganizationDto: CreateOrganizationDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
@@ -25,8 +25,6 @@ export class OrganizationsService {
         data: {
           orgId: org.id,
           userId: userId,
-          name: user.name || user.phone, // Default name
-          phone: user.phone,
           role: 'owner',
           wageType: 'month', // Owner salary default: month
           wageAmount: 0,     // Owner salary default: 0
@@ -47,7 +45,7 @@ export class OrganizationsService {
     });
   }
 
-  async switchToOrg(userId: string, orgId: string) {
+  async switchToOrg(userId: number, orgId: number) {
     // 验证用户是否有权限访问该组织
     const membership = await this.prisma.organizationMember.findFirst({
       where: {
@@ -83,7 +81,7 @@ export class OrganizationsService {
     };
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: number) {
     // Find orgs where user is a member
     const memberships = await this.prisma.organizationMember.findMany({
       where: { userId },
@@ -95,7 +93,7 @@ export class OrganizationsService {
     }));
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     return this.prisma.organization.findUnique({
       where: { id },
       include: {
@@ -105,7 +103,7 @@ export class OrganizationsService {
     });
   }
 
-  async update(id: string, userId: string, updateDto: any) {
+  async update(id: number, userId: number, updateDto: any) {
     const org = await this.prisma.organization.findUnique({ where: { id } });
     if (!org) throw new Error('Organization not found');
     if (org.ownerId !== userId) throw new Error('Only owner can update organization');
@@ -116,7 +114,7 @@ export class OrganizationsService {
     });
   }
 
-  async remove(id: string, userId: string) {
+  async remove(id: number, userId: number) {
     const org = await this.prisma.organization.findUnique({ where: { id } });
     if (!org) throw new Error('Organization not found');
     if (org.ownerId !== userId) throw new Error('Only owner can delete organization');
@@ -165,7 +163,7 @@ export class OrganizationsService {
     });
   }
 
-  async leave(id: string, userId: string) {
+  async leave(id: number, userId: number) {
     const org = await this.prisma.organization.findUnique({ where: { id } });
     if (!org) throw new Error('组织不存在');
     if (org.ownerId === userId) throw new Error('负责人无法退出，请先转移权限');

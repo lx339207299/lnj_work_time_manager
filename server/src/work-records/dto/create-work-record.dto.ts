@@ -2,11 +2,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateWorkRecordDto {
-  @ApiProperty({ example: 'uuid-project-id' })
-  projectId: string;
+  @ApiProperty({ example: 1 })
+  projectId: number;
 
-  @ApiProperty({ example: 'uuid-member-id' })
-  memberId: string;
+  @ApiProperty({ example: 1 })
+  memberId: number;
 
   @ApiProperty({ example: '2023-10-01' })
   date: string;

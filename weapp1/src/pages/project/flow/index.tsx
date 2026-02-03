@@ -12,7 +12,7 @@ const INCOME_TYPES = ['收款']
 
 function ProjectFlow() {
   const router = useRouter()
-  const projectId = router.params.projectId || ''
+  const projectId = Number(router.params.projectId || '-1')
   const projectName = router.params.projectName ? decodeURIComponent(router.params.projectName) : '项目'
 
   const [flows, setFlows] = useState<any[]>([])

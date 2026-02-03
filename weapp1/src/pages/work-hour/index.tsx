@@ -9,7 +9,7 @@ import { workRecordService } from '../../services/workRecordService'
 import './index.scss'
 
 interface Member {
-    id: string
+    id: number
     name: string
     avatar: string
     role: string
@@ -23,7 +23,7 @@ function WorkHour() {
   
   // State
   const [members, setMembers] = useState<Member[]>([])
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([])
   const [workHours, setWorkHours] = useState<Record<string, number>>({})
   const [showCalendar, setShowCalendar] = useState(false)
   const [selectedDate, setSelectedDate] = useState(date || dayjs().format('YYYY-MM-DD'))
@@ -37,13 +37,13 @@ function WorkHour() {
   const fetchMembers = async () => {
     if (projectId) {
         try {
-            const res = await projectService.getProjectMembers(projectId)
+            const res = await projectService.getProjectMembers(Number(projectId))
             const mapped = res.map((m: any) => ({
               id: m.id,
-              name: m.userId,
-              avatar: '',
+              name: m.name,
+              avatar: m.avatar,
               role: m.role,
-              wageType: 'day' as const
+              wageType: m.wageType || 'day'
             }))
             setMembers(mapped)
             

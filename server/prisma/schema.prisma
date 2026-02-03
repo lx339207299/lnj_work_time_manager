@@ -45,16 +45,12 @@ model OrganizationMember {
   orgId       Int
   organization Organization @relation(fields: [orgId], references: [id])
   
-  userId      Int?
-  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 
-  // Snapshot of employee info in this org
-  name        String
-  phone       String
   role        String   @default("member") // owner, leader, member, temp
   wageType    String   @default("day") // day, month, hour
   wageAmount  Float    @default(0)
-  birthday    String?
   
   status      String   @default("active") // pending, active, disabled
 

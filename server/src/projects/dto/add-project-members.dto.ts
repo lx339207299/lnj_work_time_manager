@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AddProjectMembersDto {
-  @ApiProperty({ description: 'Project ID (if passed in body)', required: false, example: 'uuid-project' })
-  id?: string;
+  @ApiProperty({ description: 'Project ID (if passed in body)', required: false, example: 1 })
+  id?: number;
 
-  @ApiProperty({ example: ['uuid-member-1', 'uuid-member-2'], description: 'Array of OrganizationMember IDs' })
-  memberIds: string[];
+  @ApiProperty({ example: [1, 2], description: 'Array of OrganizationMember IDs' })
+  memberIds: number[];
 }

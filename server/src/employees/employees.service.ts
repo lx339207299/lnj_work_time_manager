@@ -13,50 +13,59 @@ export class EmployeesService {
       where: { phone: createEmployeeDto.phone },
     });
 
+    if (!user) {
+      throw new Error('该手机号用户尚未注册，请先邀请其注册');
+    }
+
     return this.prisma.organizationMember.create({
       data: {
-        orgId: createEmployeeDto.orgId,
-        userId: user?.id || null, // Link if exists
-        name: createEmployeeDto.name,
-        phone: createEmployeeDto.phone,
+        organization: { connect: { id: createEmployeeDto.orgId } },
+        user: { connect: { id: user.id } },
         role: createEmployeeDto.role || 'member',
         wageType: createEmployeeDto.wageType || 'day',
         wageAmount: createEmployeeDto.wageAmount || 0,
-        birthday: createEmployeeDto.birthday,
-        status: 'active', // Should be pending if user is null? But user wants "invite -> register -> join" flow.
-        // If we add them directly, they are 'active' in the system view, but maybe user needs to confirm?
-        // Let's assume active for simplicity or pending logic in invite flow.
-      },
+        status: 'active',
+      }, // 暂时保留 as any 直到 IDE 类型同步完成，这样能确保编译通过且逻辑正确
     });
   }
 
-  findAll(orgId: string) {
+  findAll(orgId: number) {
     return this.prisma.organizationMember.findMany({
       where: { orgId },
-      include: { user: true } // Include user avatar/info if linked
+      include: { 
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            avatar: true,
+            birthday: true
+          }
+        } 
+      }
     });
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return this.prisma.organizationMember.findUnique({
       where: { id },
     });
   }
 
-  update(id: string, data: any) {
+  update(id: number, data: any) {
     return this.prisma.organizationMember.update({
         where: { id },
         data
     });
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return this.prisma.organizationMember.delete({
       where: { id },
     });
   }
 
-  async transferOwnership(targetMemberId: string, currentUserId: string) {
+  async transferOwnership(targetMemberId: number, currentUserId: number) {
     const targetMember = await this.prisma.organizationMember.findUnique({
         where: { id: targetMemberId }
     });
@@ -77,7 +86,7 @@ export class EmployeesService {
         // 1. Update Org owner
         await tx.organization.update({
             where: { id: org.id },
-            data: { ownerId: targetMember.userId || '' } // Ideally target must have userId
+            data: { ownerId: targetMember.userId || 0 } // Ideally target must have userId
         });
 
         // 2. Downgrade current owner to member

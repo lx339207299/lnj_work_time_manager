@@ -53,14 +53,14 @@ function EmployeeEdit() {
 
   const fetchEmployee = async (empId: string) => {
     try {
-      const emp = await employeeService.getEmployeeById(empId)
+      const emp = await employeeService.getEmployeeById(Number(empId))
       if (emp) {
-        setName(emp.name)
-        setPhone(emp.phone)
+        setName(emp.user?.name || '')
+        setPhone(emp.user?.phone || '')
         setRole(emp.role)
         setWageType(emp.wageType)
         setWageAmount(emp.wageAmount)
-        setBirthday(emp.birthday || '')
+        setBirthday(emp.user?.birthday || '')
       }
     } catch (error) {
       console.error(error)
@@ -69,27 +69,24 @@ function EmployeeEdit() {
   }
 
   const handleSave = async () => {
-    if (!name || !phone) {
-      Taro.showToast({ title: '请填写姓名和手机号', icon: 'none' })
+    if (!phone) {
+      Taro.showToast({ title: '请填写手机号', icon: 'none' })
       return
     }
 
     setSubmitting(true)
     try {
       const data = {
-        name,
-        phone,
         role: role as any,
         wageType: wageType as any,
         wageAmount: Number(wageAmount),
-        birthday
       }
 
       if (id) {
-        await employeeService.updateEmployee(id, data)
+        await employeeService.updateEmployee(Number(id), data)
         Taro.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        await employeeService.addEmployee({ ...data })
+        await employeeService.addEmployee({ ...data, phone })
         Taro.showToast({ title: '添加成功', icon: 'success' })
       }
 
@@ -110,7 +107,7 @@ function EmployeeEdit() {
       onConfirm: async () => {
         try {
           if (id) {
-            await employeeService.transferOwnership(id)
+            await employeeService.transferOwnership(Number(id))
             Taro.showToast({ title: '移交成功', icon: 'success' })
             setTimeout(() => {
                 Taro.navigateBack()
@@ -134,7 +131,7 @@ function EmployeeEdit() {
         onConfirm: async () => {
             try {
                 if (id) {
-                    await employeeService.deleteEmployee(id)
+                    await employeeService.deleteEmployee(Number(id))
                     Taro.showToast({ title: '删除成功', icon: 'success' })
                     setTimeout(() => {
                         Taro.navigateBack()
@@ -158,18 +155,34 @@ function EmployeeEdit() {
     <View className="employee-edit-page">
       <View className="form-card">
         <Cell.Group>
-            <Cell title="姓名" extra={
-                <Text style={{ color: '#999' }}>{name || '待填写'}</Text>
-            } />
-            <Cell title="手机号" extra={
-                <Text style={{ color: '#999' }}>{phone || '待填写'}</Text>
-            } />
-            <Cell 
-                title="生日" 
-                extra={
-                    <Text style={{ color: '#999' }}>{birthday || '未设置'}</Text>
-                }
-            />
+            {!id && (
+                <Cell title="手机号" extra={
+                    <Input 
+                        placeholder="请输入手机号"
+                        value={phone} 
+                        onChange={(val) => setPhone(val)}
+                        align="right"
+                        type="tel"
+                        style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
+                    />
+                } />
+            )}
+            {id && (
+                <>
+                    <Cell title="姓名" extra={
+                        <Text style={{ color: '#999' }}>{name || '待填写'}</Text>
+                    } />
+                    <Cell title="手机号" extra={
+                        <Text style={{ color: '#999' }}>{phone || '待填写'}</Text>
+                    } />
+                    <Cell 
+                        title="生日" 
+                        extra={
+                            <Text style={{ color: '#999' }}>{birthday || '未设置'}</Text>
+                        }
+                    />
+                </>
+            )}
         </Cell.Group>
       </View>
 

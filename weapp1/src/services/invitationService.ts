@@ -2,10 +2,10 @@ import { request } from '../utils/request'
 import { orgManager } from '../utils/orgManager'
 
 export interface Invitation {
-    id: string
+    id: number
     code: string
-    orgId: string
-    inviterId: string
+    orgId: number
+    inviterId: number
     status: string
     expiresAt: string
     organization?: {

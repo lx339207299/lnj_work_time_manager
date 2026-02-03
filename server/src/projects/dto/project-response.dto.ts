@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ProjectResponseDto {
   @ApiProperty({ description: 'Project ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Project Name' })
   name: string;
@@ -25,7 +25,7 @@ export class ProjectResponseDto {
 
 export class ProjectMemberDto {
     @ApiProperty()
-    id: string;
+    id: number;
     
     @ApiProperty()
     name: string;
@@ -42,10 +42,10 @@ export class ProjectMemberDto {
 
 export class ProjectFlowDto {
     @ApiProperty()
-    id: string;
+    id: number;
     
     @ApiProperty()
-    projectId: string;
+    projectId: number;
     
     @ApiProperty()
     type: string;
@@ -63,5 +63,5 @@ export class ProjectFlowDto {
     remark?: string;
     
     @ApiProperty({ required: false })
-    relatedMemberId?: string;
+    relatedMemberId?: number;
 }

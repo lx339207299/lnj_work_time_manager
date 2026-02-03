@@ -13,8 +13,8 @@ declare module '*.styl';
 
 // Project related types
 export interface Project {
-  id: string;
-  orgId: string;
+  id: number;
+  orgId: number;
   name: string;
   description?: string;
   status: 'active' | 'completed';
@@ -38,28 +38,28 @@ export interface UpdateProjectData {
 }
 
 export interface ProjectMember {
-  id: string;
-  projectId: string;
-  userId: string;
+  id: number;
+  projectId: number;
+  userId: number;
   role: string;
   joinedAt: string;
 }
 
 export interface AddProjectMemberData {
-  projectId: string;
-  userId: string;
+  projectId: number;
+  userId: number;
   role: string;
 }
 
 export interface UserInfo {
-  id: string;
+  id: number;
   name: string;
   phone: string;
   avatar: string?;
   birthday?: string;
-  orgId?: string;
+  orgId?: number;
   currentOrg?: {
-    id: string;
+    id: number;
     name: string;
   };
   role?: string;

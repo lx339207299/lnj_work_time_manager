@@ -46,7 +46,7 @@ function EmployeeList() {
     }
   }
 
-  const handleEdit = (targetId: string) => {
+  const handleEdit = (targetId: number) => {
     // Permission check
     // Owner/Leader can edit anyone
     // Others can only edit themselves
@@ -60,7 +60,7 @@ function EmployeeList() {
     }
   }
 
-  const handleDelete = (targetId: string) => {
+  const handleDelete = (targetId: number) => {
       // Permission check
       if (!['owner', 'leader'].includes(currentUserRole)) {
           Taro.showToast({ title: '无权删除员工', icon: 'none' })
@@ -151,7 +151,7 @@ function EmployeeList() {
                                 <View className="cell-title-content">
                                     <View className="info">
                                         <View className="name-row">
-                                            <Text className="name">{emp.name}</Text>
+                                            <Text className="name">{emp.user?.name || emp.user?.phone}</Text>
                                             <Tag 
                                                 type={roleMap[emp.role]?.type as any || 'default'} 
                                                 plain
@@ -169,7 +169,7 @@ function EmployeeList() {
                                               </Tag>
                                             )}
                                         </View>
-                                        <Text className="phone">{emp.phone}</Text>
+                                        <Text className="phone">{emp.user?.phone}</Text>
                                     </View>
                                 </View>
                             }

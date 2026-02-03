@@ -3,13 +3,13 @@ import Taro from '@tarojs/taro'
 import { orgManager } from '../utils/orgManager'
 
 export interface User {
-  id: string
+  id: number
   name: string
   phone: string
   avatar?: string
   role: 'owner' | 'admin' | 'member'
   currentOrg?: {
-    id: string
+    id: number
     name: string
   }
 }

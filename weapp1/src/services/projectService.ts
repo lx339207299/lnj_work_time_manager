@@ -8,7 +8,7 @@ export const projectService = {
     return data
   },
 
-  getProjectDetail: async (projectId: string): Promise<Project> => {
+  getProjectDetail: async (projectId: number): Promise<Project> => {
     const { data: resData } = (await request({ url: '/projects/detail', method: 'POST', data: { id: projectId } })) as any
     return Array.isArray(resData) ? resData[0] : resData
   },
@@ -19,7 +19,7 @@ export const projectService = {
   },
 
   // Get project members
-  getProjectMembers: async (projectId: string): Promise<ProjectMember[]> => {
+  getProjectMembers: async (projectId: number): Promise<ProjectMember[]> => {
     const { data } = (await request({ url: '/projects/list-members', method: 'POST', data: { id: projectId } })) as any
     return data
   },
@@ -30,23 +30,23 @@ export const projectService = {
   },
 
   // Get project flow list
-  getProjectFlows: async (projectId: string): Promise<any[]> => {
+  getProjectFlows: async (projectId: number): Promise<any[]> => {
     const { data } = (await request({ url: '/projects/list-flows', method: 'POST', data: { id: projectId } })) as any
     return data
   },
 
   // Add flow record
-  addProjectFlow: async (projectId: string, data: any): Promise<void> => {
+  addProjectFlow: async (projectId: number, data: any): Promise<void> => {
     await request({ url: '/projects/add-flow', method: 'POST', data: { id: projectId, ...data } })
   },
 
   // Update project
-  updateProject: async (projectId: string, data: UpdateProjectData): Promise<void> => {
+  updateProject: async (projectId: number, data: UpdateProjectData): Promise<void> => {
     await request({ url: '/projects/update', method: 'POST', data: { id: projectId, ...data } })
   },
 
   // Delete project
-  deleteProject: async (projectId: string): Promise<void> => {
+  deleteProject: async (projectId: number): Promise<void> => {
     await request({ url: '/projects/delete', method: 'POST', data: { id: projectId } })
   }
 }

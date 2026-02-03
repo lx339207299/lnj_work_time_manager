@@ -3,13 +3,13 @@ import { UserProfileDto } from '../../auth/dto/auth-response.dto';
 
 export class EmployeeResponseDto {
   @ApiProperty({ description: 'Employee (Member) ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Organization ID' })
-  orgId: string;
+  orgId: number;
 
   @ApiProperty({ description: 'User ID (if linked)', required: false })
-  userId?: string;
+  userId?: number;
 
   @ApiProperty({ description: 'Employee Name' })
   name: string;

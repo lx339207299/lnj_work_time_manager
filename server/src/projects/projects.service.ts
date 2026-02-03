@@ -24,7 +24,7 @@ export class ProjectsService {
     });
   }
 
-  async findAll(orgId: string, user: any) {
+  async findAll(orgId: number, user: any) {
     const projects = await this.prisma.project.findMany({
       where: { orgId },
       include: {
@@ -60,7 +60,7 @@ export class ProjectsService {
     });
   }
 
-  async findOne(id: string, user: any) {
+  async findOne(id: number, user: any) {
     const p: any = await this.prisma.project.findUnique({
       where: { id },
       include: {
@@ -95,7 +95,7 @@ export class ProjectsService {
     };
   }
 
-  async addMembers(id: string, dto: AddProjectMembersDto) {
+  async addMembers(id: number, dto: AddProjectMembersDto) {
     const creates = dto.memberIds.map(memberId => ({
         projectId: id,
         memberId: memberId,
@@ -114,26 +114,27 @@ export class ProjectsService {
     return { success: true };
   }
 
-  async getMembers(id: string) {
+  async getMembers(id: number) {
+    const projectId = Number(id);
     const memberships = await this.prisma.projectMember.findMany({
-      where: { projectId: id },
+      where: { projectId: projectId },
       include: {
         member: {
-            include: { user: true } // Get avatar from user
+            include: { user: true }
         }
       }
     });
 
     return memberships.map(m => ({
         id: m.member.id,
-        name: m.member.name,
+        name: m.member.user?.name || m.member.user?.phone,
         role: m.member.role, // Org role
         wageType: m.member.wageType,
         avatar: m.member.user?.avatar || ''
     }));
   }
 
-  async addFlow(id: string, dto: CreateProjectFlowDto) {
+  async addFlow(id: number, dto: CreateProjectFlowDto) {
     return this.prisma.projectFlow.create({
       data: {
         projectId: id,
@@ -142,21 +143,21 @@ export class ProjectsService {
     });
   }
 
-  async getFlows(id: string) {
+  async getFlows(id: number) {
     return this.prisma.projectFlow.findMany({
       where: { projectId: id },
       orderBy: { date: 'desc' }
     });
   }
 
-  async update(id: string, updateDto: any) {
+  async update(id: number, updateDto: any) {
     return this.prisma.project.update({
       where: { id },
       data: updateDto,
     });
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     return this.prisma.project.delete({
       where: { id },
     });

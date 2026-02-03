@@ -10,7 +10,7 @@ import './index.scss'
 
 function ProjectMember() {
   const router = useRouter()
-  const projectId = router.params.projectId || ''
+  const projectId = Number(router.params.projectId || '-1')
   
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -18,7 +18,7 @@ function ProjectMember() {
   // Add Member State
   const [addVisible, setAddVisible] = useState(false)
   const [orgEmployees, setOrgEmployees] = useState<Employee[]>([])
-  const [selectedEmpIds, setSelectedEmpIds] = useState<string[]>([])
+  const [selectedEmpIds, setSelectedEmpIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
 
   useEffect(() => {
@@ -79,7 +79,7 @@ function ProjectMember() {
     }
   }
 
-  const toggleSelection = (id: string) => {
+  const toggleSelection = (id: number) => {
       if (selectedEmpIds.includes(id)) {
           setSelectedEmpIds(selectedEmpIds.filter(item => item !== id))
       } else {
@@ -162,8 +162,8 @@ function ProjectMember() {
                                     <Checkbox checked={selectedEmpIds.includes(emp.id)} />
                                 </View>
                                 <View className="info">
-                                    <Text className="name">{emp.name}</Text>
-                                    <Text className="phone">{emp.phone}</Text>
+                                    <Text className="name">{emp.user?.name || emp.user?.phone}</Text>
+                                    <Text className="phone">{emp.user?.phone}</Text>
                                 </View>
                             </View>
                         ))}

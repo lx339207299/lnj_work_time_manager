@@ -3,17 +3,17 @@ import { OrganizationResponseDto } from '../../organizations/dto/organization-re
 import { UserProfileDto } from '../../auth/dto/auth-response.dto';
 
 export class InvitationResponseDto {
-  @ApiProperty({ description: 'Invitation ID' })
-  id: string;
+  @ApiProperty({ description: 'Invitation ID', example: 1 })
+  id: number;
 
   @ApiProperty({ description: 'Invitation Code' })
   code: string;
 
-  @ApiProperty({ description: 'Organization ID' })
-  orgId: string;
+  @ApiProperty({ description: 'Organization ID', example: 1 })
+  orgId: number;
 
-  @ApiProperty({ description: 'Inviter User ID' })
-  inviterId: string;
+  @ApiProperty({ description: 'Inviter User ID', example: 1 })
+  inviterId: number;
 
   @ApiProperty({ description: 'Status', example: 'pending' })
   status: string;

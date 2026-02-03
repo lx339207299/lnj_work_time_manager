@@ -18,7 +18,7 @@ function ProjectEdit() {
   useEffect(() => {
     if (id) {
       Taro.setNavigationBarTitle({ title: '编辑项目' })
-      projectService.getProjectDetail(id).then(project => {
+      projectService.getProjectDetail(Number(id)).then(project => {
           setName(project.name)
           setDescription(project.description || '')
       }).catch(err => {
@@ -41,7 +41,7 @@ function ProjectEdit() {
     try {
       if (id) {
         // Update
-        await projectService.updateProject(id, { name, description })
+        await projectService.updateProject(Number(id), { name, description })
         Taro.showToast({ title: '保存成功', icon: 'success' })
       } else {
         // Create

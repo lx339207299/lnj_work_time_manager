@@ -49,8 +49,8 @@ function ProjectDetail() {
   const isProjectOwner = currentProject?.role === 'owner'
   const canEdit = isProjectOwner
 
-  const fetchRecords = async (date: string, projectId?: string) => {
-    const pid = projectId || currentProject?.id
+  const fetchRecords = async (date: string, projectId?: string | number) => {
+    const pid = projectId ? Number(projectId) : currentProject?.id
     if (!pid) return
 
     setLoadingRecords(true)
@@ -65,8 +65,8 @@ function ProjectDetail() {
     }
   }
 
-  const fetchMonthStats = async (month: string, projectId?: string) => {
-    const pid = projectId || currentProject?.id
+  const fetchMonthStats = async (month: string, projectId?: string | number) => {
+    const pid = projectId ? Number(projectId) : currentProject?.id
     if (!pid) return
     
     try {
@@ -84,14 +84,15 @@ function ProjectDetail() {
       const { id } = router.params
       if (id) {
         try {
+          const projectId = Number(id)
           // Fetch project details first
-          const project = await projectService.getProjectDetail(id)
+          const project = await projectService.getProjectDetail(projectId)
           setCurrentProject(project)
           
           // Then fetch related data
           await Promise.all([
-            fetchMonthStats(dayjs().format('YYYY-MM'), project.id),
-            fetchRecords(selectedDate, project.id)
+            fetchMonthStats(dayjs().format('YYYY-MM'), projectId),
+            fetchRecords(selectedDate, projectId)
           ])
         } catch (error) {
           console.error(error)

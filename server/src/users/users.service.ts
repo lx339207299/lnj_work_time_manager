@@ -14,29 +14,29 @@ export class UsersService {
     });
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: number): Promise<User | null> {
     if (!id) return null;
     return this.prisma.user.findUnique({
       where: { id },
     });
   }
 
-  async findByIdWithOrgs(id: string) {
+  async findByIdWithOrgs(id: number) {
     if (!id) return null;
     return this.prisma.user.findUnique({
-        where: { id },
-        include: {
-            memberships: {
-                include: { organization: true },
-                where: { status: 'active' }
-            },
-            currentOrg: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
+      where: { id },
+      include: {
+        memberships: {
+          include: { organization: true },
+          where: { status: 'active' }
+        },
+        currentOrg: {
+          select: {
+            id: true,
+            name: true
+          }
         }
+      }
     });
   }
 
@@ -51,7 +51,7 @@ export class UsersService {
     });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
+  async update(id: number, data: Prisma.UserUpdateInput): Promise<User> {
     return this.prisma.user.update({
       where: { id },
       data,

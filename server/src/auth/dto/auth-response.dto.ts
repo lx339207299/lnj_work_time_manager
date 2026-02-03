@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UserOrgDto {
   @ApiProperty({ description: 'Organization ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Organization Name' })
   name: string;
@@ -10,7 +10,7 @@ export class UserOrgDto {
 
 export class UserProfileDto {
   @ApiProperty({ description: 'User ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'User phone number' })
   phone: string;
@@ -22,7 +22,7 @@ export class UserProfileDto {
   avatar?: string;
 
   @ApiProperty({ description: 'Current Organization ID', required: false })
-  currentOrgId?: string;
+  currentOrgId?: number;
 
   @ApiProperty({ description: 'Current Organization Details', type: UserOrgDto, required: false })
   currentOrg?: UserOrgDto;
