@@ -11,50 +11,18 @@ import './index.scss'
 
 import { request } from '../../utils/request'
 import type { Project } from '../../../types/global'
-import { userService } from 'src/services/userService'
+import { userService } from '../../services/userService'
 
 function ProjectList() {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [projectList, setProjectList] = useState<any[]>([])
   const [token, setToken] = useState<string>('')
   const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
+  const [needFetchData, setNeedFetchData] = useState<boolean>(false)
   
   const fetchData = async () => {
-    const t = Taro.getStorageSync('token')
-    setToken(t)
-
-    if (!t) {
-        setLoading(false)
-        setProjectList([]) // Clear list if not logged in
-        return
-    }
-
-    // 使用缓存的组织ID
-    const cachedOrgId = orgManager.getCurrentOrgId()
-    if (currentOrgId != cachedOrgId) {
-      setCurrentOrgId(cachedOrgId)
-    }
-
-    // 如果没有缓存的组织ID，尝试从API获取
-    if (!cachedOrgId) {
-      try {
-        const profile: any = await request({ url: '/auth/profile', method: 'POST' })
-        const profileOrgId = profile.currentOrgId || null
-        setCurrentOrgId(profileOrgId)
-        
-        // 缓存组织ID
-        if (profileOrgId) {
-          orgManager.setCurrentOrgId(profileOrgId)
-        }
-      } catch (e) {
-        setLoading(false)
-        setProjectList([])
-        return
-      }
-    }
-
-    setLoading(true)
     try {
+      setLoading(true)
       const res = await projectService.getProjects()
       // Ensure res is an array
       setProjectList(Array.isArray(res) ? res : [])
@@ -65,6 +33,15 @@ function ProjectList() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!needFetchData) {
+        setLoading(false)
+        setProjectList([]) // Clear list if not logged in
+        return
+    }
+    fetchData()
+  }, [needFetchData])
 
   const dealInvitation = async () => {
     if (token) {
@@ -113,18 +90,17 @@ function ProjectList() {
 
   useDidShow(async () => {
     // 请求接口更新本地组织id和token
-    const userInfo = await userService.getUserInfo()
-    console.log(userInfo);
-    
-    // if (userInfo?.currentOrgId) {
-    //   setCurrentOrgId(userInfo.currentOrgId)
+    // let newOrgId = ''
+    // try {
+    //   const userInfo = await userService.getUserInfo({ ignoreTokenInvalid: true })
+    //   newOrgId = userInfo?.currentOrg?.id ?? ''
+    // } catch(e) {
+      
     // }
-    // 查看页面中和缓存中的组织ID是否一致
-    const cachedOrgId = orgManager.getCurrentOrgId()
-    if (currentOrgId != cachedOrgId) {
-      setCurrentOrgId(cachedOrgId)
+    const newToken = Taro.getStorageSync('token') ?? ''
+    if (newToken != token) {
+      setToken(newToken)
     }
-    
     // Check for pending invite
     dealInvitation()
   })

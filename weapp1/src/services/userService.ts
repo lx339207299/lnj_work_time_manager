@@ -1,14 +1,19 @@
 import { request } from '../utils/request'
-import { UserInfo } from '../../types/global'
+import { ProfileReqOptions, UserInfo } from '../../types/global'
 
 export const userService = {
   // Get user profile
-  getUserInfo: async (token?: string): Promise<UserInfo> => {
-    try {
+  // 怎么样可以不传token只传ignoreTokenInvalid
+  // 可以将token设为可选参数
+  
+  getUserInfo: async (options?: ProfileReqOptions): Promise<UserInfo> => {
       const res: any = await request({
         url: '/auth/profile',
         method: 'POST',
-        token
+        token: options?.token,
+        data: {
+          'ignoreTokenInvalid': options?.ignoreTokenInvalid || false
+        }
       })
       
       const resData = res.data
@@ -18,9 +23,6 @@ export const userService = {
       // Server returns { ...user, currentOrg: { id, name }, role }
       // We ensure orgId is available for frontend compatibility
       return data
-    } catch (error) {
-      throw new Error('获取用户信息失败')
-    }
   },
 
   // Update user profile

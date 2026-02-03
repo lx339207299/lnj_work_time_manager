@@ -66,6 +66,11 @@ export interface UserInfo {
   memberships?: any[]; // Keep flexible for now, or define strict type if needed
 }
 
+export interface ProfileReqOptions {
+  token?: string,
+  ignoreTokenInvalid?: boolean,
+}
+
 declare namespace NodeJS {
   interface ProcessEnv {
     TARO_ENV: 'weapp' | 'swan' | 'alipay' | 'h5' | 'rn' | 'tt' | 'quickapp' | 'qq' | 'jd'

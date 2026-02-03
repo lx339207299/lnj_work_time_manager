@@ -18,7 +18,7 @@ function Mine() {
     const t = Taro.getStorageSync('token')
     setToken(t)
     if (t) {
-      userService.getUserInfo()
+      userService.getUserInfo({ignoreTokenInvalid: true})
         .then((user) => {
           setUserInfo(user)
         })

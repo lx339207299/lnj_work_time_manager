@@ -25,10 +25,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const res: any = exception.getResponse();
       
       msg = typeof res === 'string' ? res : (Array.isArray(res.message) ? res.message.join(', ') : res.message);
-      
+      // 参数中，ignoreTokenInvalid 为 true 时，不返回 99 错误码
       if (status === HttpStatus.UNAUTHORIZED) {
-        code = 99;
-        msg = '登录失效';
+        const req = ctx.getRequest();
+        if (req.body.ignoreTokenInvalid) {
+          code = 97;
+          msg = 'token 失效';
+        } else {
+          code = 99;
+          msg = '登录失效';
+        }
       }
     } else if (exception instanceof Error) {
       msg = exception.message;
