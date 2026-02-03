@@ -9,13 +9,13 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   phone     String   @unique
   name      String?
   password  String
   avatar    String?
   birthday  String?
-  currentOrgId String?
+  currentOrgId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -26,10 +26,10 @@ model User {
 }
 
 model Organization {
-  id          String   @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
-  ownerId     String
+  ownerId     Int
   owner       User     @relation("OrgOwner", fields: [ownerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -41,11 +41,11 @@ model Organization {
 }
 
 model OrganizationMember {
-  id          String   @id @default(uuid())
-  orgId       String
+  id          Int      @id @default(autoincrement())
+  orgId       Int
   organization Organization @relation(fields: [orgId], references: [id])
   
-  userId      String?
+  userId      Int?
   user        User?    @relation(fields: [userId], references: [id])
 
   // Snapshot of employee info in this org
@@ -69,8 +69,8 @@ model OrganizationMember {
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  orgId       String
+  id          Int      @id @default(autoincrement())
+  orgId       Int
   organization Organization @relation(fields: [orgId], references: [id])
   
   name        String
@@ -86,11 +86,11 @@ model Project {
 }
 
 model ProjectMember {
-  id        String   @id @default(uuid())
-  projectId String
+  id        Int      @id @default(autoincrement())
+  projectId Int
   project   Project  @relation(fields: [projectId], references: [id])
   
-  memberId  String
+  memberId  Int
   member    OrganizationMember @relation(fields: [memberId], references: [id])
   
   role      String   @default("member") // owner, member
@@ -102,8 +102,8 @@ model ProjectMember {
 }
 
 model ProjectFlow {
-  id          String   @id @default(uuid())
-  projectId   String
+  id          Int      @id @default(autoincrement())
+  projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
   
   type        String   // income, expense
@@ -113,7 +113,7 @@ model ProjectFlow {
   remark      String?
   
   // Optional: link to a specific member if it's a salary payment
-  relatedMemberId String?
+  relatedMemberId Int?
   // We can't easily link to OrgMember here if we want to keep it simple, but let's try
   // For now just store the name or ID if needed, or leave it decoupled
   
@@ -122,11 +122,11 @@ model ProjectFlow {
 }
 
 model WorkRecord {
-  id          String   @id @default(uuid())
-  projectId   String
+  id          Int      @id @default(autoincrement())
+  projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
   
-  memberId    String
+  memberId    Int
   member      OrganizationMember @relation(fields: [memberId], references: [id])
   
   date        String // YYYY-MM-DD
@@ -142,11 +142,11 @@ model WorkRecord {
 }
 
 model Invitation {
-  id        String   @id @default(uuid())
-  orgId     String
+  id        Int      @id @default(autoincrement())
+  orgId     Int
   organization Organization @relation(fields: [orgId], references: [id])
   
-  inviterId String
+  inviterId Int
   inviter   User     @relation(fields: [inviterId], references: [id])
   
   code      String   @unique
