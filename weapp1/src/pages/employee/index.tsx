@@ -5,17 +5,15 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutui/nutui-react-taro'
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
-import { invitationService } from '../../services/invitationService'
 import { userService } from '../../services/userService'
-import { request } from '../../utils/request'
 import './index.scss'
 import type { UserInfo } from '../../../types/global'
 
 const roleMap: Record<string, { text: string, type: string, className?: string }> = {
   owner: { text: '负责人', type: 'default', className: 'tag-owner' },
-  leader: { text: '组长', type: 'success' },
+  leader: { text: '组长', type: 'warning', className: 'tag-leader' },
   member: { text: '员工', type: 'default' },
-  temp: { text: '临时工', type: 'warning' }
+  temp: { text: '临时工', type: 'success' }
 }
 
 function EmployeeList() {
@@ -130,13 +128,13 @@ function EmployeeList() {
                                     <View className="info">
                                         <View className="name-row">
                                             <Text className="name">{emp.user?.name || emp.user?.phone}</Text>
-                                            <Tag 
+                                            { (emp.role === 'leader' || emp.role === 'owner') &&<Tag 
                                                 type={roleMap[emp.role]?.type as any || 'default'} 
                                                 plain
                                                 className={roleMap[emp.role]?.className}
                                             >
-                                                {roleMap[emp.role]?.text || emp.role}
-                                            </Tag>
+                                                {roleMap[emp.role]?.text ?? emp.role}
+                                            </Tag>}
                                             {/* Show red dot if wageAmount is not set */}
                                             {(!emp.wageAmount || emp.wageAmount <= 0) && (
                                                 <Tag 

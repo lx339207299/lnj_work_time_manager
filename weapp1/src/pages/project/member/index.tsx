@@ -119,7 +119,10 @@ function ProjectMember() {
                                     <View className="name-row">
                                         <Text className="name">{mem.name}</Text>
                                     </View>
-                                    <Text className="role">{mem.role}</Text>
+                                    { (mem.role === 'owner' || mem.role === 'leader') && 
+                                    <Text className="role">
+                                      {mem.role === 'owner' ? '负责人' : mem.role == 'leader' ? '组长' : '员工'}
+                                      </Text>}
                                 </View>
                             </View>
                         }
@@ -174,7 +177,10 @@ function ProjectMember() {
                             <Button 
                                 size="small" 
                                 type="primary" 
-                                onClick={() => Taro.navigateTo({ url: '/pages/employee/index' })}
+                                onClick={() => {
+                                  setAddVisible(false)
+                                  Taro.navigateTo({ url: '/pages/employee/index' })
+                                }}
                             >
                                 去添加
                             </Button>

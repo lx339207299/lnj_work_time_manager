@@ -88,6 +88,7 @@ export class ProjectsService {
       id: p.id,
       name: p.name,
       description: p.description,
+      ownerName: p.projectMembers.find((pm: any) => pm.role === 'owner')?.member?.user?.name || '',
       role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
       memberCount: p.projectMembers.length,
       totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),

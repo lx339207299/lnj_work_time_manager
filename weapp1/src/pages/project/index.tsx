@@ -164,7 +164,9 @@ function ProjectList() {
                   <Horizontal size={16} color="#999" />
                 </View>
                 
-                <View className="card-desc">{project.description || '暂无描述'}</View>
+                {project.description && (
+                    <View className="card-desc">{project.description || '暂无描述'}</View>
+                )}
                 
                 <View className="card-footer">
                   <View className="stat-item">

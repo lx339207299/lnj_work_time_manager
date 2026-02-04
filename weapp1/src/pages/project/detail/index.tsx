@@ -42,12 +42,8 @@ function ProjectDetail() {
   const [moreActionVisible, setMoreActionVisible] = useState(false)
   const moreActionOptions = [
     { name: '项目流水', key: 'flow' },
-    { name: '刷新', key: 'refresh' }
+    // { name: '刷新', key: 'refresh' }
   ]
-
-  // Permission Logic
-  const isProjectOwner = currentProject?.role === 'owner'
-  const canEdit = isProjectOwner
 
   const fetchRecords = async (date: string, projectId?: string | number) => {
     const pid = projectId ? Number(projectId) : currentProject?.id
@@ -163,7 +159,7 @@ function ProjectDetail() {
 
   const handleRecordClick = (record: WorkRecord) => {
     // Only allow edit if owner or self
-    if (canEdit) {
+    if (currentProject?.role === 'owner') {
         setCurrentRecord(record)
         setActionSheetVisible(true)
     }
@@ -187,34 +183,6 @@ function ProjectDetail() {
       Taro.navigateTo({
         url: `/pages/project/flow/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`
       })
-    } else if (item.key === 'refresh') {
-        handleRefresh()
-    }
-  }
-
-  const handleRefresh = async () => {
-    if (!currentProject) return
-    
-    Taro.showLoading({ title: '刷新中...' })
-    try {
-        // 1. Refresh Project Detail (update stats)
-        const updatedProject = await projectService.getProjectDetail(currentProject.id)
-        if (updatedProject) {
-            setCurrentProject(updatedProject)
-        }
-        
-        // 2. Refresh Records & Stats
-        await Promise.all([
-            fetchRecords(selectedDate),
-            fetchMonthStats(dayjs(selectedDate).format('YYYY-MM'))
-        ])
-        
-        Taro.showToast({ title: '刷新成功', icon: 'success' })
-    } catch (error) {
-        console.error(error)
-        Taro.showToast({ title: '刷新失败', icon: 'none' })
-    } finally {
-        Taro.hideLoading()
     }
   }
 
@@ -256,7 +224,7 @@ function ProjectDetail() {
         <View className="title-row">
           <View className="project-name">{currentProject.name}</View>
           <View className="actions">
-            {canEdit && (
+            {currentProject?.role === 'owner' && (
               <>
                 <View className="edit-btn" onClick={handleEdit}>
                     <Edit size={16} color="#666" />
@@ -266,7 +234,9 @@ function ProjectDetail() {
           </View>
         </View>
         
-        <View className="project-desc">{currentProject.description || '暂无描述'}</View>
+        {currentProject.description && (
+          <View className="project-desc">{currentProject.description || '暂无描述'}</View>
+        )}
         
         {/* Compact Stats Row */}
         <View className="stats-row">
@@ -290,15 +260,11 @@ function ProjectDetail() {
           </View>
           <View className="divider" />
           <View className="stat-item stat-center">
-            <User size={14} color="#666" className="icon" />
-            <Text className="text">{isProjectOwner ? '我负责' : '其他负责人'}</Text>
+            <View onClick={(e) => { e.stopPropagation(); setMoreActionVisible(true); }}>
+              <Text className="text">{currentProject?.role === 'owner' ? '更多' : `${currentProject.ownerName}`}</Text>
+              {currentProject?.role === 'owner' && <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />}
+            </View>
           </View>
-          <View className="divider" />
-          {canEdit && (
-                <View className="more-btn" onClick={(e) => { e.stopPropagation(); setMoreActionVisible(true); }}>
-                    <More size={14} color="#666" style={{ transform: 'rotate(90deg)' }} />
-                </View>
-            )}
         </View>
       </View>
 
