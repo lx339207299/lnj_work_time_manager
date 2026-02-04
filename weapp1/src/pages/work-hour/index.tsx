@@ -13,7 +13,7 @@ interface Member {
     name: string
     avatar: string
     role: string
-    wageType: 'day' | 'hour'
+    wageType: 'day' | 'hour' | 'month'
 }
 
 function WorkHour() {
@@ -159,7 +159,7 @@ function WorkHour() {
         <View className="card-header">
             <Text className="title">选择员工 ({selectedMemberIds.length}/{members.length})</Text>
             <View className="actions">
-                <View className="action-btn" onClick={handleQuickFill}>一键默认</View>
+                <View className="action-btn" onClick={handleQuickFill}>默认工时</View>
                 <View className="divider-v" />
                 <View className="action-btn" onClick={handleToggleSelectAll}>
                     {selectedMemberIds.length === members.length ? '全不选' : '全选'}
@@ -193,8 +193,8 @@ function WorkHour() {
                             <View className="member-content">
                                 <View className="info">
                                     <Text className="name">{member.name}</Text>
-                                    <View className={`role-tag ${member.role === '项目负责人' ? 'manager' : ''}`}>
-                                        {member.role}
+                                    <View className={'role-tag'}>
+                                        {member.wageType === 'day' ? '日薪' : member.wageType === 'month' ? '月薪' : '时薪'}
                                     </View>
                                 </View>
                             </View>
@@ -207,7 +207,7 @@ function WorkHour() {
                                         key={`${member.id}-${quickFillVersion}`} // Force re-render on quick fill
                                         value={workHours[member.id]}
                                         min={0} 
-                                        max={member.wageType === 'day' ? 3 : 24} 
+                                        // max={member.wageType === 'day' ? 3 : 24} 
                                         step={0.5} 
                                         digits={1}
                                         onChange={(val) => {
@@ -215,7 +215,7 @@ function WorkHour() {
                                         }} 
                                         className="mini-input"
                                     />
-                                    <Text className="unit">{member.wageType === 'day' ? '天' : '小时'}</Text>
+                                    <Text className="unit">{member.wageType === 'hour' ? '小时' : '天'}</Text>
                                 </View>
                             )}
                     </View>

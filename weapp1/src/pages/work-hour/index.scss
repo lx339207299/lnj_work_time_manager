@@ -131,13 +131,14 @@
                     .info {
                         flex: 1;
                         display: flex;
-                        flex-direction: column;
+                        align-items: center;
+                        // flex-direction: column;
                         
                         .name {
                             font-size: 15px;
                             font-weight: 500;
                             color: #333;
-                            margin-bottom: 4px;
+                            // margin-bottom: 4px;
                         }
 
                         .role-tag {
@@ -146,8 +147,9 @@
                             background: #f0f0f0;
                             padding: 2px 6px;
                             border-radius: 4px;
-                            align-self: flex-start;
-                            display: inline-block;
+                            margin-left: 5px;
+                            // align-self: flex-start;
+                            // display: inline-block;
 
                             &.manager {
                                 color: #1989fa;

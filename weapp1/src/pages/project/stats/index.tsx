@@ -54,7 +54,7 @@ function ProjectStats() {
                     {memberStats.map(stat => (
                         <View key={stat.userId} className="record-card">
                             <View className="user-info">
-                                <Avatar size="small" className="avatar">{stat.userName[0]}</Avatar>
+                                {/* <Avatar size="small" className="avatar">{stat.userName[0]}</Avatar> */}
                                 <View className="name-role">
                                     <Text className="name">{stat.userName}</Text>
                                     {stat.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}

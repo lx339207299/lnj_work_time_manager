@@ -306,7 +306,7 @@ function ProjectDetail() {
                     onClick={() => handleRecordClick(record)}
                 >
                 <View className="user-info">
-                    <Avatar size="small" className="avatar">{record.userName[0]}</Avatar>
+                    {/* <Avatar size="small" className="avatar">{record.userName[0]}</Avatar> */}
                     <View className="name-role">
                     <Text className="name">{record.userName}</Text>
                     {record.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
