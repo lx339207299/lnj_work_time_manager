@@ -21,8 +21,17 @@ export class EmployeesService {
           phone: createEmployeeDto.phone,
           name: createEmployeeDto.name || createEmployeeDto.phone,
           birthday: createEmployeeDto.birthday,
+          currentOrgId: createEmployeeDto.orgId, // Set current org to the new org
         },
       });
+    } else {
+        // If user exists but has no current org, set it
+        if (!user.currentOrgId) {
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { currentOrgId: createEmployeeDto.orgId }
+            });
+        }
     }
 
     // Check if already member
