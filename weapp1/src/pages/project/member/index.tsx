@@ -169,7 +169,17 @@ function ProjectMember() {
                         ))}
                     </View>
                 ) : (
-                    <Empty description="没有可添加的员工" />
+                    <Empty description="没有可添加的员工">
+                        <View style={{ marginTop: '10px' }}>
+                            <Button 
+                                size="small" 
+                                type="primary" 
+                                onClick={() => Taro.navigateTo({ url: '/pages/employee/index' })}
+                            >
+                                去添加
+                            </Button>
+                        </View>
+                    </Empty>
                 )}
             </ScrollView>
             <View className="popup-footer">
