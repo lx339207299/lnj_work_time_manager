@@ -78,6 +78,17 @@ export class EmployeesService {
   findOne(id: number) {
     return this.prisma.organizationMember.findUnique({
       where: { id },
+      include: {
+        user: {
+            select: {
+                id: true,
+                name: true,
+                phone: true,
+                avatar: true,
+                birthday: true
+            }
+        }
+      }
     });
   }
 
