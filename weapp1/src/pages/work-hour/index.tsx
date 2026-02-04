@@ -18,7 +18,8 @@ interface Member {
 
 function WorkHour() {
   const router = useRouter()
-  const { projectId, projectName, date } = router.params
+  const { projectName, date } = router.params
+  const projectId = Number(router.params.projectId || '-1')
   const decodedProjectName = projectName ? decodeURIComponent(projectName) : ''
   
   // State
