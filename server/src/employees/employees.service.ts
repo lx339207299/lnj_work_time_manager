@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class EmployeesService {
@@ -9,12 +10,34 @@ export class EmployeesService {
 
   async create(createEmployeeDto: CreateEmployeeDto) {
     // Check if user exists
-    const user = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { phone: createEmployeeDto.phone },
     });
 
     if (!user) {
-      throw new Error('该手机号用户尚未注册，请先邀请其注册');
+      // Create user if not exists
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash('123456', salt); // Default password
+      user = await this.prisma.user.create({
+        data: {
+          phone: createEmployeeDto.phone,
+          name: createEmployeeDto.name || createEmployeeDto.phone,
+          password: hashedPassword,
+          birthday: createEmployeeDto.birthday,
+        },
+      });
+    }
+
+    // Check if already member
+    const existingMember = await this.prisma.organizationMember.findFirst({
+        where: {
+            orgId: createEmployeeDto.orgId,
+            userId: user.id
+        }
+    });
+
+    if (existingMember) {
+        throw new Error('该用户已经是本组织成员');
     }
 
     return this.prisma.organizationMember.create({
@@ -25,7 +48,7 @@ export class EmployeesService {
         wageType: createEmployeeDto.wageType || 'day',
         wageAmount: createEmployeeDto.wageAmount || 0,
         status: 'active',
-      }, // 暂时保留 as any 直到 IDE 类型同步完成，这样能确保编译通过且逻辑正确
+      }, 
     });
   }
 

@@ -28,7 +28,7 @@ export const employeeService = {
   },
 
   // Add employee
-  addEmployee: async (data: { phone: string, role?: string, wageType?: string, wageAmount?: number }): Promise<Employee> => {
+  addEmployee: async (data: { phone: string, name?: string, birthday?: string, role?: string, wageType?: string, wageAmount?: number }): Promise<Employee> => {
     const { data: resData } = (await request({ url: '/employees/create', method: 'POST', data })) as any
     return Array.isArray(resData) ? resData[0] : resData
   },

@@ -37,6 +37,7 @@ function EmployeeEdit() {
   // UI State
   const [showRolePicker, setShowRolePicker] = useState(false)
   const [showWagePicker, setShowWagePicker] = useState(false)
+  const [showBirthdayPicker, setShowBirthdayPicker] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Manager Edit Mode Only
@@ -86,7 +87,7 @@ function EmployeeEdit() {
         await employeeService.updateEmployee(Number(id), data)
         Taro.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        await employeeService.addEmployee({ ...data, phone })
+        await employeeService.addEmployee({ ...data, phone, name, birthday })
         Taro.showToast({ title: '添加成功', icon: 'success' })
       }
 
@@ -156,16 +157,37 @@ function EmployeeEdit() {
       <View className="form-card">
         <Cell.Group>
             {!id && (
-                <Cell title="手机号" extra={
-                    <Input 
-                        placeholder="请输入手机号"
-                        value={phone} 
-                        onChange={(val) => setPhone(val)}
-                        align="right"
-                        type="tel"
-                        style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
+                <>
+                    <Cell title="姓名" extra={
+                        <Input 
+                            placeholder="请输入姓名"
+                            value={name} 
+                            onChange={(val) => setName(val)}
+                            align="right"
+                            style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
+                        />
+                    } />
+                    <Cell title="手机号" extra={
+                        <Input 
+                            placeholder="请输入手机号"
+                            value={phone} 
+                            onChange={(val) => setPhone(val)}
+                            align="right"
+                            type="tel"
+                            style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
+                        />
+                    } />
+                    <Cell 
+                        title="生日" 
+                        extra={
+                            <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Text style={{ color: birthday ? '#333' : '#999' }}>{birthday || '请选择'}</Text>
+                                <ArrowRight size={14} color="#999" />
+                            </View>
+                        }
+                        onClick={() => setShowBirthdayPicker(true)}
                     />
-                } />
+                </>
             )}
             {id && (
                 <>
@@ -261,6 +283,20 @@ function EmployeeEdit() {
             setShowWagePicker(false)
         }}
         onClose={() => setShowWagePicker(false)}
+      />
+
+      {/* Birthday Picker */}
+      <DatePicker
+        visible={showBirthdayPicker}
+        title="选择生日"
+        type="date"
+        startDate={new Date(1900, 0, 1)}
+        endDate={new Date()}
+        onConfirm={(options, values) => {
+            setBirthday(values.join('-'))
+            setShowBirthdayPicker(false)
+        }}
+        onClose={() => setShowBirthdayPicker(false)}
       />
 
       <Dialog id="transfer" />

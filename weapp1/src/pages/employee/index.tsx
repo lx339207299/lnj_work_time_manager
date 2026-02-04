@@ -86,9 +86,9 @@ function EmployeeList() {
     })
   }
 
-  const handleInvite = async () => {
+  const handleAdd = () => {
     if (!['owner', 'leader'].includes(currentUserRole)) {
-        Taro.showToast({ title: '无权邀请员工', icon: 'none' })
+        Taro.showToast({ title: '无权添加员工', icon: 'none' })
         return
     }
 
@@ -97,29 +97,7 @@ function EmployeeList() {
         return
     }
     
-    Taro.showLoading({ title: '生成邀请...' })
-    try {
-        const invite = await invitationService.create()
-        Taro.hideLoading()
-        
-        Taro.showActionSheet({
-            itemList: ['复制邀请码', '复制邀请链接']
-        }).then(res => {
-            if (res.tapIndex === 0) {
-                Taro.setClipboardData({ data: invite.code })
-            } else if (res.tapIndex === 1) {
-                // Assuming we have a way to deep link or just text description
-                // In real WeChat Mini Program, we might not have a URL scheme unless we use Link or QR Code
-                // For now, text is fine.
-                const link = `请在小程序中输入邀请码: ${invite.code}`
-                Taro.setClipboardData({ data: link })
-            }
-        }).catch(() => {})
-        
-    } catch (error) {
-        Taro.hideLoading()
-        Taro.showToast({ title: '生成邀请失败', icon: 'error' })
-    }
+    Taro.navigateTo({ url: '/pages/employee/edit/index' })
   }
 
   return (
@@ -190,7 +168,7 @@ function EmployeeList() {
 
       {/* Only owner/leader can add */}
       {['owner', 'leader'].includes(currentUserRole) && (
-          <View className="fab-add" onClick={handleInvite}>
+          <View className="fab-add" onClick={handleAdd}>
             <Plus size={24} color="#fff" />
           </View>
       )}
