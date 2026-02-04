@@ -16,13 +16,10 @@ export class EmployeesService {
 
     if (!user) {
       // Create user if not exists
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash('123456', salt); // Default password
       user = await this.prisma.user.create({
         data: {
           phone: createEmployeeDto.phone,
           name: createEmployeeDto.name || createEmployeeDto.phone,
-          password: hashedPassword,
           birthday: createEmployeeDto.birthday,
         },
       });

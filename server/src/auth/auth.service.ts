@@ -18,7 +18,7 @@ export class AuthService {
 
   async validateUser(phone: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(phone);
-    if (user && (await bcrypt.compare(pass, user.password))) {
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
       const { password, ...result } = user;
       return result;
     }
@@ -53,10 +53,9 @@ export class AuthService {
     // If user does not exist, register
     const newUser = await this.usersService.create({
         phone: loginDto.phone,
-        password: '',
         name: '',
         avatar: ''
-    });
+    } as any);
 
     // Create default organization
     await this.organizationsService.create(newUser.id as any, { name: '默认组织' });
@@ -84,10 +83,10 @@ export class AuthService {
     
     const user = await this.usersService.create({
         phone: registerDto.phone,
-        password: '', // Default password if not provided
+        // password: '', // Default password if not provided
         name: registerDto.name,
         avatar: registerDto.avatar
-    });
+    } as any);
 
     // Create default organization
     await this.organizationsService.create(user.id as any, { name: '默认组织' });
