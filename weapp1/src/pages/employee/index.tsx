@@ -108,10 +108,10 @@ function EmployeeList() {
       ) : (
         employees.length > 0 ? (
             <View className="employee-list">
-                <Cell.Group>
                 {employees.map(emp => (
                     <Swipe
                         key={emp.id}
+                        className="employee-card"
                         rightAction={
                             <Button type="danger" shape="square" onClick={() => handleDelete(emp.id)}>
                                 删除
@@ -157,7 +157,6 @@ function EmployeeList() {
                         />
                     </Swipe>
                 ))}
-                </Cell.Group>
             </View>
         ) : (
             <Empty description="暂无员工数据" />

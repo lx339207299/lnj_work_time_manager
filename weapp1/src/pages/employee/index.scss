@@ -10,8 +10,13 @@
   }
 
   .employee-list {
-    .nut-swipe {
-        margin-bottom: 0; // Cell group handles borders usually, but let's check
+    padding: 12px;
+
+    .employee-card {
+        margin-bottom: 12px;
+        border-radius: 12px !important;
+        background: #fff;
+        overflow: hidden;
         
         .nut-button {
             height: 100%;
@@ -19,6 +24,14 @@
     }
 
     .employee-cell {
+        margin: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        &::after {
+            display: none;
+        }
+
         .nut-cell__value {
             flex: none;
         }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Avatar, Cell, Swipe, Empty, Skeleton, Popup, Checkbox } from '@nutui/nutui-react-taro'
+import { Button, Cell, Swipe, Empty, Skeleton, Popup, Checkbox, Tag } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'
@@ -106,29 +106,34 @@ function ProjectMember() {
       ) : (
         members.length > 0 ? (
             <View className="member-list">
-                <Cell.Group>
+                {/* <Cell.Group> */}
                 {members.map(mem => (
                     <Cell
                         key={mem.id}
-                        className="employee-cell"
+                        className="member-card"
                         align="center"
                         title={
                             <View className="cell-title-content">
-                                <Avatar size="normal" className="avatar">{mem.name[0]}</Avatar>
                                 <View className="info">
                                     <View className="name-row">
                                         <Text className="name">{mem.name}</Text>
+                                        {(mem.role === 'owner' || mem.role === 'leader') && (
+                                            <Tag 
+                                                type={mem.role === 'owner' ? 'danger' : 'warning'} 
+                                                plain
+                                                style={{ marginLeft: 8 }}
+                                            >
+                                                {mem.role === 'owner' ? '负责人' : '组长'}
+                                            </Tag>
+                                        )}
                                     </View>
-                                    { (mem.role === 'owner' || mem.role === 'leader') && 
-                                    <Text className="role">
-                                      {mem.role === 'owner' ? '负责人' : mem.role == 'leader' ? '组长' : '员工'}
-                                      </Text>}
+                                    {/* <Text className="phone">{mem.phone || mem.user?.phone || ''}</Text> */}
                                 </View>
                             </View>
                         }
                     />
                 ))}
-                </Cell.Group>
+                {/* </Cell.Group> */}
             </View>
         ) : (
             <Empty description="暂无项目成员" />

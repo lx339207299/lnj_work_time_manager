@@ -16,8 +16,8 @@ export interface Employee {
 
 export const employeeService = {
   // Get all employees for current org
-  getEmployees: async (): Promise<Employee[]> => {
-    const { data } = (await request({ url: '/employees/list', method: 'POST' })) as any
+  getEmployees: async (onlyActive: boolean = true): Promise<Employee[]> => {
+    const { data } = (await request({ url: '/employees/list', method: 'POST', data: { onlyActive } })) as any
     return data
   },
 

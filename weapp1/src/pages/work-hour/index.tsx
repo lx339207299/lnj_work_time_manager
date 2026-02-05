@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Cell, InputNumber, TextArea, Calendar, Checkbox } from '@nutui/nutui-react-taro'
-import { Calendar as CalendarIcon } from '@nutui/icons-react-taro'
+import { Calendar as CalendarIcon, Edit } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { projectService } from '../../services/projectService'
 import { workRecordService } from '../../services/workRecordService'
@@ -142,7 +142,7 @@ function WorkHour() {
             <Text className="label">日期</Text>
             <View className="value date-trigger">
                 <Text>{selectedDate}</Text>
-                <CalendarIcon size={14} color="#666" />
+                <Edit size={16} color="#666" />
             </View>
         </View>
       </View>
@@ -209,9 +209,14 @@ function WorkHour() {
                                             if (num % 0.5 === 0) {
                                                 setWorkHours(prev => ({ ...prev, [member.id]: num }))
                                             } else {
-                                                Taro.showToast({ title: '请输入0.5的倍数', icon: 'none' })
+                                                Taro.showToast({ title: '只能输入整数或x.5', icon: 'none' })
                                             }
                                         }} 
+                                        onBlur={() => {
+                                            // Force update to reset invalid input
+                                            const current = workHours[member.id]
+                                            setWorkHours(prev => ({ ...prev, [member.id]: current }))
+                                        }}
                                         className="mini-input"
                                     />
                                     <Text className="unit">{member.wageType === 'hour' ? '小时' : '天'}</Text>

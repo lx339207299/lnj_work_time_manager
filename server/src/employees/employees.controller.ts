@@ -5,6 +5,7 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { EmployeeIdDto } from './dto/employee-id.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeResponseDto, EmployeeListResponseDto } from './dto/employee-response.dto';
+import { ListEmployeeDto } from './dto/list-employee.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 
@@ -26,8 +27,8 @@ export class EmployeesController {
   @Post('list')
   @ApiOperation({ summary: 'Get employees list' })
   @ApiResponse({ status: 200, type: [EmployeeListResponseDto] })
-  findAll(@Request() req: any) {
-    return this.employeesService.findAll(req.user.orgId);
+  findAll(@Request() req: any, @Body() body: ListEmployeeDto) {
+    return this.employeesService.findAll(req.user.orgId, body.onlyActive ?? true);
   }
 
   @Post('detail')

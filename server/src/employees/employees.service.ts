@@ -43,6 +43,18 @@ export class EmployeesService {
     });
 
     if (existingMember) {
+        if (existingMember.isDeleted) {
+            return this.prisma.organizationMember.update({
+                where: { id: existingMember.id },
+                data: {
+                    isDeleted: false,
+                    role: createEmployeeDto.role || 'member',
+                    wageType: createEmployeeDto.wageType || 'day',
+                    wageAmount: createEmployeeDto.wageAmount || 0,
+                    status: 'active'
+                }
+            });
+        }
         throw new Error('该用户已经是本组织成员');
     }
 
@@ -58,9 +70,13 @@ export class EmployeesService {
     });
   }
 
-  findAll(orgId: number) {
+  findAll(orgId: number, onlyActive: boolean = true) {
+    const where: any = { orgId };
+    if (onlyActive) {
+        where.isDeleted = false;
+    }
     return this.prisma.organizationMember.findMany({
-      where: { orgId },
+      where,
       include: { 
         user: {
           select: {
@@ -100,8 +116,9 @@ export class EmployeesService {
   }
 
   remove(id: number) {
-    return this.prisma.organizationMember.delete({
-      where: { id },
+    return this.prisma.organizationMember.update({
+        where: { id },
+        data: { isDeleted: true }
     });
   }
 
