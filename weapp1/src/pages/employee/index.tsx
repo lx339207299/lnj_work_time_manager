@@ -167,7 +167,10 @@ function EmployeeList() {
       {/* Only owner/leader can add */}
       {['owner', 'leader'].includes(currentUserRole) && (
           <View className="fab-add" onClick={handleAdd}>
-            <Plus size={24} color="#fff" />
+            <View className="fab-button-text">
+                <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+                <View>添加员工</View>
+            </View>
           </View>
       )}
       

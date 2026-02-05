@@ -36,7 +36,7 @@ function ProjectStats() {
   useEffect(() => {
     if (projectName) {
       Taro.setNavigationBarTitle({
-        title: `${projectName} - 工时统计`
+        title: '工时统计'
       })
     }
   }, [projectName])
@@ -61,7 +61,7 @@ function ProjectStats() {
                                 </View>
                                 <View className="duration">
                                     <Text className="num">{stat.totalDuration}</Text>
-                                    <Text className="unit">{stat.wageType === 'day' ? '天' : '小时'}</Text>
+                                    <Text className="unit">{stat.wageType === 'hour' ? '小时' : '天'}</Text>
                                 </View>
                             </View>
                         </View>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Tag, Avatar, Empty, Skeleton, CalendarCard, ActionSheet, Dialog, InputNumber } from '@nutui/nutui-react-taro'
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
@@ -30,6 +30,21 @@ function ProjectDetail() {
   const [records, setRecords] = useState<WorkRecord[]>([])
   const [loadingRecords, setLoadingRecords] = useState(false)
   const [monthStats, setMonthStats] = useState<string[]>([])
+  
+  // Track if we need to refresh when showing
+  const [needRefresh, setNeedRefresh] = useState(false)
+
+  // useDidShow hook to refresh data when returning from other pages
+  useDidShow(() => {
+    // Check if we have a project ID and if we need to refresh
+    // We can simply re-fetch the data here.
+    // To optimize, we could check a global flag or page stack, but re-fetching is safer for now.
+    // Especially since "add record" and "edit project" both return here.
+    
+    if (currentProject?.id) {
+        initData(currentProject.id, false) // false = don't reset selectedDate
+    }
+  })
   
   // Action Sheet & Dialog State
   const [actionSheetVisible, setActionSheetVisible] = useState(false)
@@ -74,29 +89,33 @@ function ProjectDetail() {
     }
   }
 
-  // Effects
-  useEffect(() => {
-    const init = async () => {
-      const { id } = router.params
-      if (id) {
-        try {
-          const projectId = Number(id)
-          // Fetch project details first
+  const initData = async (projectId: number, resetDate: boolean = true) => {
+      try {
+          // Fetch project details
           const project = await projectService.getProjectDetail(projectId)
           setCurrentProject(project)
           
-          // Then fetch related data
+          // Use current selectedDate or default
+          const dateToUse = resetDate ? dayjs().format('YYYY-MM-DD') : selectedDate
+          if (resetDate) setSelectedDate(dateToUse)
+
+          // Fetch related data
           await Promise.all([
-            fetchMonthStats(dayjs().format('YYYY-MM'), projectId),
-            fetchRecords(selectedDate, projectId)
+            fetchMonthStats(dayjs(dateToUse).format('YYYY-MM'), projectId),
+            fetchRecords(dateToUse, projectId)
           ])
-        } catch (error) {
+      } catch (error) {
           console.error(error)
           Taro.showToast({ title: '获取项目详情失败', icon: 'error' })
-        }
       }
+  }
+
+  // Effects
+  useEffect(() => {
+    const { id } = router.params
+    if (id) {
+        initData(Number(id), true)
     }
-    init()
   }, [])
 
   // Fallback
@@ -249,11 +268,11 @@ function ProjectDetail() {
           <View className="stat-item stat-hours" onClick={handleGoStats}>
             <Clock size={14} color="#666" className="icon" />
             <View className="text-col">
-              {currentProject.totalDays > 0 ? (
-                  <Text className="text">{currentProject.totalDays}天</Text>
+              {currentProject.totalDaysHours > 0 ? (
+                  <Text className="text">{currentProject.totalDaysHours / 8}天</Text>
               ) : null}
-              {currentProject.totalHours > 0 || (currentProject.totalDays || 0) === 0 ? (
-                  <Text className="text-sub">{currentProject.totalHours}小时</Text>
+              {currentProject.totalHours > 0 ? (
+                  <Text className={currentProject.totalDaysHours > 0 ? "text-sub" : "text"}>{currentProject.totalHours}小时</Text>
               ) : null}
             </View>
             <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
@@ -312,8 +331,16 @@ function ProjectDetail() {
                     {record.userRole === 'owner' && <View className="role-tag manager">项目负责人</View>}
                     </View>
                     <View className="duration">
-                    <Text className="num">{record.duration}</Text>
-                    <Text className="unit">小时</Text>
+                    <Text className="num">
+                        {(record.wageType === 'day' || record.wageType === 'month') 
+                            ? record.duration / 8 
+                            : record.duration}
+                    </Text>
+                    <Text className="unit">
+                        {(record.wageType === 'day' || record.wageType === 'month') 
+                            ? '天' 
+                            : '小时'}
+                    </Text>
                     </View>
                 </View>
                 </View>
@@ -327,7 +354,10 @@ function ProjectDetail() {
 
       {/* Floating Add Button */}
       <View className="fab-add" onClick={handleAddRecord}>
-        <Plus size={24} color="#fff" />
+        <View className="fab-button-text">
+            <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+            <View>记一笔</View>
+        </View>
       </View>
 
       {/* Action Sheet */}

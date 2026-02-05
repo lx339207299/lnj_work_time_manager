@@ -137,7 +137,10 @@ function ProjectMember() {
 
       {/* FAB Add Button */}
       <View className="fab-add" onClick={handleAddClick}>
-        <Plus size={24} color="#fff" />
+        <View className="fab-button-text">
+            <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+            <View>添加成员</View>
+        </View>
       </View>
 
       {/* Add Member Popup */}

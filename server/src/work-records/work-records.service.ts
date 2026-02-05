@@ -16,12 +16,18 @@ export class WorkRecordsService {
 
     if (!member) throw new Error('Member not found');
 
+    // Convert duration to hours if wage type is day or month
+    let durationInHours = createWorkRecordDto.duration;
+    if (member.wageType === 'day' || member.wageType === 'month') {
+        durationInHours = createWorkRecordDto.duration * 8;
+    }
+
     return this.prisma.workRecord.create({
       data: {
         projectId: createWorkRecordDto.projectId,
         memberId: createWorkRecordDto.memberId,
         date: createWorkRecordDto.date,
-        duration: createWorkRecordDto.duration,
+        duration: durationInHours,
         content: createWorkRecordDto.content,
         wageSnapshot: member.wageAmount,
         wageTypeSnapshot: member.wageType,
@@ -78,7 +84,8 @@ export class WorkRecordsService {
         avatar: record.member.user?.avatar || '',
         date: record.date,
         duration: record.duration,
-        content: record.content
+        content: record.content,
+        wageType: record.wageTypeSnapshot
     }));
 
     // Use CustomResponse to return data and property (pagination info)
@@ -105,12 +112,19 @@ export class WorkRecordsService {
 
     return stats.map(s => {
         const member = members.find(m => m.id === s.memberId);
+        
+        let total = s._sum.duration || 0;
+        // Convert back to days for display if needed
+        if (member?.wageType === 'day' || member?.wageType === 'month') {
+            total = total / 8;
+        }
+
         return {
             userId: s.memberId,
             userName: member?.user?.name || member?.user?.phone || 'Unknown',
             userAvatar: member?.user?.avatar || '',
             userRole: member?.role || 'member',
-            totalDuration: s._sum.duration || 0,
+            totalDuration: total,
             wageType: member?.wageType || 'day'
         };
     });
@@ -146,12 +160,17 @@ export class WorkRecordsService {
           const member = members.find(m => m.id === record.memberId);
           if (!member) return null; // Skip invalid members
           
+          let durationInHours = record.duration;
+          if (member.wageType === 'day' || member.wageType === 'month') {
+              durationInHours = record.duration * 8;
+          }
+
           return this.prisma.workRecord.create({
               data: {
                   projectId,
                   date,
                   memberId: record.memberId,
-                  duration: record.duration,
+                  duration: durationInHours,
                   content: '', // Default empty for batch
                   wageSnapshot: member.wageAmount,
                   wageTypeSnapshot: member.wageType

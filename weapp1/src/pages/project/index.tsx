@@ -98,10 +98,23 @@ function ProjectList() {
       
     // }
     const newToken = Taro.getStorageSync('token') ?? ''
-    if (newToken != token) {
-      setToken(newToken)
-      setNeedFetchData(true)
+    
+    // Check if we need to refresh (e.g., coming back from create/edit page)
+    // We can just always refresh if we have a token, or use a flag.
+    // For now, let's refresh if token exists, to ensure list is up to date (e.g. after create)
+    // To avoid flickering, we can check if data is already loaded or just rely on needFetchData logic.
+    
+    if (newToken) {
+        if (newToken != token) {
+            setToken(newToken)
+            setNeedFetchData(true)
+        } else {
+            // Token same, but maybe data changed?
+            // Let's force fetch if we are already logged in
+            fetchData()
+        }
     }
+    
     // Check for pending invite
     dealInvitation()
   })
@@ -176,9 +189,9 @@ function ProjectList() {
                   <View className="divider" />
                   <View className="stat-item">
                     <View className="value">
-                        {project.totalDays > 0 ? `${project.totalDays}天` : ''}
-                        {project.totalDays > 0 && project.totalHours > 0 ? ' / ' : ''}
-                        {project.totalHours > 0 || project.totalDays === 0 ? `${project.totalHours}时` : ''}
+                        {project.totalDaysHours > 0 ? `${Math.ceil(project.totalDaysHours / 8)}天` : ''}
+                        {project.totalDaysHours > 0 && project.totalHours > 0 ? ' / ' : ''}
+                        {project.totalHours > 0 ? `${project.totalHours}时` : ''}
                     </View>
                     <View className="label">总工时</View>
                   </View>
@@ -196,7 +209,10 @@ function ProjectList() {
 
       {/* Floating Action Button for Create (Only for allowed roles, check later) */}
       <View className="fab-container" onClick={handleCreate}>
-        <Button icon={<Plus size={24} />} shape="round" type="primary" className="fab-button" />
+        <View className="fab-button-text">
+            <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+            <View>创建项目</View>
+        </View>
       </View>
 
       <Dialog id="invite" />

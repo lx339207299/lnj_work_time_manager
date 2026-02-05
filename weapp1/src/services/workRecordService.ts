@@ -10,6 +10,7 @@ export interface WorkRecord {
   date: string // YYYY-MM-DD
   duration: number
   content: string
+  wageType: 'day' | 'hour' | 'month'
 }
 
 export interface ProjectMemberStat {

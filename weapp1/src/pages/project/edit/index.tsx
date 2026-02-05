@@ -12,6 +12,7 @@ function ProjectEdit() {
   const [loading, setLoading] = useState(false)
   
   // Form state
+  const [form] = Form.useForm()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
@@ -19,8 +20,11 @@ function ProjectEdit() {
     if (id) {
       Taro.setNavigationBarTitle({ title: '编辑项目' })
       projectService.getProjectDetail(Number(id)).then(project => {
+          console.log('Fetched project:', project)
           setName(project.name)
           setDescription(project.description || '')
+          // Force update form values if needed by NutUI
+          form.setFieldsValue({ name: project.name, description: project.description || '' })
       }).catch(err => {
           console.error(err)
           Taro.showToast({ title: '获取项目失败', icon: 'error' })
@@ -63,9 +67,10 @@ function ProjectEdit() {
     <View className="project-edit-page">
       <View className="form-content">
         <Form
+          form={form}
           labelPosition="left"
         >
-          <Form.Item label="项目名称" required name="name">
+          <Form.Item label="项目名称" required name="name" initialValue={name}>
             <Input 
               value={name} 
               onChange={(val) => setName(val)} 
@@ -73,12 +78,13 @@ function ProjectEdit() {
               maxLength={15}
             />
           </Form.Item>
-          <Form.Item label="项目描述" name="description">
+          <Form.Item label="项目描述" name="description" initialValue={description}>
             <TextArea 
               value={description} 
               onChange={(val) => setDescription(val)} 
               placeholder="请输入项目描述（选填）" 
               maxLength={50}
+              showCount
               rows={3}
             />
           </Form.Item>

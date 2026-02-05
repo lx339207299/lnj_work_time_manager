@@ -52,20 +52,25 @@
   .fab-add {
     position: fixed;
     bottom: 40px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: #1989fa;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(25, 137, 250, 0.4);
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 99;
     
-    &:active {
-      transform: scale(0.95);
-      background: darken(#1989fa, 5%);
+    .fab-button-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1989fa;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(25, 137, 250, 0.3);
+      font-size: 16px;
+      font-weight: 500;
+      
+      &:active {
+          opacity: 0.9;
+      }
     }
   }
 }

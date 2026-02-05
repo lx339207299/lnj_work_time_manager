@@ -48,14 +48,17 @@ export class ProjectsService {
         pm.userId === user.sub && pm.role === 'owner'
       );
       
+      const hoursRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'hour');
+      const daysRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'day' || r.wageTypeSnapshot === 'month');
+
       return {
         id: p.id,
         name: p.name,
         description: p.description,
         role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
         memberCount: p.projectMembers.length,
-        totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-        totalDays: Math.ceil(p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0) / 8), // Rough estimate
+        totalHours: hoursRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
+        totalDaysHours: daysRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
       };
     });
   }
@@ -84,6 +87,9 @@ export class ProjectsService {
       pm.userId === user.sub && pm.role === 'owner'
     );
 
+    const hoursRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'hour');
+    const daysRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'day' || r.wageTypeSnapshot === 'month');
+
     return {
       id: p.id,
       name: p.name,
@@ -91,8 +97,8 @@ export class ProjectsService {
       ownerName: p.projectMembers.find((pm: any) => pm.role === 'owner')?.member?.user?.name || '',
       role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
       memberCount: p.projectMembers.length,
-      totalHours: p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-      totalDays: Math.ceil(p.workRecords.reduce((sum: number, r: any) => sum + r.duration, 0) / 8),
+      totalHours: hoursRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
+      totalDaysHours: daysRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
     };
   }
 

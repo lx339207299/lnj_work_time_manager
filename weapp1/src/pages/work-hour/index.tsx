@@ -53,7 +53,7 @@ function WorkHour() {
             
             const initialHours: Record<string, number> = {}
             mapped.forEach(m => {
-                initialHours[m.id] = 1
+                initialHours[m.id] = m.wageType === 'hour' ? 8 : 1
             })
             setWorkHours(initialHours)
 
@@ -80,19 +80,12 @@ function WorkHour() {
   }
 
   const handleQuickFill = () => {
-    // Force reset state to trigger re-render if deep equal check prevents it
-    // Actually defaultValue in InputNumber is only initial. We need modelValue to control it reactively?
-    // NutUI InputNumber: modelValue is for v-model in Vue, in React it might be `value` or `defaultValue` + key change.
-    // If NutUI React InputNumber is uncontrolled (defaultValue only), changing state won't update UI.
-    // Let's try forcing update by key or finding if it supports controlled `value`.
-    // Looking at docs or types: usually `modelValue` or `value`.
-    // Let's try using `key` to force re-render when quick fill happens.
-    
-    // Create a new object reference to ensure state update
     const newHours = { ...workHours }
     selectedMemberIds.forEach(id => {
         const member = members.find(m => m.id === id)
-        if (member) {
+        if (member?.wageType === 'hour') {
+            newHours[id] = 8
+        } else {
             newHours[id] = 1
         }
     })
@@ -208,10 +201,16 @@ function WorkHour() {
                                         value={workHours[member.id]}
                                         min={0} 
                                         // max={member.wageType === 'day' ? 3 : 24} 
-                                        step={0.5} 
+                                        step={1} 
                                         digits={1}
+                                        formatter={(val) => String(Number(val))}
                                         onChange={(val) => {
-                                            setWorkHours(prev => ({ ...prev, [member.id]: Number(val) }))
+                                            const num = Number(val)
+                                            if (num % 0.5 === 0) {
+                                                setWorkHours(prev => ({ ...prev, [member.id]: num }))
+                                            } else {
+                                                Taro.showToast({ title: '请输入0.5的倍数', icon: 'none' })
+                                            }
                                         }} 
                                         className="mini-input"
                                     />
