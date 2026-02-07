@@ -15,7 +15,7 @@ services:
         condition: service_healthy
   frontend:
     build:
-      context: ./weapp1
+      context: ./weapp
       dockerfile: Dockerfile
       args:
         TARO_APP_API_URL: /api

@@ -29,7 +29,7 @@ echo "Backend starting in background..."
 
 # 3. Start Frontend
 echo "Starting Frontend..."
-cd ../weapp1
+cd ../weapp
 nohup npm run dev:h5 > ../frontend.log 2>&1 &
 echo "Frontend starting in background..."
 
