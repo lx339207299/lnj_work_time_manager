@@ -3,6 +3,3 @@
 .idea
 .DS_Store
 .swc/
-.env.dev
-.env.prod
-.env.test
