@@ -12,6 +12,7 @@ const config = {
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-html'],
   defineConstants: {
+    'process.env.TARO_APP_API_URL': JSON.stringify(process.env.TARO_APP_API_URL)
   },
   copy: {
     patterns: [

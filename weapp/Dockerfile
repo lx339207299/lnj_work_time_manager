@@ -1,10 +1,11 @@
-FROM node:20-alpine AS build
+FROM node:20 AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 COPY . .
 ARG TARO_APP_API_URL
 ENV TARO_APP_API_URL=${TARO_APP_API_URL}
+RUN echo "Building with API_URL=${TARO_APP_API_URL}"
 RUN npm run build:h5
 
 FROM nginx:alpine

@@ -1,0 +1,137 @@
+services:
+  # 开发环境数据库
+  mysql:
+    image: mysql:8.0
+    container_name: lnj_work_time_manager_db_dev
+    restart: always
+    profiles: ["dev"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # 生产环境数据库
+  mysql-prod:
+    image: mysql:8.0
+    container_name: lnj_work_time_manager_db_prod
+    restart: always
+    profiles: ["prod"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3300}:3306"
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 生产后端服务
+  server-prod:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: lnj_work_time_manager_server_prod
+    restart: always
+    profiles: ["prod"]
+    depends_on:
+      mysql-prod:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-prod:3306/${MYSQL_DATABASE}"
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    command: sh -c "npx prisma db push && node dist/main"
+
+  # 生产前端服务
+  client-prod:
+    build:
+      context: ./weapp
+      dockerfile: Dockerfile
+      args:
+        TARO_APP_API_URL: ${TARO_APP_API_URL}
+    container_name: lnj_work_time_manager_client_prod
+    restart: always
+    profiles: ["prod"]
+    depends_on:
+      server-prod:
+        condition: service_started
+    ports:
+      - "${CLIENT_PORT:-4000}:80"
+
+  # 测试环境数据库
+  mysql-test:
+    image: mysql:8.0
+    container_name: lnj_work_time_manager_db_test
+    restart: always
+    profiles: ["test"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3301}:3306"
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 测试后端服务
+  server-test:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: lnj_work_time_manager_server_test
+    restart: always
+    profiles: ["test"]
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-test:3306/${MYSQL_DATABASE}"
+      RUN_SEED: "true"
+    ports:
+      - "${SERVER_PORT:-3001}:3000"
+    command: sh -c "npx prisma db push && node dist/main"
+
+  # 测试前端服务
+  client-test:
+    build:
+      context: ./weapp
+      dockerfile: Dockerfile
+      args:
+        TARO_APP_API_URL: ${TARO_APP_API_URL}
+    container_name: lnj_work_time_manager_client_test
+    restart: always
+    profiles: ["test"]
+    depends_on:
+      server-test:
+        condition: service_started
+    ports:
+      - "${CLIENT_PORT:-4001}:80"
+
+volumes:
+  mysql_data:
+  mysql_prod_data:
+  mysql_test_data:
