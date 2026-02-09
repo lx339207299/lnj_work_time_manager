@@ -11,6 +11,9 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
 
+  // Set Global Prefix
+  app.setGlobalPrefix('api');
+
   // Register Global Interceptors and Filters
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter());
