@@ -1,7 +1,8 @@
 FROM node:20 AS build
 WORKDIR /app
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm config set registry https://registry.npmmirror.com
+RUN npm ci
 COPY . .
 ARG TARO_APP_API_URL
 ENV TARO_APP_API_URL=${TARO_APP_API_URL}
