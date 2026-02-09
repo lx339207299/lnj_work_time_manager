@@ -11,7 +11,6 @@ WORKDIR /app
 COPY --from=build /app/package*.json ./
 RUN npm ci
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/.env ./
 COPY --from=build /app/prisma ./prisma
 RUN apt-get update -y && apt-get install -y openssl
 RUN npx prisma generate
