@@ -1,8 +1,8 @@
 FROM node:20 AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm config set registry https://registry.npmmirror.com
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 ARG TARO_APP_API_URL
 ENV TARO_APP_API_URL=${TARO_APP_API_URL}
