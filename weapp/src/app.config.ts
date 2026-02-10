@@ -25,20 +25,26 @@ export default defineAppConfig({
   },
   tabBar: {
     color: '#999999',
-    selectedColor: '#1989fa', // NutUI default blue
+    selectedColor: '#1989fa',
     backgroundColor: '#ffffff',
     list: [
       {
         pagePath: 'pages/project/index',
-        text: '项目'
+        text: '项目',
+        iconPath: 'assets/images/tabbar/project.png',
+        selectedIconPath: 'assets/images/tabbar/project-active.png'
       },
       {
         pagePath: 'pages/stats/index',
-        text: '统计'
+        text: '统计',
+        iconPath: 'assets/images/tabbar/stats.png',
+        selectedIconPath: 'assets/images/tabbar/stats-active.png'
       },
       {
         pagePath: 'pages/mine/index',
-        text: '我的'
+        text: '我的',
+        iconPath: 'assets/images/tabbar/mine.png',
+        selectedIconPath: 'assets/images/tabbar/mine-active.png'
       }
     ]
   }
