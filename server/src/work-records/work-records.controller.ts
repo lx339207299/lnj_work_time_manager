@@ -10,6 +10,7 @@ import { BatchCreateWorkRecordDto } from './dto/batch-create-work-record.dto';
 import { WorkRecordResponseDto } from './dto/work-record-response.dto';
 import { WorkRecordStatsDto } from './dto/work-record-stats.dto';
 import { WorkRecordDto } from './dto/work-record.dto';
+import { SummaryQueryDto } from './dto/summary-query.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
@@ -40,6 +41,13 @@ export class WorkRecordsController {
   @ApiResponse({ status: 200, type: [WorkRecordStatsDto] })
   getStats(@Body() body: ProjectStatsDto) {
     return this.workRecordsService.getStats(body.projectId);
+  }
+
+  @Post('summary')
+  @ApiOperation({ summary: 'Get member stats by date range' })
+  @ApiResponse({ status: 200, type: [WorkRecordStatsDto] })
+  getSummary(@Body() body: SummaryQueryDto) {
+    return this.workRecordsService.getSummaryByRange(body as any)
   }
 
   @Post('update')

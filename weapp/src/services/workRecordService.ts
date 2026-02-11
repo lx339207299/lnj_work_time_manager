@@ -28,6 +28,12 @@ export const workRecordService = {
     const { data } = (await request({ url: '/work-records/stats', method: 'POST', data: { projectId } })) as any
     return data
   },
+  
+  // Get member stats by date range and optional members
+  getSummaryByRange: async (params: { projectId?: number; orgId?: number; start?: string; end?: string; memberIds?: number[] }): Promise<ProjectMemberStat[]> => {
+    const { data } = (await request({ url: '/work-records/summary', method: 'POST', data: params })) as any
+    return data || []
+  },
 
   // Get work records by project and date
   getProjectWorkRecords: async (projectId: number, date: string): Promise<WorkRecord[]> => {

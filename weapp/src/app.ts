@@ -5,9 +5,20 @@ import { useAuth } from './hooks/useAuth'
 import '@nutui/nutui-react-taro/dist/style.css'
 // 全局样式
 import './app.scss'
+import VConsole from 'vconsole'
 
 function App(props) {
   const { checkAuth } = useAuth()
+  
+  useEffect(() => {
+    const isH5 = process.env.TARO_ENV === 'h5'
+    const isDev = process.env.NODE_ENV === 'development'
+    if (isH5 && isDev) {
+      if (!(window as any).__vconsole__) {
+        ;(window as any).__vconsole__ = new VConsole()
+      }
+    }
+  }, [])
   
   // 对应 onShow
   useDidShow(() => {

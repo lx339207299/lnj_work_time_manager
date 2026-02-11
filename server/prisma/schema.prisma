@@ -151,3 +151,19 @@ model Invitation {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+model WorkSummaryDaily {
+  id            Int      @id @default(autoincrement())
+  orgId         Int
+  projectId     Int
+  memberId      Int
+  date          String   // YYYY-MM-DD
+  totalDuration Float    @default(0)
+  recordCount   Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([orgId, projectId, memberId, date])
+  @@index([orgId, date])
+  @@index([memberId, date])
+  @@index([projectId, date])
+}

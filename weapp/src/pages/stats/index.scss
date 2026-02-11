@@ -1,3 +1,29 @@
-.page-container {
-  padding: 20px;
+.stats-page { padding: 16px; }
+.toolbar { background: #fff; border-radius: 8px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.toolbar-row { display: flex; align-items: center; margin-bottom: 10px; }
+.toolbar-row .label { width: 56px; color: #666; font-size: 12px; }
+.range { display: flex; align-items: center; gap: 8px; }
+.range .date { padding: 2px 6px; border-radius: 4px; background: #f4f4f5; font-size: 12px; }
+.range .divider { color: #999; }
+.member-actions { display: flex; gap: 12px; }
+.member-actions .action-btn { padding: 6px 10px; border-radius: 16px; background: #f4f4f5; font-size: 12px; }
+.member-popup { z-index: 10000; }
+.member-overlay { z-index: 10000 !important; }
+.content { margin-top: 12px; }
+.skeleton-wrapper { padding: 12px; }
+.stat-list { display: flex; flex-direction: column; gap: 8px; }
+.stat-item { background: #fff; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.stat-item .row { display: flex; align-items: center; justify-content: space-between; }
+.stat-item .name { color: #333; font-size: 14px; }
+.stat-item .value { display: flex; align-items: baseline; gap: 4px; }
+.stat-item .num { font-size: 16px; font-weight: 600; color: #165dff; }
+.stat-item .unit { color: #999; }
+.member-picker { padding: 12px; }
+.picker-actions.top { display: flex; gap: 12px; padding: 8px 0; }
+.member-list { max-height: 50vh; overflow-y: auto; }
+.member-row { display: flex; align-items: center; gap: 8px; padding: 8px; }
+.member-row.checked { background: #f8faff; }
+.picker-actions { padding: 12px; }
+.member-popup .member-picker { 
+  padding-bottom: calc(80px + env(safe-area-inset-bottom)); 
 }

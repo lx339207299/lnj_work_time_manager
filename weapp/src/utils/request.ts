@@ -13,7 +13,7 @@ export class CustomError extends Error {
   }
 }
 
-const baseUrl = process.env.TARO_APP_API_URL || 'http://localhost:3000/api'
+const baseUrl = process.env.TARO_APP_API_URL || 'http://172.16.72.60:3000/api'
 
 export interface RequestOptions extends Taro.request.Option {
   token?: string
