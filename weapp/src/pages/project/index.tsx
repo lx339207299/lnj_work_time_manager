@@ -174,7 +174,6 @@ function ProjectList() {
                         <View className="role-tag manager">项目负责人</View>
                     )}
                   </View>
-                  <Horizontal size={16} color="#999" />
                 </View>
                 
                 {project.description && (
@@ -192,6 +191,7 @@ function ProjectList() {
                         {project.totalDaysHours > 0 ? `${Math.ceil(project.totalDaysHours / 8)}天` : ''}
                         {project.totalDaysHours > 0 && project.totalHours > 0 ? ' / ' : ''}
                         {project.totalHours > 0 ? `${project.totalHours}时` : ''}
+                        {project.totalDaysHours == 0 && project.totalHours == 0 ? '0' : ''}
                     </View>
                     <View className="label">总工时</View>
                   </View>

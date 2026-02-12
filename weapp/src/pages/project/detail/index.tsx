@@ -274,6 +274,9 @@ function ProjectDetail() {
               {currentProject.totalHours > 0 ? (
                   <Text className={currentProject.totalDaysHours > 0 ? "text-sub" : "text"}>{currentProject.totalHours}小时</Text>
               ) : null}
+              {currentProject.totalDaysHours == 0 && currentProject.totalHours == 0 ? (
+                  <Text className="text">0</Text>
+              ) : null}
             </View>
             <ArrowRight size={10} color="#999" style={{ marginLeft: 2 }} />
           </View>

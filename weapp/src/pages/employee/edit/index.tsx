@@ -172,6 +172,7 @@ function EmployeeEdit() {
                             placeholder="请输入手机号"
                             value={phone} 
                             onChange={(val) => setPhone(val)}
+                            maxLength={11}
                             align="right"
                             type="tel"
                             style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
