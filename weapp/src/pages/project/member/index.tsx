@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, Swipe, Empty, Skeleton, Popup, Checkbox, Tag } from '@nutui/nutui-react-taro'
+import { Button, Cell, Checkbox, Empty, Popup, Skeleton, Swipe, Tag } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'
@@ -157,12 +157,20 @@ function ProjectMember() {
       >
         <View className="add-member-popup">
             <View className="popup-header">
-                <Text>添加成员</Text>
-                {orgEmployees.length > 0 && (
-                    <Text className="select-all-btn" onClick={handleSelectAll}>
-                        {selectedEmpIds.length === orgEmployees.length ? '全不选' : '全选'}
-                    </Text>
-                )}
+                <Text>添加项目成员</Text>
+                <View className="header-actions">
+                  {orgEmployees.length > 0 && (
+                      <Text className="action-btn" onClick={handleSelectAll}>
+                          {selectedEmpIds.length === orgEmployees.length ? '全不选' : '全选'}
+                      </Text>
+                  )}
+                  <Text className="action-btn highlight" onClick={() => {
+                    setAddVisible(false)
+                    Taro.navigateTo({ url: '/pages/employee/index' })
+                  }}>
+                    添加员工
+                  </Text>
+                </View>
             </View>
             <ScrollView scrollY className="popup-content">
                 {orgEmployees.length > 0 ? (

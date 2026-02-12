@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, Input, InputNumber, Picker, DatePicker, Dialog } from '@nutui/nutui-react-taro'
+import { Button, Cell, DatePicker, Dialog, Input, InputNumber, Picker } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { employeeService, Employee } from '../../../services/employeeService'

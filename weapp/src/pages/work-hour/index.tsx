@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, InputNumber, TextArea, Calendar, Checkbox } from '@nutui/nutui-react-taro'
+import { Button, Calendar, Cell, Checkbox, InputNumber, TextArea } from '@nutui/nutui-react-taro'
 import { Calendar as CalendarIcon, Edit } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { projectService } from '../../services/projectService'
@@ -48,6 +48,24 @@ function WorkHour() {
             }))
             setMembers(mapped)
             
+            if (mapped.length === 0) {
+               Taro.showModal({
+                 title: '提示',
+                 content: '当前项目还没有成员，请先添加成员',
+                 confirmText: '去添加',
+                 success: (res) => {
+                   if (res.confirm) {
+                     Taro.redirectTo({
+                       url: `/pages/project/member/index?projectId=${projectId}`
+                     })
+                   } else {
+                     Taro.navigateBack()
+                   }
+                 }
+               })
+               return
+             }
+
             // Initialize selection and work hours
             setSelectedMemberIds(mapped.map(m => m.id))
             

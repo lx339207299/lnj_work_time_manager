@@ -47,5 +47,6 @@ export default defineAppConfig({
         selectedIconPath: 'assets/images/tabbar/mine-active.png'
       }
     ]
-  }
+  },
+  lazyCodeLoading: 'requiredComponents'
 })

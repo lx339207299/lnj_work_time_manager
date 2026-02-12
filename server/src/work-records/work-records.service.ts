@@ -171,11 +171,17 @@ export class WorkRecordsService {
     });
   }
 
-  async getSummaryByRange(params: { projectId?: number; orgId?: number; start?: string; end?: string; memberIds?: number[] }) {
+  async getSummaryByRange(params: { projectId?: number; orgId?: number; start?: string; end?: string; memberIds?: number[] }, user: any) {
     const { projectId, orgId, start, end, memberIds } = params
     const where: any = {}
-    if (projectId) where.projectId = projectId
-    if (orgId) where.orgId = orgId
+    if (projectId) {
+      where.projectId = projectId
+    } else if (orgId) {
+      where.orgId = orgId
+    } else if (user?.currentOrgId) {
+      where.orgId = user.currentOrgId
+    }
+
     if (start && end) {
       where.date = { gte: start, lte: end }
     } else if (start) {
@@ -206,11 +212,16 @@ export class WorkRecordsService {
       if (memberIds && memberIds.length > 0) {
         fallbackWhere.memberId = { in: memberIds }
       }
+      
       if (projectId) {
         fallbackWhere.projectId = projectId
-      } else if (orgId) {
-        fallbackWhere.project = { orgId }
+      } else {
+        const targetOrgId = orgId || user?.currentOrgId
+        if (targetOrgId) {
+          fallbackWhere.project = { orgId: targetOrgId }
+        }
       }
+
       stats = await (this.prisma as any).workRecord.groupBy({
         by: ['memberId'],
         where: fallbackWhere,

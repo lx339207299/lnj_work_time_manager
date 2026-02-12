@@ -241,7 +241,9 @@ function OrgList() {
                 { name: '修改信息', id: 'edit' },
                 { name: '删除组织', color: '#fa2c19', id: 'delete' }
             ] : []),
-            { name: '退出组织', color: '#fa2c19', id: 'exit' }
+            ...(selectedOrg?.role === 'owner' ? [] : [
+                { name: '退出组织', color: '#fa2c19', id: 'exit' }
+            ])
         ]} 
         onSelect={(item: any) => {
             if (item.id === 'edit') handleEditOrg()

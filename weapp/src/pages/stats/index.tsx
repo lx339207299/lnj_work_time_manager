@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { DatePicker, Popup, SearchBar, Checkbox, Button, Skeleton, Empty } from '@nutui/nutui-react-taro'
+import { Button, Checkbox, DatePicker, Empty, Popup, SearchBar, Skeleton } from '@nutui/nutui-react-taro'
 import dayjs from 'dayjs'
 import { employeeService } from '../../services/employeeService'
 import { workRecordService, ProjectMemberStat } from '../../services/workRecordService'
@@ -9,8 +9,6 @@ import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
 function Stats() {
-  const [orgId, setOrgId] = useState<number | null>(null)
-
   const [range, setRange] = useState<{ start: string; end: string }>({
     start: dayjs().format('YYYY-MM-DD'),
     end: dayjs().format('YYYY-MM-DD'),
@@ -38,13 +36,9 @@ function Stats() {
   }, [selectedMemberIds, members])
 
   useEffect(() => {
-    const id = orgManager.getCurrentOrgId()
-    setOrgId(id)
-  }, [])
-
-  useEffect(() => {
     loadMembers()
-  }, [orgId])
+    fetchStats()
+  }, [])
 
   useEffect(() => {
     if (selectedMemberIds.length === 0 && members.length > 0) {
@@ -81,7 +75,6 @@ function Stats() {
     setLoading(true)
     try {
       const res = await workRecordService.getSummaryByRange({
-        orgId: orgId || undefined,
         start: range.start,
         end: range.end,
         memberIds: selectedMemberIds.length === members.length ? undefined : selectedMemberIds,
@@ -93,10 +86,8 @@ function Stats() {
   }
 
   useEffect(() => {
-    if (orgId) {
-      fetchStats()
-    }
-  }, [orgId])
+    fetchStats()
+  }, [])
 
   const normalizePickerDate = (val: any): string => {
     if (!val) return dayjs().format('YYYY-MM-DD')

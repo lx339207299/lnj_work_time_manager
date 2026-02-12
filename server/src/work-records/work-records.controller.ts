@@ -1,5 +1,5 @@
 
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { WorkRecordsService } from './work-records.service';
 import { CreateWorkRecordDto } from './dto/create-work-record.dto';
 import { UpdateWorkRecordDto } from './dto/update-work-record.dto';
@@ -46,8 +46,8 @@ export class WorkRecordsController {
   @Post('summary')
   @ApiOperation({ summary: 'Get member stats by date range' })
   @ApiResponse({ status: 200, type: [WorkRecordStatsDto] })
-  getSummary(@Body() body: SummaryQueryDto) {
-    return this.workRecordsService.getSummaryByRange(body as any)
+  getSummary(@Body() body: SummaryQueryDto, @Req() req: any) {
+    return this.workRecordsService.getSummaryByRange(body as any, req.user)
   }
 
   @Post('update')
