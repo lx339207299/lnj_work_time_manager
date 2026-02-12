@@ -93,8 +93,10 @@ function Stats() {
   }
 
   useEffect(() => {
-    fetchStats()
-  }, [orgId, range.start, range.end, selectedMemberIds])
+    if (orgId) {
+      fetchStats()
+    }
+  }, [orgId])
 
   const normalizePickerDate = (val: any): string => {
     if (!val) return dayjs().format('YYYY-MM-DD')
@@ -128,6 +130,7 @@ function Stats() {
           <Text className="label">人员</Text>
           <View className="member-actions">
             <View className="action-btn" onClick={handleOpenMemberPicker}>{selectedSummary}</View>
+            <Button size="mini" type="primary" onClick={fetchStats} className="query-btn">查询</Button>
           </View>
         </View>
       </View>
