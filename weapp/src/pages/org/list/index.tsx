@@ -83,6 +83,45 @@ function OrgList() {
       setActionVisible(true)
   }
 
+  const handleEditOrg = () => {
+    if (!selectedOrg) return
+    Taro.navigateTo({ url: `/pages/org/edit/index?id=${selectedOrg.id}&name=${encodeURIComponent(selectedOrg.name)}` })
+    setActionVisible(false)
+  }
+
+  const handleDeleteOrg = () => {
+    if (!selectedOrg) return
+
+    Dialog.open('delete-org', {
+      title: '删除组织',
+      content: `确定要彻底删除组织"${selectedOrg.name}"吗？此操作不可恢复，将删除该组织下的所有项目、成员和工时记录！`,
+      confirmText: '确定删除',
+      cancelText: '取消',
+      onConfirm: async () => {
+        try {
+          await orgService.deleteOrg(selectedOrg.id)
+          
+          const newList = orgList.filter(o => o.id !== selectedOrg.id)
+          setOrgList(newList)
+          
+          if (currentOrgId === selectedOrg.id) {
+            orgManager.clearCurrentOrgId()
+            setCurrentOrgId(null)
+          }
+
+          Taro.showToast({ title: '已删除', icon: 'success' })
+          Dialog.close('delete-org')
+          setActionVisible(false)
+        } catch (error: any) {
+          Taro.showToast({ title: error.message || '删除失败', icon: 'none' })
+        }
+      },
+      onCancel: () => {
+        Dialog.close('delete-org')
+      }
+    })
+  }
+
   const handleExitOrg = () => {
       if (!selectedOrg) return
 
@@ -192,12 +231,23 @@ function OrgList() {
 
       <Dialog id="switch-org" />
       <Dialog id="exit-org" />
+      <Dialog id="delete-org" />
       <Dialog id="owner-exit-warning" />
       
       <ActionSheet 
         visible={actionVisible} 
-        options={[{ name: '退出组织', color: '#fa2c19' }]} 
-        onSelect={handleExitOrg}
+        options={[
+            ...(selectedOrg?.role === 'owner' ? [
+                { name: '修改信息', id: 'edit' },
+                { name: '删除组织', color: '#fa2c19', id: 'delete' }
+            ] : []),
+            { name: '退出组织', color: '#fa2c19', id: 'exit' }
+        ]} 
+        onSelect={(item: any) => {
+            if (item.id === 'edit') handleEditOrg()
+            else if (item.id === 'delete') handleDeleteOrg()
+            else if (item.id === 'exit') handleExitOrg()
+        }}
         onCancel={() => setActionVisible(false)}
       />
     </View>

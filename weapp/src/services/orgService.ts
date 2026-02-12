@@ -24,5 +24,16 @@ export const orgService = {
   // Exit organization
   exitOrg: async (orgId: number): Promise<void> => {
     await request({ url: '/organizations/leave', method: 'POST', data: { id: orgId } })
+  },
+
+  // Update organization
+  updateOrg: async (id: number, name: string): Promise<any> => {
+    const { data } = (await request({ url: `/organizations/update`, method: 'POST', data: { id, name } })) as any
+    return data
+  },
+
+  // Delete organization
+  deleteOrg: async (id: number): Promise<void> => {
+    await request({ url: '/organizations/delete', method: 'POST', data: { id } })
   }
 }

@@ -51,7 +51,8 @@ export class OrganizationsService {
       where: {
         userId,
         orgId,
-        status: 'active'
+        status: 'active',
+        organization: { isDeleted: false }
       }
     });
 
@@ -82,9 +83,12 @@ export class OrganizationsService {
   }
 
   async findAll(userId: number) {
-    // Find orgs where user is a member
+    // Find orgs where user is a member and org is not deleted
     const memberships = await this.prisma.organizationMember.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        organization: { isDeleted: false }
+      },
       include: { organization: true },
     });
     return memberships.map((m) => ({
@@ -94,8 +98,11 @@ export class OrganizationsService {
   }
 
   async findOne(id: number) {
-    return this.prisma.organization.findUnique({
-      where: { id },
+    return this.prisma.organization.findFirst({
+      where: { 
+        id,
+        isDeleted: false
+      },
       include: {
           members: true,
           projects: true
@@ -105,7 +112,7 @@ export class OrganizationsService {
 
   async update(id: number, userId: number, updateDto: any) {
     const org = await this.prisma.organization.findUnique({ where: { id } });
-    if (!org) throw new Error('Organization not found');
+    if (!org || org.isDeleted) throw new Error('Organization not found');
     if (org.ownerId !== userId) throw new Error('Only owner can update organization');
 
     return this.prisma.organization.update({
@@ -115,51 +122,58 @@ export class OrganizationsService {
   }
 
   async remove(id: number, userId: number) {
-    const org = await this.prisma.organization.findUnique({ where: { id } });
-    if (!org) throw new Error('Organization not found');
+    const org = await this.prisma.organization.findUnique({ 
+      where: { id },
+      include: { members: true }
+    });
+    if (!org || org.isDeleted) throw new Error('Organization not found');
     if (org.ownerId !== userId) throw new Error('Only owner can delete organization');
 
-    // Transactional delete to ensure cleanup
+    // Transactional logical delete
     return this.prisma.$transaction(async (tx: any) => {
-        // 1. 处理其他成员：将所有当前选中该组织的用户（排除当前用户）的 currentOrgId 置为 null
-        // 防止外键约束报错，同时让其他成员状态回归"无组织"
-        await tx.user.updateMany({
-            where: { 
-                currentOrgId: id,
-                id: { not: userId } 
-            },
-            data: { currentOrgId: null }
-        });
+        // 1. 处理所有成员：将所有当前选中该组织的用户（包括当前用户）的 currentOrgId 置为 null
+        // 或者切换到另一个组织。
+        
+        // 先获取受影响的用户ID列表
+        const affectedUserIds = await tx.organizationMember.findMany({
+            where: { orgId: id },
+            select: { userId: true }
+        }).then((members: any[]) => members.map(m => m.userId));
 
-        // 2. 处理当前用户：查找并切换到第一个有效组织
-        const user = await tx.user.findUnique({ 
-            where: { id: userId },
-            select: { currentOrgId: true }
-        });
-
-        if (user?.currentOrgId === id) {
-            // 查找该用户加入的第一个其他组织（按加入时间排序）
-            // 注意：此时 organizationMember 还没删，所以要排除当前组织
-            const otherMembership = await tx.organizationMember.findFirst({
-                where: { 
-                    userId: userId,
-                    orgId: { not: id },
-                    status: 'active'
-                },
-                orderBy: { createdAt: 'asc' }
+        // 对每个用户，如果其 currentOrgId 是当前要删除的组织，则尝试切换
+        for (const affectedUserId of affectedUserIds) {
+            const user = await tx.user.findUnique({
+                where: { id: affectedUserId },
+                select: { currentOrgId: true }
             });
 
-            await tx.user.update({
-                where: { id: userId },
-                data: { currentOrgId: otherMembership ? otherMembership.orgId : null }
-            });
+            if (user?.currentOrgId === id) {
+                // 查找该用户加入的第一个其他未删除组织
+                const otherMembership = await tx.organizationMember.findFirst({
+                    where: { 
+                        userId: affectedUserId,
+                        orgId: { not: id },
+                        status: 'active',
+                        organization: { isDeleted: false }
+                    },
+                    orderBy: { createdAt: 'asc' }
+                });
+
+                await tx.user.update({
+                    where: { id: affectedUserId },
+                    data: { currentOrgId: otherMembership ? otherMembership.orgId : null }
+                });
+            }
         }
 
-        // 3. 删除所有成员关系
-        await tx.organizationMember.deleteMany({ where: { orgId: id } });
-        
-        // 4. 删除组织
-        return tx.organization.delete({ where: { id } });
+        // 2. 清除邀请信息（物理删除）
+        await tx.invitation.deleteMany({ where: { orgId: id } });
+
+        // 3. 逻辑删除组织
+        return tx.organization.update({
+            where: { id },
+            data: { isDeleted: true }
+        });
     });
   }
 
