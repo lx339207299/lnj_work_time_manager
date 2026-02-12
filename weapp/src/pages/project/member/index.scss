@@ -96,26 +96,12 @@
         justify-content: center;
         align-items: center;
 
-        .header-actions {
+        .select-all-btn {
             position: absolute;
             right: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .action-btn {
-                font-size: 14px;
-                color: #1989fa;
-                font-weight: normal;
-
-                &.highlight {
-                    font-weight: 500;
-                    color: #1989fa;
-                    padding: 4px 8px;
-                    background: rgba(25, 137, 250, 0.1);
-                    border-radius: 4px;
-                }
-            }
+            font-size: 14px;
+            color: #1989fa;
+            font-weight: normal;
         }
     }
 
