@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
-import { Button, Cell, Empty, Input, InputNumber, Picker, Popup, Radio, Skeleton } from '@nutui/nutui-react-taro'
+import { Button, Cell, Dialog, Empty, Input, InputNumber, Picker, Popup, Radio, Skeleton } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import { projectService } from '../../../services/projectService'

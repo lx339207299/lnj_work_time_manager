@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { Dialog, Cell, CellGroup, Button, Avatar, ActionSheet } from '@nutui/nutui-react-taro'
+import { ActionSheet, Avatar, Button, Cell, CellGroup, Dialog } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { request } from '../../utils/request'

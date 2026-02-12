@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View } from '@tarojs/components'
-import { Button, Tag, Empty, Skeleton, Dialog } from '@nutui/nutui-react-taro'
+import { Button, Dialog, Empty, Skeleton, Tag } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
 import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'

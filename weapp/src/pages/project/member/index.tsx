@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, Checkbox, Empty, Popup, Skeleton, Swipe, Tag } from '@nutui/nutui-react-taro'
+import { Button, Cell, Checkbox, Dialog, Empty, Popup, Skeleton, Swipe, Tag } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'

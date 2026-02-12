@@ -5,7 +5,6 @@ import Taro from '@tarojs/taro'
 import { authService } from '../../services/authService'
 import { orgManager } from '../../utils/orgManager'
 import './index.scss'
-import { debug } from 'console'
 
 function Login() {
   

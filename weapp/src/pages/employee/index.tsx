@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { Button, Avatar, Tag, Swipe, Dialog, Empty, Skeleton, Cell } from '@nutui/nutui-react-taro'
+import { Avatar, Button, Cell, Dialog, Empty, Skeleton, Swipe, Tag } from '@nutui/nutui-react-taro'
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { userService } from '../../services/userService'

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, Input, DatePicker } from '@nutui/nutui-react-taro'
+import { Button, Cell, DatePicker, Input } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import { UserInfo } from '../../../../types/global'
 import './index.scss'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View } from '@tarojs/components'
-import { Form, Button, Input, TextArea } from '@nutui/nutui-react-taro'
+import { Button, Form, Input, TextArea } from '@nutui/nutui-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import { projectService } from '../../../services/projectService'
 import { request } from '../../../utils/request'
