@@ -1,5 +1,5 @@
 
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -19,6 +19,24 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginOrRegister(@Body() loginDto: LoginDto) {
     return this.authService.loginOrRegister(loginDto);
+  }
+
+  @Post('check-status')
+  @ApiOperation({ summary: 'Check user status by phone number' })
+  async checkUserStatus(@Body('phone') phone: string) {
+    return this.authService.checkUserStatus(phone);
+  }
+
+  @Post('login-password')
+  @ApiOperation({ summary: 'Login with password' })
+  async loginWithPassword(@Body() loginDto: LoginDto) {
+    return this.authService.loginWithPassword(loginDto);
+  }
+
+  @Post('register-password')
+  @ApiOperation({ summary: 'Register with password' })
+  async registerWithPassword(@Body() loginDto: LoginDto) {
+    return this.authService.registerWithPassword(loginDto);
   }
 
   @Post('register')

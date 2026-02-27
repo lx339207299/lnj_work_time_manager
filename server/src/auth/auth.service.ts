@@ -25,6 +25,75 @@ export class AuthService {
     return null;
   }
 
+  async checkUserStatus(phone: string) {
+    const user = await this.usersService.findOne(phone);
+    return {
+      exists: !!user,
+      hasPassword: !!(user && user.password),
+    };
+  }
+
+  async loginWithPassword(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto.phone, loginDto.password);
+    if (!user) {
+      throw new UnauthorizedException('手机号或密码错误');
+    }
+
+    const userProfile = await this.getUserProfile(user.id);
+    const payload = {
+      phone: user.phone,
+      sub: user.id,
+      orgId: userProfile?.currentOrg?.id || null,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: userProfile,
+      isNewUser: false,
+    };
+  }
+
+  async registerWithPassword(loginDto: LoginDto) {
+    let user = await this.usersService.findOne(loginDto.phone);
+    
+    if (user && user.password) {
+      throw new UnauthorizedException('用户已设置密码，请直接登录');
+    }
+
+    if (user) {
+      // User exists but no password (e.g. from an invitation or older migration)
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(loginDto.password, salt);
+      user = await this.usersService.update(user.id, {
+        password: hashedPassword,
+      });
+    } else {
+      // New user
+      user = await this.usersService.create({
+        phone: loginDto.phone,
+        password: loginDto.password,
+        name: '',
+        avatar: '',
+      } as any);
+
+      // Create default organization
+      await this.organizationsService.create(user.id as any, { name: '默认组织' });
+    }
+
+    const userProfile = await this.getUserProfile(user.id as any);
+    const payload = {
+      phone: user.phone,
+      sub: user.id as any,
+      orgId: userProfile?.currentOrg?.id || null,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: userProfile,
+      isNewUser: !user.name, // If name is empty, consider it as a "new" user profile
+    };
+  }
+
   async loginOrRegister(loginDto: LoginDto) {
     console.log('验证码===', loginDto.code);
     
