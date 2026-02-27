@@ -33,6 +33,12 @@ export const employeeService = {
     return Array.isArray(resData) ? resData[0] : resData
   },
 
+  // Batch add employees
+  batchAddEmployees: async (employees: { name: string, phone: string }[]): Promise<{ phone: string, status: 'success' | 'failed', reason?: string }[]> => {
+    const { data: resData } = (await request({ url: '/employees/batch-create', method: 'POST', data: { employees } })) as any
+    return resData
+  },
+
   // Update employee
   updateEmployee: async (id: number, data: { role?: string, wageType?: string, wageAmount?: number }): Promise<Employee> => {
     const { data: resData } = (await request({ url: '/employees/update', method: 'POST', data: { id, ...data } })) as any

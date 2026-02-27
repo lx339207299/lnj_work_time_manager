@@ -13,6 +13,7 @@ export default defineAppConfig({
     'pages/mine/index',
     'pages/employee/index',
     'pages/employee/edit/index',
+    'pages/employee/batch-add/index',
     'pages/org/list/index',
     'pages/org/edit/index',
     'pages/mine/profile/index'

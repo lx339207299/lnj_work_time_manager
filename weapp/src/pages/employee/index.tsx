@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { Avatar, Button, Cell, Dialog, Empty, Skeleton, Swipe, Tag } from '@nutui/nutui-react-taro'
+import { Avatar, Button, Cell, Dialog, Empty, Skeleton, Swipe, Tag, ActionSheet } from '@nutui/nutui-react-taro'
 import { Plus, ArrowRight } from '@nutui/icons-react-taro'
 import { employeeService, Employee } from '../../services/employeeService'
 import { userService } from '../../services/userService'
@@ -22,6 +22,12 @@ function EmployeeList() {
   const [loading, setLoading] = useState(false)
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [currentUserRole, setCurrentUserRole] = useState<string>('member')
+  const [showAddActionSheet, setShowAddActionSheet] = useState(false)
+
+  const addOptions = [
+    { name: '单个添加', value: 'single' },
+    { name: '批量导入', value: 'batch' }
+  ]
 
   useDidShow(() => {
     fetchEmployees()
@@ -95,7 +101,16 @@ function EmployeeList() {
         return
     }
     
-    Taro.navigateTo({ url: '/pages/employee/edit/index' })
+    setShowAddActionSheet(true)
+  }
+
+  const handleSelectAddOption = (item: any) => {
+    if (item.value === 'single') {
+        Taro.navigateTo({ url: '/pages/employee/edit/index' })
+    } else if (item.value === 'batch') {
+        Taro.navigateTo({ url: '/pages/employee/batch-add/index' })
+    }
+    setShowAddActionSheet(false)
   }
 
   return (
@@ -174,6 +189,13 @@ function EmployeeList() {
       )}
       
       <Dialog id="confirm" />
+      
+      <ActionSheet 
+        visible={showAddActionSheet} 
+        options={addOptions} 
+        onSelect={handleSelectAddOption}
+        onCancel={() => setShowAddActionSheet(false)}
+      />
     </View>
   )
 }

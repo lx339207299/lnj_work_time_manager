@@ -2,6 +2,7 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { BatchCreateEmployeeDto } from './dto/batch-create-employee.dto';
 import { EmployeeIdDto } from './dto/employee-id.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeResponseDto, EmployeeListResponseDto } from './dto/employee-response.dto';
@@ -22,6 +23,13 @@ export class EmployeesController {
   create(@Body() createEmployeeDto: CreateEmployeeDto, @Request() req: any) {
     createEmployeeDto.orgId = req.user.orgId;
     return this.employeesService.create(createEmployeeDto);
+  }
+
+  @Post('batch-create')
+  @ApiOperation({ summary: 'Batch add employees to organization' })
+  @ApiResponse({ status: 201, description: 'Batch create results' })
+  batchCreate(@Body() batchDto: BatchCreateEmployeeDto, @Request() req: any) {
+    return this.employeesService.batchCreate(req.user.orgId, batchDto.employees);
   }
 
   @Post('list')

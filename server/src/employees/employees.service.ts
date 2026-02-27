@@ -70,6 +70,26 @@ export class EmployeesService {
     });
   }
 
+  async batchCreate(orgId: number, employees: { name: string; phone: string }[]) {
+    const results = [];
+    for (const emp of employees) {
+      try {
+        await this.create({
+          orgId,
+          phone: emp.phone,
+          name: emp.name,
+          role: 'member',
+          wageType: 'day',
+          wageAmount: 0,
+        });
+        results.push({ phone: emp.phone, status: 'success' });
+      } catch (error: any) {
+        results.push({ phone: emp.phone, status: 'failed', reason: error.message });
+      }
+    }
+    return results;
+  }
+
   findAll(orgId: number, onlyActive: boolean = true) {
     const where: any = { orgId };
     if (onlyActive) {
