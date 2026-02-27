@@ -49,7 +49,6 @@ function ProjectFlow() {
       const exp = list.filter(i => i.type === 'expense').reduce((acc, cur) => acc + cur.amount, 0)
       setStats({ income: inc, expense: exp })
     } catch (error) {
-      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -60,7 +59,6 @@ function ProjectFlow() {
           const list = await projectService.getProjectMembers(projectId)
           setMembers(list)
       } catch (error) {
-          console.error(error)
       }
   }
 

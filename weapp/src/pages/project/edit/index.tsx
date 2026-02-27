@@ -20,13 +20,11 @@ function ProjectEdit() {
     if (id) {
       Taro.setNavigationBarTitle({ title: '编辑项目' })
       projectService.getProjectDetail(Number(id)).then(project => {
-          console.log('Fetched project:', project)
           setName(project.name)
           setDescription(project.description || '')
           // Force update form values if needed by NutUI
           form.setFieldsValue({ name: project.name, description: project.description || '' })
       }).catch(err => {
-          console.error(err)
           Taro.showToast({ title: '获取项目失败', icon: 'error' })
       })
     } else {

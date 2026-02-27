@@ -26,7 +26,6 @@ function ProfileEdit() {
         const profile = await userService.getUserInfo({token, ignoreTokenInvalid: token ? true : false})
         setUserInfo(profile)
       } catch (error) {
-        console.error(error)
         Taro.showToast({ title: '获取个人信息失败', icon: 'error' })
       }
     }

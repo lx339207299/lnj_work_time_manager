@@ -76,7 +76,6 @@ function WorkHour() {
             setWorkHours(initialHours)
 
         } catch (error) {
-            console.error(error)
             Taro.showToast({ title: '获取成员失败', icon: 'error' })
         }
     }
@@ -140,7 +139,6 @@ function WorkHour() {
             Taro.navigateBack()
         }, 1500)
     } catch (error) {
-        console.error(error)
         Taro.showToast({ title: '提交失败', icon: 'error' })
     } finally {
         setSubmitting(false)

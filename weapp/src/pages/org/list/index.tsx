@@ -50,7 +50,6 @@ function OrgList() {
       onConfirm: async () => {
         try {
           const res: any = await request({ url: `/organizations/switch`, method: 'POST', data: { id: org.id } })
-          console.log(1111, res);
           const { data } = res
           if (data != null && data.length > 0 && data[0]?.access_token) {
             Taro.setStorageSync('token', data[0]?.access_token)
@@ -66,7 +65,6 @@ function OrgList() {
             Taro.navigateBack()
           }, 500)
         } catch (e) {
-          console.error('Switch org error:', e)
           Taro.showToast({ title: '切换失败', icon: 'none' })
           Dialog.close('switch-org')
         }
@@ -172,7 +170,6 @@ function OrgList() {
                   Dialog.close('exit-org')
                   setActionVisible(false)
               } catch (error: any) {
-                  console.error('Exit org error:', error)
                   Taro.showToast({ title: error.message || '退出失败', icon: 'none' })
               }
           },

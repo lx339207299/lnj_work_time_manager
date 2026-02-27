@@ -43,7 +43,6 @@ function EmployeeList() {
         const res = await employeeService.getEmployees()
         setEmployees(res)
     } catch (error) {
-      console.error(error)
       Taro.showToast({ title: '获取员工列表失败', icon: 'error' })
     } finally {
       setLoading(false)

@@ -25,7 +25,6 @@ function ProjectStats() {
       const list = await workRecordService.getProjectMemberStats(projectId)
       setMemberStats(list)
     } catch (error) {
-      console.error(error)
       Taro.showToast({ title: '获取列表失败', icon: 'error' })
     } finally {
       setLoading(false)

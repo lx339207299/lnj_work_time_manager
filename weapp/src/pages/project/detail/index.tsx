@@ -69,7 +69,6 @@ function ProjectDetail() {
       const res = await workRecordService.getProjectWorkRecords(pid, date)
       setRecords(res)
     } catch (error) {
-      console.error(error)
       Taro.showToast({ title: '获取记录失败', icon: 'error' })
     } finally {
       setLoadingRecords(false)
@@ -82,10 +81,8 @@ function ProjectDetail() {
     
     try {
       const res = await workRecordService.getProjectMonthStats(pid, month)
-      console.log(res);
       setMonthStats(res)
     } catch (error) {
-      console.error(error)
     }
   }
 
@@ -105,7 +102,6 @@ function ProjectDetail() {
             fetchRecords(dateToUse, projectId)
           ])
       } catch (error) {
-          console.error(error)
           Taro.showToast({ title: '获取项目详情失败', icon: 'error' })
       }
   }
@@ -129,22 +125,18 @@ function ProjectDetail() {
   }
 
   const handleGoMembers = () => {
-    console.log('Navigate to members', currentProject.id)
     Taro.navigateTo({ 
         url: `/pages/project/member/index?projectId=${currentProject.id}`,
         fail: (err) => {
-            console.error('Navigate failed:', err)
             Taro.showToast({ title: '跳转失败', icon: 'none' })
         }
     })
   }
 
   const handleGoStats = () => {
-    console.log('Navigate to stats', currentProject.id)
     Taro.navigateTo({ 
         url: `/pages/project/stats/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`,
         fail: (err) => {
-            console.error('Navigate failed:', err)
             Taro.showToast({ title: '跳转失败', icon: 'none' })
         }
     })
@@ -165,7 +157,6 @@ function ProjectDetail() {
   }
 
   const handlePageChange = (data: { year: number, month: number }) => {
-    console.log('handlePageChange', data)
     const monthStr = `${data.year}-${String(data.month).padStart(2, '0')}`
     fetchMonthStats(monthStr)
   }
@@ -300,11 +291,7 @@ function ProjectDetail() {
         renderDayBottom={(day: CalendarCardDay) => {
             // Check if day has records
             const dateStr = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-            //  console.log(day);
             const hasRecord = monthStats.includes(dateStr)
-            if (hasRecord) {
-            console.log(dateStr);
-            }
             return hasRecord ? <View className="dot" /> : null
         }}
         />

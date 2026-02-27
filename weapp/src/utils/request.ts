@@ -48,7 +48,6 @@ export const request = async (options: RequestOptions) => {
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
       const body = res.data
-      console.log(body);
       // Handle unified response format
         const { status, data, property } = body
         if (status.code == 0) {

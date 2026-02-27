@@ -27,7 +27,6 @@ function ProjectList() {
       // Ensure res is an array
       setProjectList(Array.isArray(res) ? res : [])
     } catch (error) {
-      console.error(error)
       setProjectList([])
     } finally {
       setLoading(false)
@@ -80,8 +79,6 @@ function ProjectList() {
                 })
             } catch (error) {
                 Taro.hideLoading()
-                console.error('Invite error', error)
-                // Invalid invite
                 Taro.removeStorageSync('pending_invite_code')
             }
         }

@@ -95,8 +95,6 @@ export class AuthService {
   }
 
   async loginOrRegister(loginDto: LoginDto) {
-    console.log('验证码===', loginDto.code);
-    
     // For fixed verification code '123456', direct string comparison is sufficient.
     // bcrypt.compare is for hashing passwords.
     if (loginDto.code !== '123456') {

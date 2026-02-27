@@ -64,7 +64,6 @@ function EmployeeEdit() {
         setBirthday(emp.user?.birthday || '')
       }
     } catch (error) {
-      console.error(error)
       Taro.showToast({ title: '获取员工信息失败', icon: 'error' })
     }
   }

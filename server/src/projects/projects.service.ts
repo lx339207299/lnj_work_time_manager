@@ -10,9 +10,6 @@ export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
   create(createProjectDto: CreateProjectDto) {
-    console.log(111);
-    console.log(createProjectDto.orgId);
-    console.log(222);
     return this.prisma.project.create({
       data: {
         name: createProjectDto.name,

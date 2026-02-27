@@ -33,7 +33,6 @@ function ProjectMember() {
       const list = await projectService.getProjectMembers(projectId)
       setMembers(list)
     } catch (error) {
-      console.error(error)
       Taro.showToast({ title: '获取成员失败', icon: 'error' })
     } finally {
       setLoading(false)
