@@ -135,7 +135,8 @@ export class WorkRecordsService {
         date: record.date,
         duration: record.duration,
         content: record.content,
-        wageType: record.wageTypeSnapshot
+        wageType: record.wageTypeSnapshot,
+        createdAt: record.createdAt
     }));
 
     // Use CustomResponse to return data and property (pagination info)

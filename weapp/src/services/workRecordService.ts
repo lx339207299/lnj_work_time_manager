@@ -11,6 +11,7 @@ export interface WorkRecord {
   duration: number
   content: string
   wageType: 'day' | 'hour' | 'month'
+  createdAt: string
 }
 
 export interface ProjectMemberStat {

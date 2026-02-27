@@ -346,6 +346,9 @@ function ProjectDetail() {
                     </Text>
                     </View>
                 </View>
+                <View className="record-footer" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f5f5f5' }}>
+                    <Text style={{ fontSize: '12px', color: '#999' }}>录入时间: {dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Text>
+                </View>
                 </View>
             ))}
             </View>
