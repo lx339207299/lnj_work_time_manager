@@ -327,6 +327,15 @@ function ProjectDetail() {
                     className="record-card"
                     onClick={() => handleRecordClick(record)}
                 >
+
+                <View>
+                    {/* 录入时间,如果是日历选择的日期相同，只展示时分秒，非当天才展示年月日时分秒 */}
+                    <Text style={{ fontSize: '12px', color: '#999' }}>
+                        {dayjs(record.createdAt).isSame(dayjs(selectedDate), 'day') 
+                            ? dayjs(record.createdAt).format('HH:mm:ss') 
+                            : dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+                    </Text>
+                </View>
                 <View className="user-info">
                     {/* <Avatar size="small" className="avatar">{record.userName[0]}</Avatar> */}
                     <View className="name-role">
@@ -345,9 +354,6 @@ function ProjectDetail() {
                             : '小时'}
                     </Text>
                     </View>
-                </View>
-                <View className="record-footer" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f5f5f5' }}>
-                    <Text style={{ fontSize: '12px', color: '#999' }}>录入时间: {dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Text>
                 </View>
                 </View>
             ))}
