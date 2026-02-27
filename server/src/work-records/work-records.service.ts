@@ -8,7 +8,19 @@ import { CustomResponse } from '../common/responses/custom.response';
 export class WorkRecordsService {
   constructor(private prisma: PrismaService) {}
 
-  private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number) {
+  private calculateAmount(durationInHours: number, wageType: string, wageAmount: number): number {
+    if (wageType === 'hour') {
+      return durationInHours * wageAmount;
+    } else if (wageType === 'day') {
+      return (durationInHours / 8) * wageAmount;
+    } else if (wageType === 'month') {
+      // Assuming 21.75 working days per month for calculation
+      return (durationInHours / 8) * (wageAmount / 21.75);
+    }
+    return 0;
+  }
+
+  private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number, deltaAmount: number) {
     try {
       const project = await this.prisma.project.findUnique({ where: { id: projectId } });
       if (!project) return;
@@ -23,6 +35,7 @@ export class WorkRecordsService {
         },
         update: {
           totalDuration: { increment: deltaDuration },
+          totalAmount: { increment: deltaAmount },
           recordCount: { increment: deltaRecord },
         },
         create: {
@@ -31,6 +44,7 @@ export class WorkRecordsService {
           memberId,
           date,
           totalDuration: deltaDuration,
+          totalAmount: deltaAmount,
           recordCount: deltaRecord,
         },
       });
@@ -53,6 +67,8 @@ export class WorkRecordsService {
         durationInHours = createWorkRecordDto.duration * 8;
     }
 
+    const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
+
     const record = await this.prisma.workRecord.create({
       data: {
         projectId: createWorkRecordDto.projectId,
@@ -62,9 +78,10 @@ export class WorkRecordsService {
         content: createWorkRecordDto.content,
         wageSnapshot: member.wageAmount,
         wageTypeSnapshot: member.wageType,
+        amount,
       },
     });
-    await this.updateDailySummary(record.projectId, record.memberId, record.date, durationInHours, 1);
+    await this.updateDailySummary(record.projectId, record.memberId, record.date, durationInHours, 1, amount);
     return record;
   }
 
@@ -131,15 +148,15 @@ export class WorkRecordsService {
       const daily = await (this.prisma as any).workSummaryDaily.groupBy({
         by: ['memberId'],
         where: { projectId },
-        _sum: { totalDuration: true },
+        _sum: { totalDuration: true, totalAmount: true },
       });
-      stats = daily.map(d => ({ memberId: d.memberId, _sum: { duration: d._sum.totalDuration || 0 } }));
+      stats = daily.map(d => ({ memberId: d.memberId, _sum: { duration: d._sum.totalDuration || 0, amount: d._sum.totalAmount || 0 } }));
     } catch (_) {
       // Fallback to raw workRecord aggregation
       stats = await (this.prisma as any).workRecord.groupBy({
         by: ['memberId'],
         where: { projectId },
-        _sum: { duration: true },
+        _sum: { duration: true, amount: true },
       });
     }
 
@@ -166,6 +183,7 @@ export class WorkRecordsService {
             userAvatar: member?.user?.avatar || '',
             userRole: member?.role || 'member',
             totalDuration: total,
+            totalAmount: s._sum.amount || 0,
             wageType: member?.wageType || 'day'
         };
     });
@@ -197,9 +215,9 @@ export class WorkRecordsService {
       const daily = await (this.prisma as any).workSummaryDaily.groupBy({
         by: ['memberId'],
         where,
-        _sum: { totalDuration: true },
+        _sum: { totalDuration: true, totalAmount: true },
       })
-      stats = daily.map((d: any) => ({ memberId: d.memberId, _sum: { duration: d._sum.totalDuration || 0 } }))
+      stats = daily.map((d: any) => ({ memberId: d.memberId, _sum: { duration: d._sum.totalDuration || 0, amount: d._sum.totalAmount || 0 } }))
     } catch (_) {
       const fallbackWhere: any = {}
       if (start && end) {
@@ -225,7 +243,7 @@ export class WorkRecordsService {
       stats = await (this.prisma as any).workRecord.groupBy({
         by: ['memberId'],
         where: fallbackWhere,
-        _sum: { duration: true },
+        _sum: { duration: true, amount: true },
       })
     }
     const members = await this.prisma.organizationMember.findMany({
@@ -246,6 +264,7 @@ export class WorkRecordsService {
         userAvatar: member?.user?.avatar || '',
         userRole: member?.role || 'member',
         totalDuration: total,
+        totalAmount: s._sum.amount || 0,
         wageType: member?.wageType || 'day'
       }
     })
@@ -254,22 +273,66 @@ export class WorkRecordsService {
   async update(id: number, data: any) {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
+
+    // Calculate old amount (if not present, calculate on fly)
+    const oldAmount = (old as any).amount !== undefined 
+      ? (old as any).amount 
+      : this.calculateAmount(old.duration, old.wageTypeSnapshot, old.wageSnapshot);
+
+    // Calculate new amount
+    // If data.duration is provided, use it, else use old.duration
+    const newDuration = data.duration !== undefined ? data.duration : old.duration;
+    // Note: wage snapshot and type are immutable on update unless we want to support re-calculating based on NEW wage (which is usually not the case for historical records)
+    // However, if the user edits the record, should we re-fetch current wage?
+    // Usually NO. We stick to the snapshot unless explicitly asked.
+    // So we use old.wageTypeSnapshot and old.wageSnapshot.
+    
+    // BUT, if duration is updated, amount changes.
+    // Also, if duration changes, we might need to be careful if input data.duration is in 'days' but stored as 'hours'.
+    // The `data` here comes from controller. Controller usually passes what frontend sends.
+    // Frontend sends 'duration'. If wageType is day/month, frontend sends days?
+    // In `create`, we check member.wageType.
+    // In `update`, we don't fetch member by default.
+    // We should probably fetch member to check wageType OR trust the snapshot.
+    // Using snapshot is safer for historical consistency.
+    
+    // Wait, `create` logic:
+    // if (member.wageType === 'day' || member.wageType === 'month') durationInHours = input * 8;
+    
+    // In `update`, `data.duration` might be raw input.
+    // We need to know if we need to convert it.
+    // If we use `old.wageTypeSnapshot`, we can decide.
+    
+    let durationInHours = newDuration;
+    // Assuming the frontend sends 'days' for day/month types, we need to convert.
+    if (old.wageTypeSnapshot === 'day' || old.wageTypeSnapshot === 'month') {
+       // Check if data.duration is being updated.
+       if (data.duration !== undefined) {
+          durationInHours = data.duration * 8;
+       }
+    }
+
+    const newAmount = this.calculateAmount(durationInHours, old.wageTypeSnapshot, old.wageSnapshot);
+
     const updated = await this.prisma.workRecord.update({
       where: { id },
       data: {
-        duration: data.duration,
+        duration: durationInHours,
         content: data.content,
-        date: data.date
+        date: data.date,
+        amount: newAmount
       }
     });
+
     if (old.date === updated.date) {
-      const delta = (updated.duration || 0) - (old.duration || 0);
-      if (delta !== 0) {
-        await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, delta, 0);
+      const deltaDuration = (updated.duration || 0) - (old.duration || 0);
+      const deltaAmount = newAmount - oldAmount;
+      if (deltaDuration !== 0 || deltaAmount !== 0) {
+        await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, deltaDuration, 0, deltaAmount);
       }
     } else {
-      await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1);
-      await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, (updated.duration || 0), 1);
+      await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
+      await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, (updated.duration || 0), 1, newAmount);
     }
     return updated;
   }
@@ -277,10 +340,15 @@ export class WorkRecordsService {
   async remove(id: number) {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
+    
+    const oldAmount = (old as any).amount !== undefined 
+      ? (old as any).amount 
+      : this.calculateAmount(old.duration, old.wageTypeSnapshot, old.wageSnapshot);
+
     const deleted = await this.prisma.workRecord.delete({
       where: { id }
     });
-    await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1);
+    await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
     return deleted;
   }
 
@@ -302,6 +370,8 @@ export class WorkRecordsService {
               durationInHours = record.duration * 8;
           }
 
+          const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
+
           return this.prisma.workRecord.create({
               data: {
                   projectId,
@@ -310,7 +380,8 @@ export class WorkRecordsService {
                   duration: durationInHours,
                   content: '', // Default empty for batch
                   wageSnapshot: member.wageAmount,
-                  wageTypeSnapshot: member.wageType
+                  wageTypeSnapshot: member.wageType,
+                  amount
               }
           });
       }).filter(op => op !== null);
@@ -319,7 +390,10 @@ export class WorkRecordsService {
       const validOps = operations as any[]; 
       const created = await this.prisma.$transaction(validOps);
       // Summary maintenance (best-effort)
-      const createdSummaries = created.map(r => this.updateDailySummary(projectId, r.memberId, date, r.duration || 0, 1));
+      const createdSummaries = created.map(r => {
+          const amount = (r as any).amount || 0;
+          return this.updateDailySummary(projectId, r.memberId, date, r.duration || 0, 1, amount);
+      });
       await Promise.all(createdSummaries).catch(() => {});
       return created;
   }
