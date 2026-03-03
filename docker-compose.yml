@@ -58,20 +58,20 @@ services:
     command: sh -c "npx prisma migrate deploy && node dist/main"
 
   # 生产前端服务
-  client-prod:
-    build:
-      context: ./weapp
-      dockerfile: Dockerfile
-      args:
-        TARO_APP_API_URL: ${TARO_APP_API_URL}
-    container_name: lnj_work_time_manager_client_prod
-    restart: always
-    profiles: ["prod"]
-    depends_on:
-      server-prod:
-        condition: service_started
-    ports:
-      - "${CLIENT_PORT:-4000}:80"
+  # client-prod:
+    # build:
+    #   context: ./weapp
+    #   dockerfile: Dockerfile
+    #   args:
+    #     TARO_APP_API_URL: ${TARO_APP_API_URL}
+    # container_name: lnj_work_time_manager_client_prod
+    # restart: always
+    # profiles: ["prod"]
+    # depends_on:
+    #   server-prod:
+    #     condition: service_started
+    # ports:
+    #   - "${CLIENT_PORT:-4000}:80"
 
   # 测试环境数据库
   mysql-test:
@@ -116,20 +116,20 @@ services:
     command: sh -c "npx prisma migrate deploy && node dist/main"
 
   # 测试前端服务
-  client-test:
-    build:
-      context: ./weapp
-      dockerfile: Dockerfile
-      args:
-        TARO_APP_API_URL: ${TARO_APP_API_URL}
-    container_name: lnj_work_time_manager_client_test
-    restart: always
-    profiles: ["test"]
-    depends_on:
-      server-test:
-        condition: service_started
-    ports:
-      - "${CLIENT_PORT:-4001}:80"
+  # client-test:
+  #   build:
+  #     context: ./weapp
+  #     dockerfile: Dockerfile
+  #     args:
+  #       TARO_APP_API_URL: ${TARO_APP_API_URL}
+  #   container_name: lnj_work_time_manager_client_test
+  #   restart: always
+  #   profiles: ["test"]
+  #   depends_on:
+  #     server-test:
+  #       condition: service_started
+  #   ports:
+  #     - "${CLIENT_PORT:-4001}:80"
 
 volumes:
   mysql_data:
