@@ -3,8 +3,10 @@ import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterWithPasswordDto } from './dto/register-with-password.dto';
 import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
@@ -23,20 +25,23 @@ export class AuthController {
 
   @Post('check-status')
   @ApiOperation({ summary: 'Check user status by phone number' })
-  async checkUserStatus(@Body('phone') phone: string) {
-    return this.authService.checkUserStatus(phone);
+  async checkUserStatus(@Body() body: { phone: string }) {
+    return this.authService.checkUserStatus(body.phone);
   }
 
   @Post('login-password')
   @ApiOperation({ summary: 'Login with password' })
   async loginWithPassword(@Body() loginDto: LoginDto) {
+    if (!loginDto.phone) {
+       throw new Error('请输入手机号');
+    }
     return this.authService.loginWithPassword(loginDto);
   }
 
   @Post('register-password')
   @ApiOperation({ summary: 'Register with password' })
-  async registerWithPassword(@Body() loginDto: LoginDto) {
-    return this.authService.registerWithPassword(loginDto);
+  async registerWithPassword(@Body() registerDto: RegisterWithPasswordDto) {
+    return this.authService.registerWithPassword(registerDto as LoginDto);
   }
 
   @Post('register')
@@ -67,5 +72,16 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Return updated user profile.', type: UserProfileDto })
   async updateProfile(@Request() req: any, @Body() updateProfileDto: UpdateProfileDto) {
     return this.authService.updateProfile(req.user.sub, updateProfileDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('change-password')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully.' })
+  @ApiResponse({ status: 400, description: 'Old password incorrect or invalid data.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  async changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.sub, changePasswordDto);
   }
 }

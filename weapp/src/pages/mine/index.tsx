@@ -100,6 +100,14 @@ function Mine() {
                 onClick={() => handleProtectedClick('/pages/mine/profile/index')}
             />
 
+            <Cell 
+                title="修改密码" 
+                align="center"
+                extra={<ArrowRight size={12} />}
+                clickable 
+                onClick={() => handleProtectedClick('/pages/mine/change-password/index')}
+            />
+
             {token && isManager && (
             /* Manager View */
             <>

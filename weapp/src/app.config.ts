@@ -16,7 +16,8 @@ export default defineAppConfig({
     'pages/employee/batch-add/index',
     'pages/org/list/index',
     'pages/org/edit/index',
-    'pages/mine/profile/index'
+    'pages/mine/profile/index',
+    'pages/mine/change-password/index'
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -1,10 +1,11 @@
 
-import { Injectable, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, forwardRef, BadRequestException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
 
 @Injectable()
@@ -26,6 +27,9 @@ export class AuthService {
   }
 
   async checkUserStatus(phone: string) {
+    if (!phone) {
+        throw new BadRequestException('手机号不能为空');
+    }
     const user = await this.usersService.findOne(phone);
     return {
       exists: !!user,
@@ -34,6 +38,9 @@ export class AuthService {
   }
 
   async loginWithPassword(loginDto: LoginDto) {
+    if (!loginDto.phone) {
+        throw new BadRequestException('手机号不能为空');
+    }
     const user = await this.validateUser(loginDto.phone, loginDto.password);
     if (!user) {
       throw new UnauthorizedException('手机号或密码错误');
@@ -198,6 +205,31 @@ export class AuthService {
 
   async updateProfile(userId: number, data: any) {
     return this.usersService.update(userId, data);
+  }
+
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException('用户未设置密码');
+    }
+
+    const isMatch = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('原密码错误');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, salt);
+
+    await this.usersService.update(userId, {
+      password: hashedPassword,
+    });
+
+    return { message: '密码修改成功' };
   }
 
   async issueTokenForUser(userId: number) {

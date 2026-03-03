@@ -119,7 +119,13 @@ function Login() {
         }, 500)
       }
     } catch (error: any) {
-      Taro.showToast({ title: error.message || '登录失败', icon: 'none' })
+      // 密码复杂度校验失败等情况，使用 duration: 3000 和 icon: 'none' 来完整显示长文本
+      const errorMessage = error.message || '登录失败'
+      Taro.showToast({ 
+        title: errorMessage, 
+        icon: 'none',
+        duration: 3000
+      })
     } finally {
       setLoading(false)
     }
@@ -199,7 +205,7 @@ function Login() {
           <>
             <View className="input-group">
                 <Input 
-                    placeholder={userStatus?.hasPassword ? "请输入密码" : "请设置密码"} 
+                    placeholder={userStatus?.hasPassword ? "请输入密码" : "请设置密码(大小写英文+数字)"} 
                     value={password} 
                     onChange={(val) => setPassword(val)}
                     type="password"

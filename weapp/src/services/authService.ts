@@ -102,5 +102,17 @@ export const authService = {
     } catch (error: any) {
       throw new Error(error.message || '注册失败')
     }
+  },
+
+  changePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
+    try {
+      await request({
+        url: '/auth/change-password',
+        method: 'POST',
+        data: { oldPassword, newPassword }
+      })
+    } catch (error: any) {
+      throw new Error(error.message || '修改失败')
+    }
   }
 }
