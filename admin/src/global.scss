@@ -1,0 +1,14 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 防止出现多余的滚动条 */
+}
+
+/* 覆盖 antd 默认样式或添加全局样式 */
+.ant-layout {
+  min-height: 100vh;
+}

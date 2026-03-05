@@ -23,6 +23,28 @@ model User {
   memberships OrganizationMember[]
   invitations Invitation[]
   currentOrg Organization? @relation("CurrentOrg", fields: [currentOrgId], references: [id])
+  
+  // 后台管理扩展字段
+  email       String?  @unique
+  systemRole  String   @default("user") // user, admin
+  isLocked    Boolean  @default(false)
+  
+  systemLogs  SystemLog[]
+}
+
+model SystemLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  module    String   // e.g. "USER", "ORG", "SYSTEM"
+  action    String   // e.g. "BAN", "UPDATE", "LOGIN"
+  targetId  String?  // Affected ID
+  detail    String?  @db.Text // 使用 Text 类型存储较长的日志详情
+  ip        String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
 }
 
 model Organization {
