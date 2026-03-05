@@ -51,6 +51,7 @@ export class AuthService {
       phone: user.phone,
       sub: user.id,
       orgId: userProfile?.currentOrg?.id || null,
+      systemRole: user.systemRole || 'user',
     };
 
     return {

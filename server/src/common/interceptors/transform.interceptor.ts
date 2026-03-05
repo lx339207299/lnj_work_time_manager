@@ -31,7 +31,14 @@ export class TransformInterceptor<T>
         
         // Handle CustomResponse
         if (data instanceof CustomResponse) {
-          return data;
+          // 如果返回的是 CustomResponse，直接返回它
+          // 注意：CustomResponse 内部结构需要符合 Response<T> 接口，或者这里做适配
+          return {
+              status: data.status,
+              data: data.data,
+              property: data.property || {},
+              pagination: data.pagination // 添加 pagination 支持
+          } as any;
         } else {
             // Default handling
             if (data === null || data === undefined) {

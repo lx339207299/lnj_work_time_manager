@@ -55,7 +55,14 @@ const BasicLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider trigger={null} collapsible collapsed={collapsed} style={{
+        overflow: 'auto',
+        height: '100vh',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        bottom: 0,
+      }}>
         <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', color: '#fff', lineHeight: '32px' }}>
            {collapsed ? 'LNJ' : 'LNJ Admin'}
         </div>
@@ -68,8 +75,15 @@ const BasicLayout: React.FC = () => {
           onClick={({ key }) => navigate(key)}
         />
       </Sider>
-      <Layout>
-        <Header style={{ padding: 0, background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 20 }}>
+      <Layout style={{ 
+        marginLeft: collapsed ? 80 : 200, 
+        transition: 'all 0.2s', 
+        height: '100vh', // 固定高度为视口高度
+        display: 'flex', 
+        flexDirection: 'column',
+        overflow: 'hidden' // 防止整个页面出现滚动条
+      }}>
+        <Header style={{ padding: 0, background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 20, zIndex: 1, width: '100%', flexShrink: 0 }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -90,9 +104,11 @@ const BasicLayout: React.FC = () => {
           style={{
             margin: '24px 16px',
             padding: 24,
-            minHeight: 280,
+            flex: 1, 
             background: '#fff',
             borderRadius: 8,
+            overflowY: 'auto', // 仅允许垂直滚动
+            overflowX: 'hidden'
           }}
         >
           <Outlet />

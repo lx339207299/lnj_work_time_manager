@@ -5,7 +5,7 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 防止出现多余的滚动条 */
+  /* overflow: hidden; */ /* 移除全局 hidden，避免某些情况下内容被裁切无法滚动 */
 }
 
 /* 覆盖 antd 默认样式或添加全局样式 */

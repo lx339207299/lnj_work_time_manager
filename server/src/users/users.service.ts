@@ -61,4 +61,63 @@ export class UsersService {
       data,
     });
   }
+
+  // --- Admin Methods ---
+
+  async findAllForAdmin(page: number, pageSize: number, keyword?: string, orgName?: string) {
+    const skip = (page - 1) * pageSize;
+    const where: Prisma.UserWhereInput = {
+      ...(keyword ? {
+          OR: [
+            { phone: { contains: keyword } },
+            { name: { contains: keyword } },
+            { email: { contains: keyword } },
+          ],
+        } : {}),
+      ...(orgName ? {
+          currentOrg: {
+            name: { contains: orgName }
+          }
+      } : {})
+    };
+
+    const [total, users] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          currentOrg: { select: { id: true, name: true } },
+          _count: { select: { ownedOrgs: true, memberships: true } },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      list: users.map(user => {
+        const { password, ...rest } = user;
+        return rest;
+      }),
+    };
+  }
+
+  async setLockStatus(userId: number, isLocked: boolean) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isLocked },
+    });
+  }
+
+  async adminResetPassword(userId: number, newPassword: string) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
 }

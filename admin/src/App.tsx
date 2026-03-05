@@ -5,6 +5,7 @@ import zhCN from 'antd/locale/zh_CN';
 import BasicLayout from './layouts/BasicLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import UserList from './pages/Users';
 import { useUserStore } from './store/userStore';
 
 // Protected Route Component
@@ -28,7 +29,7 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="users" element={<div>用户管理 (开发中)</div>} />
+            <Route path="users" element={<UserList />} />
             <Route path="projects" element={<div>项目管理 (开发中)</div>} />
           </Route>
         </Routes>
