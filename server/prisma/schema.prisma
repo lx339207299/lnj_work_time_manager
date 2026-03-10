@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,41 +8,42 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  phone     String   @unique
-  name      String?
-  password  String?
-  avatar    String?
-  birthday  String?
+  id           Int      @id @default(autoincrement())
+  phone        String   @unique
+  name         String?
+  password     String?
+  avatar       String?
+  birthday     String?
   currentOrgId Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  ownedOrgs Organization[] @relation("OrgOwner")
+  ownedOrgs   Organization[]       @relation("OrgOwner")
   memberships OrganizationMember[]
   invitations Invitation[]
-  currentOrg Organization? @relation("CurrentOrg", fields: [currentOrgId], references: [id])
-  
+  currentOrg  Organization?        @relation("CurrentOrg", fields: [currentOrgId], references: [id])
+
   // 后台管理扩展字段
-  email       String?  @unique
-  systemRole  String   @default("user") // user, admin
-  isLocked    Boolean  @default(false)
-  
-  systemLogs  SystemLog[]
+  email      String? @unique
+  systemRole String  @default("user") // user, admin
+  isLocked   Boolean @default(false)
+
+  systemLogs     SystemLog[]
+  workRecordLogs WorkRecordLog[] @relation("LogOperator")
 }
 
 model SystemLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  
-  module    String   // e.g. "USER", "ORG", "SYSTEM"
-  action    String   // e.g. "BAN", "UPDATE", "LOGIN"
-  targetId  String?  // Affected ID
-  detail    String?  @db.Text // 使用 Text 类型存储较长的日志详情
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  module    String // e.g. "USER", "ORG", "SYSTEM"
+  action    String // e.g. "BAN", "UPDATE", "LOGIN"
+  targetId  String? // Affected ID
+  detail    String? @db.Text // 使用 Text 类型存储较长的日志详情
   ip        String?
   userAgent String?
-  
+
   createdAt DateTime @default(now())
 }
 
@@ -60,61 +60,61 @@ model Organization {
   members     OrganizationMember[]
   projects    Project[]
   invitations Invitation[]
-  users       User[]   @relation("CurrentOrg")
+  users       User[]               @relation("CurrentOrg")
 }
 
 model OrganizationMember {
-  id          Int      @id @default(autoincrement())
-  orgId       Int
+  id           Int          @id @default(autoincrement())
+  orgId        Int
   organization Organization @relation(fields: [orgId], references: [id])
-  
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
 
-  role        String   @default("member") // owner, leader, member, temp
-  wageType    String   @default("day") // day, month, hour
-  wageAmount  Float    @default(0)
-  
-  status      String   @default("active") // pending, active, disabled
-  isDeleted   Boolean  @default(false)
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  role       String @default("member") // owner, leader, member, temp
+  wageType   String @default("day") // day, month, hour
+  wageAmount Float  @default(0)
 
-  workRecords WorkRecord[]
+  status    String  @default("active") // pending, active, disabled
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workRecords        WorkRecord[]
   projectMemberships ProjectMember[]
-  
+
   // Ensure unique phone per org? Or unique user per org.
   @@unique([orgId, userId])
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
-  orgId       Int
+  id           Int          @id @default(autoincrement())
+  orgId        Int
   organization Organization @relation(fields: [orgId], references: [id])
-  
+
   name        String
   description String?
-  status      String   @default("active") // active, completed
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String  @default("active") // active, completed
 
-  workRecords WorkRecord[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workRecords    WorkRecord[]
   projectMembers ProjectMember[]
-  flows       ProjectFlow[]
+  flows          ProjectFlow[]
 }
 
 model ProjectMember {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   projectId Int
-  project   Project  @relation(fields: [projectId], references: [id])
-  
-  memberId  Int
-  member    OrganizationMember @relation(fields: [memberId], references: [id])
-  
-  role      String   @default("member") // owner, member
-  
+  project   Project @relation(fields: [projectId], references: [id])
+
+  memberId Int
+  member   OrganizationMember @relation(fields: [memberId], references: [id])
+
+  role String @default("member") // owner, member
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -122,55 +122,55 @@ model ProjectMember {
 }
 
 model ProjectFlow {
-  id          Int      @id @default(autoincrement())
-  projectId   Int
-  project     Project  @relation(fields: [projectId], references: [id])
-  
-  type        String   // income, expense
-  category    String   // 薪资, 收款, 福利, etc.
-  amount      Float
-  date        String   // YYYY-MM-DD
-  remark      String?
-  
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id])
+
+  type     String // income, expense
+  category String // 薪资, 收款, 福利, etc.
+  amount   Float
+  date     String // YYYY-MM-DD
+  remark   String?
+
   // Optional: link to a specific member if it's a salary payment
   relatedMemberId Int?
   // We can't easily link to OrgMember here if we want to keep it simple, but let's try
   // For now just store the name or ID if needed, or leave it decoupled
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WorkRecord {
-  id          Int      @id @default(autoincrement())
-  projectId   Int
-  project     Project  @relation(fields: [projectId], references: [id])
-  
-  memberId    Int
-  member      OrganizationMember @relation(fields: [memberId], references: [id])
-  
-  date        String // YYYY-MM-DD
-  duration    Float
-  content     String?
-  
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id])
+
+  memberId Int
+  member   OrganizationMember @relation(fields: [memberId], references: [id])
+
+  date     String // YYYY-MM-DD
+  duration Float
+  content  String?
+
   // Snapshot of wage at the time of record
   wageSnapshot     Float
   wageTypeSnapshot String
-  
-  amount      Float    @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  amount Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Invitation {
-  id        Int      @id @default(autoincrement())
-  orgId     Int
+  id           Int          @id @default(autoincrement())
+  orgId        Int
   organization Organization @relation(fields: [orgId], references: [id])
-  
+
   inviterId Int
-  inviter   User     @relation(fields: [inviterId], references: [id])
-  
+  inviter   User @relation(fields: [inviterId], references: [id])
+
   code      String   @unique
   status    String   @default("pending") // pending, accepted, expired
   expiresAt DateTime
@@ -182,7 +182,7 @@ model WorkSummaryDaily {
   orgId         Int
   projectId     Int
   memberId      Int
-  date          String   // YYYY-MM-DD
+  date          String // YYYY-MM-DD
   totalDuration Float    @default(0)
   totalAmount   Float    @default(0)
   recordCount   Int      @default(0)
@@ -192,4 +192,37 @@ model WorkSummaryDaily {
   @@index([orgId, date])
   @@index([memberId, date])
   @@index([projectId, date])
+}
+
+model WorkRecordLog {
+  id Int @id @default(autoincrement())
+
+  // Context info
+  orgId        Int // Organization context
+  projectId    Int // Project context
+  workRecordId Int // The ID of the work record
+
+  // Who operated
+  operatorId Int // User ID of the operator
+  operator   User @relation("LogOperator", fields: [operatorId], references: [id])
+
+  // Whose data
+  targetMemberId Int // OrganizationMember ID of the person whose work was recorded
+
+  // Which day
+  date String // YYYY-MM-DD
+
+  // What happened
+  action String // CREATE, UPDATE, DELETE
+
+  // Data changes
+  oldData String? @db.Text // JSON string
+  newData String? @db.Text // JSON string
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId, date])
+  @@index([projectId, date])
+  @@index([operatorId])
+  @@index([workRecordId])
 }

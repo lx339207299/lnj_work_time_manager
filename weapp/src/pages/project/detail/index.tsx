@@ -223,7 +223,7 @@ function ProjectDetail() {
   }
 
   const actionOptions: any[] = [
-    { name: '修改工时', key: 'edit' },
+    // { name: '修改工时', key: 'edit' },
     { name: '删除记录', key: 'delete', color: '#fa2c19' }
   ]
 
