@@ -29,6 +29,9 @@ export class EmployeesController {
   @ApiOperation({ summary: 'Batch add employees to organization' })
   @ApiResponse({ status: 201, description: 'Batch create results' })
   batchCreate(@Body() batchDto: BatchCreateEmployeeDto, @Request() req: any) {
+    // Note: TypeScript might complain about type mismatch if we don't ensure batchDto.employees matches the service signature
+    // The service expects { name, phone, wageAmount, wageType? }
+    // The DTO ensures these fields are present and validated.
     return this.employeesService.batchCreate(req.user.orgId, batchDto.employees);
   }
 

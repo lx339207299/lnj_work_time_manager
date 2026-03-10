@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AdminUserQueryDto {

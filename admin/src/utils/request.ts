@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
+import { useUserStore } from '@/store/userStore';
 
 const request = axios.create({
   baseURL: '/api',
@@ -33,8 +34,8 @@ request.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response;
       if (status === 401) {
-        localStorage.removeItem('token');
-        // window.location.href = '/login'; 
+        useUserStore.getState().logout();
+        window.location.href = '/login'; 
       }
       message.error(data?.status?.msg || data?.message || '请求失败');
     } else {

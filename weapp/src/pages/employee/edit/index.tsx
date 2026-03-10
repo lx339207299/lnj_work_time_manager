@@ -8,6 +8,7 @@ import dayjs from 'dayjs'
 import { employeeService, Employee } from '../../../services/employeeService'
 import { request } from '../../../utils/request'
 import './index.scss'
+import { debug } from 'console'
 
 const roleOptions = [
   { text: '负责人', value: 'owner' },
@@ -94,7 +95,7 @@ function EmployeeEdit() {
         Taro.navigateBack()
       }, 1000)
     } catch (error) {
-      Taro.showToast({ title: '保存失败', icon: 'error' })
+      Taro.showToast({ title: error?.message ?? '保存失败', icon: 'error' })
     } finally {
       setSubmitting(false)
     }
