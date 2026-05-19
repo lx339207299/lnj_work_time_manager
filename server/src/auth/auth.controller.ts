@@ -84,4 +84,31 @@ export class AuthController {
   async changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
     return this.authService.changePassword(req.user.sub, changePasswordDto);
   }
+
+  // --- WeChat Login ---
+
+  @Post('wechat-login')
+  @ApiOperation({ summary: 'WeChat Mini Program login' })
+  async wechatLogin(@Body() body: { code: string }) {
+    if (!body.code) throw new Error('缺少 code 参数');
+    return this.authService.wechatLogin(body.code);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('bind-phone')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bind phone number after WeChat login' })
+  async bindPhone(@Request() req: any, @Body() body: { code: string }) {
+    if (!body.code) throw new Error('缺少 code 参数');
+    return this.authService.bindPhoneByCode(req.user.sub, body.code);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('bind-phone-manual')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bind phone number manually (fallback for personal mini programs)' })
+  async bindPhoneManual(@Request() req: any, @Body() body: { phone: string }) {
+    if (!body.phone) throw new Error('缺少 phone 参数');
+    return this.authService.bindPhoneManual(req.user.sub, body.phone);
+  }
 }

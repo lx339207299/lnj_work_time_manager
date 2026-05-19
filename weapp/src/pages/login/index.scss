@@ -4,11 +4,13 @@
   background-color: #fff;
   display: flex;
   flex-direction: column;
+  align-items: center;
   box-sizing: border-box;
   
   .login-header {
-    margin-bottom: 40px;
-    margin-top: 60px;
+    text-align: center;
+    margin-bottom: 60px;
+    margin-top: 80px;
     
     .title {
       font-size: 28px;
@@ -18,57 +20,144 @@
     }
     
     .subtitle {
-      font-size: 16px;
-      color: #666;
+      font-size: 14px;
+      color: #999;
     }
   }
 
-  .login-form {
+  // 微信一键登录区
+  .wechat-login-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+
+    .logo-wrapper {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #07c160, #05a04f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 36px;
+      box-shadow: 0 8px 24px rgba(7, 193, 96, 0.25);
+
+      .logo-icon {
+        font-size: 44px;
+        line-height: 1;
+      }
+    }
+
+    .wechat-avatar {
+      font-size: 64px;
+      margin-bottom: 40px;
+    }
+
+    .wechat-btn {
+      width: 280px;
+      height: 50px;
+      border-radius: 25px;
+      background: #07c160;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      box-shadow: 0 8px 20px rgba(7, 193, 96, 0.3);
+    }
+  }
+
+  // 手机号登录区
+  .phone-login-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+
     .input-group {
-        margin-bottom: 24px;
-        background: #f7f8fa;
-        border-radius: 12px;
-        padding: 4px 16px;
-        
-        &.has-button {
-            display: flex;
-            align-items: center;
-            padding-right: 8px;
-        }
+      width: 100%;
+      margin-bottom: 24px;
+      background: #f7f8fa;
+      border-radius: 12px;
+      padding: 4px 16px;
+      box-sizing: border-box;
 
-        .nut-input {
-            padding: 12px 0;
-            background: transparent;
-        }
+      .phone-input, .code-input {
+        flex: 1;
+        padding: 12px 0;
+        font-size: 16px;
+      }
+    }
 
-        .code-btn {
-            white-space: nowrap;
-            font-size: 14px;
-            color: #1989fa;
-            padding: 8px 12px;
-            
-            &.disabled {
-                color: #999;
-            }
+    .login-btn {
+      width: 280px;
+      height: 50px;
+      border-radius: 25px;
+      background: #1989fa;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      box-shadow: 0 8px 20px rgba(25, 137, 250, 0.3);
+    }
+  }
+
+  .toggle-method {
+    margin-top: 24px;
+    font-size: 14px;
+    color: #1989fa;
+    cursor: pointer;
+  }
+
+  .agree-text {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #bbb;
+  }
+
+  // 完善资料区
+  .profile-form {
+    width: 100%;
+    max-width: 320px;
+
+    .input-group {
+      width: 100%;
+      margin-bottom: 24px;
+      background: #f7f8fa;
+      border-radius: 12px;
+      padding: 4px 16px;
+
+      .name-input, .phone-input {
+        padding: 12px 0;
+        font-size: 16px;
+
+        &[disabled] {
+          color: #999;
+          -webkit-text-fill-color: #999; // for iOS
         }
+      }
     }
 
     .submit-btn {
-        margin-top: 40px;
-        height: 50px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 500;
-        box-shadow: 0 8px 20px rgba(25, 137, 250, 0.3);
+      width: 100%;
+      height: 50px;
+      border-radius: 25px;
+      background: #1989fa;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      box-shadow: 0 8px 20px rgba(25, 137, 250, 0.3);
     }
 
     .back-btn {
-        margin-top: 24px;
-        text-align: center;
-        font-size: 14px;
-        color: #666;
-        padding: 12px;
-        text-decoration: underline;
+      margin-top: 24px;
+      text-align: center;
+      font-size: 14px;
+      color: #999;
+      padding: 12px;
+      cursor: pointer;
     }
   }
 }

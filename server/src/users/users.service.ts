@@ -9,8 +9,15 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findOne(phone: string): Promise<User | null> {
+    if (!phone) return null;
     return this.prisma.user.findUnique({
       where: { phone },
+    });
+  }
+
+  async findByOpenid(openid: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { openid },
     });
   }
 

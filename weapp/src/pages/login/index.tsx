@@ -1,256 +1,281 @@
-import React, { useState, useEffect } from 'react'
-import { View } from '@tarojs/components'
-import { Button, Input } from '@nutui/nutui-react-taro'
+import { useState, useEffect } from 'react'
+import { View, Text, Button, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { authService } from '../../services/authService'
 import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
-function Login() {
-  
-  // Form State
-  const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+type Step = 'login' | 'profile'
+
+const LoginPage: React.FC = () => {
+  const [step, setStep] = useState<Step>('login')
+  const [loginMethod, setLoginMethod] = useState<'wechat' | 'phone'>('wechat')
   const [loading, setLoading] = useState(false)
+  const [token, setToken] = useState('')
+  const [userName, setUserName] = useState('')
+  const [phone, setPhone] = useState('') // deprecated state, leaving as is just in case, but replaced by profilePhone
   
-  // New login flow states
-  const [step, setStep] = useState(1) // 1: phone only, 2: password fields
-  const [userStatus, setUserStatus] = useState<{ exists: boolean, hasPassword: boolean } | null>(null)
-  
-  // Countdown State
-  const [countdown, setCountdown] = useState(0)
-  
-  // Timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev - 1)
-      }, 1000)
-    }
-    return () => clearInterval(timer)
-  }, [countdown])
+  // Phone Login State
+  const [loginPhone, setLoginPhone] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isNewOrNoPassword, setIsNewOrNoPassword] = useState(false)
 
-  const handleSendCode = async () => {
-    if (!phone) {
-      Taro.showToast({ title: '请输入手机号', icon: 'none' })
-      return
-    }
-    if (!/^1\d{10}$/.test(phone)) {
-      Taro.showToast({ title: '手机号格式不正确', icon: 'none' })
-      return
-    }
+  // Profile Form State
+  const [profilePhone, setProfilePhone] = useState('')
+  const [isPhoneDisabled, setIsPhoneDisabled] = useState(false)
 
-    try {
-      await authService.sendCode(phone)
-      Taro.showToast({ title: '验证码已发送', icon: 'success' })
-      setCountdown(60)
-    } catch (error) {
-      Taro.showToast({ title: '发送失败，请重试', icon: 'error' })
-    }
-  }
-
-  const handleCheckStatus = async () => {
-    if (!phone) {
-      Taro.showToast({ title: '请输入手机号', icon: 'none' })
-      return
-    }
-    if (!/^1\d{10}$/.test(phone)) {
-      Taro.showToast({ title: '手机号格式不正确', icon: 'none' })
-      return
-    }
-
+  // Step 1: 微信一键登录
+  const handleWechatLogin = async () => {
     setLoading(true)
     try {
-      const status = await authService.checkUserStatus(phone)
-      setUserStatus(status[0])
-      setStep(2)
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '检查用户状态失败', icon: 'none' })
+      const loginRes = await Taro.login()
+      if (!loginRes.code) {
+        Taro.showToast({ title: '获取微信授权失败', icon: 'none' })
+        return
+      }
+
+      const res = await authService.wechatLogin(loginRes.code)
+      saveTokenAndGo(res.token, res.isNewUser, res.user)
+    } catch (err: any) {
+      Taro.showToast({ title: err.message || '登录失败', icon: 'none' })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleConfirmLogin = async () => {
-    if (!password) {
+  const handlePhoneLogin = async () => {
+    if (!/^1\d{10}$/.test(loginPhone)) {
+      Taro.showToast({ title: '请输入正确的手机号', icon: 'none' })
+      return
+    }
+    
+    // 1. 检查用户是否存在以及是否有密码
+    if (!isNewOrNoPassword) {
+      setLoading(true)
+      try {
+        const statusRes = await authService.checkUserStatus(loginPhone)
+        if (!statusRes.exists || !statusRes.hasPassword) {
+          setIsNewOrNoPassword(true)
+          setLoading(false)
+          return
+        }
+      } catch (err: any) {
+        setLoading(false)
+        Taro.showToast({ title: '检查状态失败', icon: 'none' })
+        return
+      }
+    }
+
+    // 2. 校验密码
+    if (!loginPassword) {
       Taro.showToast({ title: '请输入密码', icon: 'none' })
       return
     }
 
-    if (userStatus && (!userStatus.exists || !userStatus.hasPassword)) {
-      if (!confirmPassword) {
-        Taro.showToast({ title: '请确认密码', icon: 'none' })
-        return
-      }
-      if (password !== confirmPassword) {
-        Taro.showToast({ title: '两次输入的密码不一致', icon: 'none' })
-        return
-      }
+    if (isNewOrNoPassword && loginPassword !== confirmPassword) {
+      Taro.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+      return
     }
-
+    
     setLoading(true)
     try {
-      let result: { token: string, user: any, isProfileComplete: boolean }
-      if (userStatus?.hasPassword) {
-        result = await authService.loginWithPassword(phone, password)
-      } else {
-        result = await authService.registerWithPassword(phone, password)
+      const res = await authService.registerWithPassword(loginPhone, loginPassword)
+      // 如果是通过手机号登录的，进入完善资料页时手机号应该填好且不可修改
+      if (!res.isProfileComplete || !res.user.name) {
+         setProfilePhone(loginPhone)
+         setIsPhoneDisabled(true)
       }
-
-      const { token, user, isProfileComplete } = result
-      
-      if (isProfileComplete) {
-        Taro.setStorageSync('token', token)
-        if (user?.currentOrg?.id) {
-          orgManager.setCurrentOrgId(user.currentOrg.id)
-        }
-        
-        setTimeout(() => {
-          Taro.showToast({ title: '登录成功', icon: 'success' })
-          Taro.switchTab({ url: '/pages/project/index' })
-        }, 500)
-      } else {
-        Taro.showToast({ title: '请先完善个人资料', icon: 'none', duration: 2000 })
-        setTimeout(() => {
-          Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true&token=${encodeURIComponent(token)}` })
-        }, 500)
-      }
-    } catch (error: any) {
-      // 密码复杂度校验失败等情况，使用 duration: 3000 和 icon: 'none' 来完整显示长文本
-      const errorMessage = error.message || '登录失败'
-      Taro.showToast({ 
-        title: errorMessage, 
-        icon: 'none',
-        duration: 3000
-      })
+      saveTokenAndGo(res.token, !res.isProfileComplete, res.user)
+    } catch (err: any) {
+      Taro.showToast({ title: err.message || '登录失败', icon: 'none' })
     } finally {
       setLoading(false)
     }
   }
 
-  // Original handleLogin (verification code) - kept for internal use if needed
-  const handleLoginByCode = async () => {
-    if (!phone || !code) {
-        Taro.showToast({ title: '请填写完整信息', icon: 'none' })
-        return
+  // Step 3: 完善资料（手机号和姓名）
+  const handleCompleteProfile = async () => {
+    if (!/^1\d{10}$/.test(profilePhone)) {
+      Taro.showToast({ title: '请输入正确的手机号', icon: 'none' })
+      return
+    }
+    if (!userName.trim()) {
+      Taro.showToast({ title: '请输入姓名', icon: 'none' })
+      return
     }
 
     setLoading(true)
     try {
-        const { token, user, isProfileComplete } = await authService.loginByPhone(phone, code)
-        if (isProfileComplete) {
-            Taro.setStorageSync('token', token)
-            if (user?.currentOrg?.id) {
-              orgManager.setCurrentOrgId(user.currentOrg.id)
-            }
-            setTimeout(() => {
-                    Taro.showToast({ title: '登录成功', icon: 'success' })
-                    Taro.switchTab({ url: '/pages/project/index' })
-                }, 500)
-        } else {
-            Taro.showToast({ title: '请先完善个人资料', icon: 'none', duration: 2000 })
-            setTimeout(() => {
-                Taro.navigateTo({ url: `/pages/mine/profile/index?isNew=true&token=${encodeURIComponent(token)}` })
-            }, 500)
-        }
-    } catch (error: any) {
-        Taro.showToast({ title: error.message || '登录失败', icon: 'none' })
+      // 如果手机号没有被禁用（微信登录未绑定手机号的情况），才需要绑定
+      if (!isPhoneDisabled) {
+        await authService.bindPhoneManual(profilePhone, token)
+      }
+      // 更新个人资料
+      await authService.updateProfile({ name: userName.trim() }, token)
+      
+      Taro.setStorageSync('token', token)
+      Taro.switchTab({ url: '/pages/project/index' })
+    } catch (err: any) {
+      Taro.showToast({ title: err.message || '保存失败', icon: 'none' })
     } finally {
-        setLoading(false)
+      setLoading(false)
     }
   }
 
+  const saveTokenAndGo = (newToken: string, isNew: boolean, user?: any) => {
+    setToken(newToken)
+    if (user?.currentOrg?.id) {
+      orgManager.setCurrentOrgId(user.currentOrg.id)
+    }
+
+    if (isNew || !user?.phone || !user?.name) {
+      // 新用户或没有手机号/姓名：去完善资料
+      setStep('profile')
+    } else {
+      // 完全注册的用户：直接进入项目列表
+      Taro.setStorageSync('token', newToken)
+      Taro.switchTab({ url: '/pages/project/index' })
+    }
+  }
+
+  // 返回登录
+  const handleBackToLogin = () => {
+    setStep('login')
+    setToken('')
+    Taro.removeStorageSync('token')
+  }
+
   return (
-    <View className="login-container">
-      <View className="login-header">
-        <View className="title">欢迎回来</View>
-        <View className="subtitle">用工管理系统 - 密码登录</View>
-      </View>
-      
-      <View className="login-form">
-        <View className="input-group">
-            <Input 
-                placeholder="请输入手机号" 
-                value={phone} 
-                onChange={(val) => setPhone(val)}
-                type="number"
-                maxLength={11}
-                disabled={step === 2}
-            />
-        </View>
+    <View className='login-container'>
+      {step === 'login' && (
+        <>
+          <View className='login-header'>
+            <Text className='title'>LNJ 工时管理</Text>
+            <Text className='subtitle'>
+              {loginMethod === 'wechat' ? '微信授权登录，快速体验' : '手机号快捷登录/注册'}
+            </Text>
+          </View>
 
-        {/* Verification code login - hidden but kept as requested */}
-        {false && (
-          <View className="input-group has-button">
-              <Input 
-                  placeholder="请输入验证码" 
-                  value={code} 
-                  onChange={(val) => setCode(val)}
-                  type="number"
-                  maxLength={6}
-              />
-              <View 
-                  className={`code-btn ${countdown > 0 ? 'disabled' : ''}`}
-                  onClick={countdown > 0 ? undefined : handleSendCode}
+          {loginMethod === 'wechat' ? (
+            <View className='wechat-login-area'>
+              {/* <View className='logo-wrapper'>
+                <View className='logo-icon'>⏱️</View>
+              </View> */}
+              <Button
+                className='wechat-btn'
+                loading={loading}
+                disabled={loading}
+                onClick={handleWechatLogin}
               >
-                  {countdown > 0 ? `${countdown}s 后重发` : '获取验证码'}
+                微信一键登录
+              </Button>
+              <View className='toggle-method' onClick={() => setLoginMethod('phone')}>
+                <Text>手机号登录</Text>
               </View>
-          </View>
-        )}
-
-        {step === 2 && (
-          <>
-            <View className="input-group">
-                <Input 
-                    placeholder={userStatus?.hasPassword ? "请输入密码" : "请设置密码(大小写英文+数字)"} 
-                    value={password} 
-                    onChange={(val) => setPassword(val)}
-                    type="password"
-                />
+              <Text className='agree-text'>
+                登录即表示同意《用户协议》和《隐私政策》
+              </Text>
             </View>
-            
-            {(!userStatus?.exists || !userStatus?.hasPassword) && (
-              <View className="input-group">
-                  <Input 
-                      placeholder="请再次确认密码" 
-                      value={confirmPassword} 
-                      onChange={(val) => setConfirmPassword(val)}
-                      type="password"
-                  />
+          ) : (
+            <View className='phone-login-area'>
+              <View className='input-group'>
+                <Input
+                  className='phone-input'
+                  type='number'
+                  placeholder='请输入手机号'
+                  maxlength={11}
+                  value={loginPhone}
+                  onInput={(e) => setLoginPhone(e.detail.value)}
+                />
               </View>
-            )}
-          </>
-        )}
+              <View className='input-group'>
+                <Input
+                  className='code-input'
+                  type='text'
+                  password
+                  placeholder='请输入密码'
+                  maxlength={20}
+                  value={loginPassword}
+                  onInput={(e) => setLoginPassword(e.detail.value)}
+                />
+              </View>
+              {isNewOrNoPassword && (
+                <View className='input-group'>
+                  <Input
+                    className='code-input'
+                    type='text'
+                    password
+                    placeholder='请再次输入密码'
+                    maxlength={20}
+                    value={confirmPassword}
+                    onInput={(e) => setConfirmPassword(e.detail.value)}
+                  />
+                </View>
+              )}
+              <Button
+                className='login-btn'
+                loading={loading}
+                onClick={handlePhoneLogin}
+              >
+                登录 / 注册
+              </Button>
+              <View className='toggle-method' onClick={() => setLoginMethod('wechat')}>
+                <Text>微信一键登录</Text>
+              </View>
+              <Text className='agree-text'>
+                登录即表示同意《用户协议》和《隐私政策》
+              </Text>
+            </View>
+          )}
+        </>
+      )}
 
-        <Button 
-            type="primary" 
-            block 
-            className="submit-btn"
-            loading={loading}
-            onClick={step === 1 ? handleCheckStatus : handleConfirmLogin}
-            disabled={!phone || (step === 2 && !password)}
-        >
-          {step === 1 ? '登录' : '确认登录'}
-        </Button>
-
-        {step === 2 && (
-          <View 
-            className="back-btn" 
-            onClick={() => {
-              setStep(1)
-              setPassword('')
-              setConfirmPassword('')
-            }}
-          >
-            返回修改手机号
+      {step === 'profile' && (
+        <>
+          <View className='login-header'>
+            <Text className='title'>完善资料</Text>
+            <Text className='subtitle'>请输入您的手机号和姓名</Text>
           </View>
-        )}
-      </View>
+
+          <View className='profile-form'>
+            <View className='input-group'>
+              <Input
+                className='phone-input'
+                type='number'
+                placeholder='请输入手机号（必填）'
+                maxlength={11}
+                value={profilePhone}
+                disabled={isPhoneDisabled}
+                onInput={(e) => setProfilePhone(e.detail.value)}
+              />
+            </View>
+
+            <View className='input-group'>
+              <Input
+                className='name-input'
+                placeholder='请输入姓名（必填）'
+                value={userName}
+                onInput={(e) => setUserName(e.detail.value)}
+              />
+            </View>
+
+            <Button
+              className='submit-btn'
+              onClick={handleCompleteProfile}
+              loading={loading}
+            >
+              完成
+            </Button>
+
+            <View className='back-btn' onClick={handleBackToLogin}>
+              <Text>返回</Text>
+            </View>
+          </View>
+        </>
+      )}
     </View>
   )
 }
 
-export default Login
+export default LoginPage

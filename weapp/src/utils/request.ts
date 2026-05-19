@@ -37,8 +37,12 @@ export const request = async (options: RequestOptions) => {
 
     // Handle global errors
     if (res.statusCode === 401) {
-      // Redirect to login
-      Taro.reLaunch({ url: '/pages/login/index' })
+      // 如果已在登录页，不重复跳转，让业务层处理错误提示
+      const pages = Taro.getCurrentPages()
+      const currentRoute = pages.length > 0 ? pages[pages.length - 1].route : ''
+      if (currentRoute !== 'pages/login/index') {
+        Taro.reLaunch({ url: '/pages/login/index' })
+      }
       throw new Error('未授权，请重新登录')
     }
 
@@ -56,7 +60,11 @@ export const request = async (options: RequestOptions) => {
         if (status.code === 99) {
           // Auth fail
           Taro.removeStorageSync('token')
-          Taro.reLaunch({ url: '/pages/login/index' })
+          const pages = Taro.getCurrentPages()
+          const currentRoute = pages.length > 0 ? pages[pages.length - 1].route : ''
+          if (currentRoute !== 'pages/login/index') {
+            Taro.reLaunch({ url: '/pages/login/index' })
+          }
           throw new Error(status.msg || '登录失效')
         }
         throw new CustomError(status.code, status.msg || '登录失效', {data, property})

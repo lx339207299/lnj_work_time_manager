@@ -2,14 +2,15 @@
   "miniprogramRoot": "./dist",
   "projectname": "weapp",
   "description": "老板记录工时、员工确认工时、项目统计工时、记录开支等",
-  "appid": "touristappid",
+  "appid": "wx35ed1bc9f658909b",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "es6": false,
     "enhance": false,
     "compileHotReLoad": false,
     "postcss": false,
-    "minified": false
+    "minified": false,
+    "minifyWXML": true
   },
   "compileType": "miniprogram"
 }
