@@ -73,6 +73,20 @@ services:
     # ports:
     #   - "${CLIENT_PORT:-4000}:80"
 
+  # 后台管理前端服务
+  admin-prod:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: lnj_work_time_manager_admin_prod
+    restart: always
+    profiles: ["prod"]
+    depends_on:
+      server-prod:
+        condition: service_started
+    ports:
+      - "${ADMIN_PORT:-8080}:80"
+
   # 测试环境数据库
   mysql-test:
     image: mysql:8.0

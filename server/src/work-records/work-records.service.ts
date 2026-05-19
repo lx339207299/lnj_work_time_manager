@@ -53,7 +53,7 @@ export class WorkRecordsService {
     }
   }
 
-  async create(createWorkRecordDto: CreateWorkRecordDto) {
+  async create(createWorkRecordDto: CreateWorkRecordDto, user?: any) {
     // Get member info for wage snapshot
     const member = await this.prisma.organizationMember.findUnique({
       where: { id: createWorkRecordDto.memberId },
@@ -81,7 +81,26 @@ export class WorkRecordsService {
         amount,
       },
     });
+
     await this.updateDailySummary(record.projectId, record.memberId, record.date, durationInHours, 1, amount);
+
+    // Record Log
+    if (user) {
+        await this.prisma.workRecordLog.create({
+            data: {
+                orgId: member.orgId,
+                projectId: record.projectId,
+                workRecordId: record.id,
+                operatorId: user.sub || user.userId, // Assuming user object has sub or userId
+                targetMemberId: record.memberId,
+                date: record.date,
+                action: 'CREATE',
+                oldData: null,
+                newData: JSON.stringify(record)
+            }
+        });
+    }
+
     return record;
   }
 
@@ -271,9 +290,12 @@ export class WorkRecordsService {
     })
   }
 
-  async update(id: number, data: any) {
+  async update(id: number, data: any, user?: any) {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
+
+    // Get member for context info (orgId)
+    const member = await this.prisma.organizationMember.findUnique({ where: { id: old.memberId } });
 
     // Calculate old amount (if not present, calculate on fly)
     const oldAmount = (old as any).amount !== undefined 
@@ -335,12 +357,33 @@ export class WorkRecordsService {
       await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
       await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, (updated.duration || 0), 1, newAmount);
     }
+
+    // Record Log
+    if (user && member) {
+        await this.prisma.workRecordLog.create({
+            data: {
+                orgId: member.orgId,
+                projectId: updated.projectId,
+                workRecordId: updated.id,
+                operatorId: user.sub || user.userId,
+                targetMemberId: updated.memberId,
+                date: updated.date,
+                action: 'UPDATE',
+                oldData: JSON.stringify(old),
+                newData: JSON.stringify(updated)
+            }
+        });
+    }
+
     return updated;
   }
 
-  async remove(id: number) {
+  async remove(id: number, user?: any) {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
+
+    // Get member for context info (orgId)
+    const member = await this.prisma.organizationMember.findUnique({ where: { id: old.memberId } });
     
     const oldAmount = (old as any).amount !== undefined 
       ? (old as any).amount 
@@ -350,10 +393,28 @@ export class WorkRecordsService {
       where: { id }
     });
     await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
+
+    // Record Log
+    if (user && member) {
+        await this.prisma.workRecordLog.create({
+            data: {
+                orgId: member.orgId,
+                projectId: old.projectId,
+                workRecordId: old.id,
+                operatorId: user.sub || user.userId,
+                targetMemberId: old.memberId,
+                date: old.date,
+                action: 'DELETE',
+                oldData: JSON.stringify(old),
+                newData: null
+            }
+        });
+    }
+
     return deleted;
   }
 
-  async batchCreate(data: { projectId: number, date: string, records: { memberId: number, duration: number }[] }) {
+  async batchCreate(data: { projectId: number, date: string, records: { memberId: number, duration: number }[] }, user?: any) {
       const { projectId, date, records } = data;
       // Get all members to verify and get snapshots
       const members = await this.prisma.organizationMember.findMany({
@@ -396,6 +457,29 @@ export class WorkRecordsService {
           return this.updateDailySummary(projectId, r.memberId, date, r.duration || 0, 1, amount);
       });
       await Promise.all(createdSummaries).catch(() => {});
+
+      // Record Logs
+      if (user) {
+        const logOps = created.map(r => {
+            const member = members.find(m => m.id === r.memberId);
+            if (!member) return null;
+            return this.prisma.workRecordLog.create({
+                data: {
+                    orgId: member.orgId,
+                    projectId: r.projectId,
+                    workRecordId: r.id,
+                    operatorId: user.sub || user.userId,
+                    targetMemberId: r.memberId,
+                    date: r.date,
+                    action: 'CREATE',
+                    oldData: null,
+                    newData: JSON.stringify(r)
+                }
+            });
+        }).filter(op => op !== null) as any[];
+        await this.prisma.$transaction(logOps).catch(() => {});
+      }
+
       return created;
   }
 }

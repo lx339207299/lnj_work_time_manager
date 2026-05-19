@@ -50,7 +50,7 @@ export class EmployeesService {
                     isDeleted: false,
                     role: createEmployeeDto.role || 'member',
                     wageType: createEmployeeDto.wageType || 'day',
-                    wageAmount: createEmployeeDto.wageAmount || 0,
+                    wageAmount: createEmployeeDto.wageAmount, // Must be provided as it is now required
                     status: 'active'
                 }
             });
@@ -64,13 +64,13 @@ export class EmployeesService {
         user: { connect: { id: user.id } },
         role: createEmployeeDto.role || 'member',
         wageType: createEmployeeDto.wageType || 'day',
-        wageAmount: createEmployeeDto.wageAmount || 0,
+        wageAmount: createEmployeeDto.wageAmount, // Required field
         status: 'active',
       }, 
     });
   }
 
-  async batchCreate(orgId: number, employees: { name: string; phone: string }[]) {
+  async batchCreate(orgId: number, employees: { name: string; phone: string; wageAmount: number; wageType?: string }[]) {
     const results = [];
     for (const emp of employees) {
       try {
@@ -79,8 +79,8 @@ export class EmployeesService {
           phone: emp.phone,
           name: emp.name,
           role: 'member',
-          wageType: 'day',
-          wageAmount: 0,
+          wageType: emp.wageType || 'day',
+          wageAmount: emp.wageAmount,
         });
         results.push({ phone: emp.phone, status: 'success' });
       } catch (error: any) {

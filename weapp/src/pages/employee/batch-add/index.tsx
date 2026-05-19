@@ -21,20 +21,21 @@ function BatchAddEmployee() {
     }
 
     const lines = content.split('\n').filter(line => line.trim())
-    const employees: { name: string; phone: string }[] = []
+    const employees: { name: string; phone: string; wageAmount: number }[] = []
     const errors: string[] = []
 
     lines.forEach((line, index) => {
       // Replace full-width comma with half-width
       const parts = line.replace(/，/g, ',').split(',')
       
-      if (parts.length < 2) {
-        errors.push(`第 ${index + 1} 行格式错误：需包含姓名和手机号，用逗号分隔`)
+      if (parts.length < 3) {
+        errors.push(`第 ${index + 1} 行格式错误：需包含姓名、手机号和薪资，用逗号分隔`)
         return
       }
 
       const name = parts[0].trim()
       const phone = parts[1].trim()
+      const wageAmount = parseFloat(parts[2].trim())
 
       if (!name) {
         errors.push(`第 ${index + 1} 行姓名为空`)
@@ -46,7 +47,12 @@ function BatchAddEmployee() {
         return
       }
 
-      employees.push({ name, phone })
+      if (isNaN(wageAmount) || wageAmount <= 0) {
+        errors.push(`第 ${index + 1} 行薪资必须为大于0的数字`)
+        return
+      }
+
+      employees.push({ name, phone, wageAmount })
     })
 
     if (errors.length > 0) {
@@ -112,14 +118,14 @@ function BatchAddEmployee() {
     <View className="batch-add-page">
       <View className="example-section">
         <View className="title">快速批量添加说明：</View>
-        <View className="desc">请在下方输入框中输入员工信息，每行一位员工。格式为“姓名，手机号”（支持中文或英文逗号）。</View>
+        <View className="desc">请在下方输入框中输入员工信息，每行一位员工。格式为“姓名，手机号，薪资”（支持中文或英文逗号）。</View>
         <View className="title">示例：</View>
         <View className="example-box">
-          张三，13111111111{'\n'}
-          赵四，13111111112
+          张三，13111111111，200{'\n'}
+          赵四，13111111112，220
         </View>
         <View className="desc" style={{ marginTop: 8, color: '#999' }}>
-          * 默认身份为“员工”，薪资类型为“日薪”，薪资数额为 0
+          * 默认身份为“员工”，薪资类型为“日薪”
         </View>
       </View>
 

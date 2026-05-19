@@ -13,7 +13,7 @@ export class CustomResponse<T> {
     },
   ) {}
   // 成功
-  static success<T>(data: T, property?: Record<string, any>, pagination?: {
+  static success<T>(data: T, property: Record<string, any> = {}, pagination?: {
         total: number;
         pageSize: number;
         currentPage: number;

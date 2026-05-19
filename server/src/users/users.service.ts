@@ -61,4 +61,104 @@ export class UsersService {
       data,
     });
   }
+
+  // --- Admin Methods ---
+
+  async findAllForAdmin(page: number, pageSize: number, keyword?: string, orgName?: string) {
+    const userWhere: Prisma.UserWhereInput = {
+      ...(keyword ? {
+        OR: [
+          { phone: { contains: keyword } },
+          { name: { contains: keyword } },
+          { email: { contains: keyword } },
+        ],
+      } : {}),
+    };
+
+    // 查询所有匹配的用户及其活跃的 memberships
+    const users = await this.prisma.user.findMany({
+      where: userWhere,
+      include: {
+        memberships: {
+          where: {
+            isDeleted: false,
+            ...(orgName ? {
+              organization: { name: { contains: orgName } }
+            } : {})
+          },
+          include: {
+            organization: true,
+          },
+        },
+        _count: { select: { ownedOrgs: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // 展开为 user + org 多行
+    const rows: any[] = [];
+    for (const user of users) {
+      const { password, memberships, _count, ...userInfo } = user;
+      
+      if (memberships.length === 0 && !orgName) {
+        // 无组织的用户：显示一行，组织信息为空
+        rows.push({
+          _key: `${userInfo.id}-none`,
+          userId: userInfo.id,
+          phone: userInfo.phone,
+          name: userInfo.name,
+          email: userInfo.email,
+          systemRole: userInfo.systemRole,
+          isLocked: userInfo.isLocked,
+          createdAt: userInfo.createdAt,
+          ownedOrgsCount: _count?.ownedOrgs ?? 0,
+          orgId: null,
+          orgName: null,
+          orgRole: null,
+          memberStatus: null,
+        });
+      } else {
+        for (const m of memberships) {
+          rows.push({
+            _key: `${userInfo.id}-${m.organization.id}`,
+            userId: userInfo.id,
+            phone: userInfo.phone,
+            name: userInfo.name,
+            email: userInfo.email,
+            systemRole: userInfo.systemRole,
+            isLocked: userInfo.isLocked,
+            createdAt: userInfo.createdAt,
+            ownedOrgsCount: _count?.ownedOrgs ?? 0,
+            orgId: m.organization.id,
+            orgName: m.organization.name,
+            orgRole: m.role,
+            memberStatus: m.status,
+          });
+        }
+      }
+    }
+
+    const total = rows.length;
+    const start = (page - 1) * pageSize;
+    const list = rows.slice(start, start + pageSize);
+
+    return { total, list };
+  }
+
+  async setLockStatus(userId: number, isLocked: boolean) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isLocked },
+    });
+  }
+
+  async adminResetPassword(userId: number, newPassword: string) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
 }

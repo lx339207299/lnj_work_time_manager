@@ -24,8 +24,8 @@ export class WorkRecordsController {
   @Post('create')
   @ApiOperation({ summary: 'Create work record' })
   @ApiResponse({ status: 200, type: WorkRecordDto })
-  create(@Body() createWorkRecordDto: CreateWorkRecordDto) {
-    return this.workRecordsService.create(createWorkRecordDto);
+  create(@Body() createWorkRecordDto: CreateWorkRecordDto, @Req() req: any) {
+    return this.workRecordsService.create(createWorkRecordDto, req.user);
   }
 
   @Post('list')
@@ -53,22 +53,22 @@ export class WorkRecordsController {
   @Post('update')
   @ApiOperation({ summary: 'Update work record' })
   @ApiResponse({ status: 200, type: WorkRecordDto })
-  update(@Body() body: UpdateWorkRecordDto) {
+  update(@Body() body: UpdateWorkRecordDto, @Req() req: any) {
       const { id, ...data } = body;
-      return this.workRecordsService.update(id, data);
+      return this.workRecordsService.update(id, data, req.user);
   }
 
   @Post('delete')
   @ApiOperation({ summary: 'Delete work record' })
   @ApiResponse({ status: 200, type: WorkRecordDto })
-  remove(@Body() body: WorkRecordIdDto) {
-      return this.workRecordsService.remove(body.id);
+  remove(@Body() body: WorkRecordIdDto, @Req() req: any) {
+      return this.workRecordsService.remove(body.id, req.user);
   }
 
   @Post('batch')
   @ApiOperation({ summary: 'Batch create work records' })
   @ApiResponse({ status: 200, type: [WorkRecordDto] })
-  batchCreate(@Body() body: BatchCreateWorkRecordDto) {
-      return this.workRecordsService.batchCreate(body);
+  batchCreate(@Body() body: BatchCreateWorkRecordDto, @Req() req: any) {
+      return this.workRecordsService.batchCreate(body, req.user);
   }
 }
