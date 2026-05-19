@@ -28,12 +28,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // 参数中，ignoreTokenInvalid 为 true 时，不返回 99 错误码
       if (status === HttpStatus.UNAUTHORIZED) {
         const req = ctx.getRequest();
-        if (req.body.ignoreTokenInvalid) {
+        if (req.body && req.body.ignoreTokenInvalid) {
           code = 97;
           msg = 'token 失效';
         } else {
           code = 99;
-          msg = '登录失效';
+          // 保留原始异常消息（如"手机号或密码错误"），不被覆盖
+          if (!msg || msg === 'Unauthorized') {
+            msg = '登录失效';
+          }
         }
       }
     } else if (exception instanceof Error) {

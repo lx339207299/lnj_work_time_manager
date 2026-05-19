@@ -1,21 +1,17 @@
-export interface User {
-  id: number;
+export interface UserOrgRow {
+  _key: string;
+  userId: number;
   phone: string;
   name?: string;
-  avatar?: string;
   email?: string;
   systemRole: 'user' | 'admin';
   isLocked: boolean;
   createdAt: string;
-  updatedAt: string;
-  currentOrg?: {
-    id: number;
-    name: string;
-  };
-  _count?: {
-    ownedOrgs: number;
-    memberships: number;
-  };
+  ownedOrgsCount: number;
+  orgId: number | null;
+  orgName?: string | null;
+  orgRole?: string | null;
+  memberStatus?: string | null;
 }
 
 export interface UserListParams {

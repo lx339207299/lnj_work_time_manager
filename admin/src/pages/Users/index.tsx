@@ -3,17 +3,17 @@ import { ProTable } from '@ant-design/pro-components';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, message, Popconfirm, Modal, Form, Input } from 'antd';
 import { getUsers, lockUser, resetUserPassword } from '@/api/users';
-import type { User } from '@/types/user';
+import type { UserOrgRow } from '@/types/user';
 
 const UserList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserOrgRow | null>(null);
   const [form] = Form.useForm();
 
-  const handleLock = async (record: User) => {
+  const handleLock = async (record: UserOrgRow) => {
     try {
-      await lockUser(record.id, !record.isLocked);
+      await lockUser(record.userId, !record.isLocked);
       message.success(record.isLocked ? '已解封' : '已封禁');
       actionRef.current?.reload();
     } catch (error) {
@@ -21,7 +21,7 @@ const UserList: React.FC = () => {
     }
   };
 
-  const showResetPasswordModal = (record: User) => {
+  const showResetPasswordModal = (record: UserOrgRow) => {
     setCurrentUser(record);
     setIsModalOpen(true);
   };
@@ -30,7 +30,7 @@ const UserList: React.FC = () => {
     try {
       const values = await form.validateFields();
       if (currentUser) {
-        await resetUserPassword(currentUser.id, values.newPassword);
+        await resetUserPassword(currentUser.userId, values.newPassword);
         message.success('密码重置成功');
         setIsModalOpen(false);
         form.resetFields();
@@ -40,10 +40,10 @@ const UserList: React.FC = () => {
     }
   };
 
-  const columns: ProColumns<User>[] = [
+  const columns: ProColumns<UserOrgRow>[] = [
     {
-      title: 'ID',
-      dataIndex: 'id',
+      title: 'UID',
+      dataIndex: 'userId',
       width: 60,
       search: false,
     },
@@ -55,10 +55,12 @@ const UserList: React.FC = () => {
     {
       title: '姓名',
       dataIndex: 'name',
+      render: (_, record) => record.name || '-',
     },
     {
       title: '邮箱',
       dataIndex: 'email',
+      render: (_, record) => record.email || '-',
     },
     {
       title: '系统角色',
@@ -71,19 +73,30 @@ const UserList: React.FC = () => {
     },
     {
       title: '所属组织',
-      dataIndex: 'currentOrgName', // 使用一个不重复的 key，避免和后端返回的嵌套对象冲突
-      search: true, // 开启搜索
-      render: (_, record) => record.currentOrg?.name || '-',
-      formItemProps: {
-          name: 'orgName', // 对应 UserListParams 中的 orgName
-      }
+      dataIndex: 'orgName',
+      render: (_, record) => record.orgName || <span style={{ color: '#999' }}>无组织</span>,
     },
     {
-        title: '拥有组织数',
-        dataIndex: ['_count', 'ownedOrgs'],
-        search: false,
-        width: 100,
-        render: (_, record) => record._count?.ownedOrgs || 0,
+      title: '组织角色',
+      dataIndex: 'orgRole',
+      valueEnum: {
+        owner: { text: '拥有者', status: 'Success' },
+        leader: { text: '管理者', status: 'Processing' },
+        member: { text: '成员', status: 'Default' },
+        temp: { text: '临时', status: 'Warning' },
+      },
+      search: false,
+      render: (_, record) => {
+        if (!record.orgRole) return '-';
+        const map: Record<string, string> = { owner: '拥有者', leader: '管理者', member: '成员', temp: '临时' };
+        return map[record.orgRole] || record.orgRole;
+      },
+    },
+    {
+      title: '拥有组织数',
+      dataIndex: 'ownedOrgsCount',
+      search: false,
+      width: 100,
     },
     {
       title: '账号状态',
@@ -130,33 +143,26 @@ const UserList: React.FC = () => {
 
   return (
     <>
-      <ProTable<User>
+      <ProTable<UserOrgRow>
         columns={columns}
         actionRef={actionRef}
         cardBordered
         request={async (params) => {
           const { current, pageSize, ...searchParams } = params;
-          // 构建搜索参数
-          let keyword = '';
-          if (searchParams.phone) keyword = searchParams.phone;
-          if (searchParams.name) keyword = searchParams.name;
-          if (searchParams.email) keyword = searchParams.email;
-
           const res: any = await getUsers({
             page: current,
             pageSize,
-            keyword,
+            keyword: searchParams.phone || searchParams.name || searchParams.email || undefined,
             orgName: searchParams.orgName,
           });
           
-          // 后端返回结构：{ status: { code: 0 }, data: [...], pagination: { total: 10 } }
           return {
             data: res.data || [],
             success: true,
             total: res.pagination?.total || 0,
           };
         }}
-        rowKey="id"
+        rowKey="_key"
         pagination={{
           showQuickJumper: true,
         }}
@@ -166,8 +172,6 @@ const UserList: React.FC = () => {
         }}
         dateFormatter="string"
         headerTitle="用户列表"
-        toolBarRender={() => [
-        ]}
       />
       <Modal
         title={`重置密码 - ${currentUser?.name || currentUser?.phone}`}

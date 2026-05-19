@@ -121,6 +121,43 @@ export class OrganizationsService {
     });
   }
 
+  // --- Admin Methods ---
+
+  async findAllForAdmin(page: number, pageSize: number, keyword?: string) {
+    const skip = (page - 1) * pageSize;
+    const where: any = {
+      isDeleted: false,
+      ...(keyword ? { name: { contains: keyword } } : {}),
+    };
+
+    const [total, orgs] = await Promise.all([
+      this.prisma.organization.count({ where }),
+      this.prisma.organization.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          owner: {
+            select: { id: true, name: true, phone: true },
+          },
+          _count: {
+            select: { members: true, projects: true },
+          },
+        },
+      }),
+    ]);
+
+    return { total, list: orgs };
+  }
+
+  async setOrgStatus(id: number, isDeleted: boolean) {
+    return this.prisma.organization.update({
+      where: { id },
+      data: { isDeleted },
+    });
+  }
+
   async remove(id: number, userId: number) {
     const org = await this.prisma.organization.findUnique({ 
       where: { id },

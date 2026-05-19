@@ -6,6 +6,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
   DashboardOutlined,
+  BankOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -34,6 +35,11 @@ const BasicLayout: React.FC = () => {
       key: '/users',
       icon: <UserOutlined />,
       label: '用户管理',
+    },
+    {
+      key: '/organizations',
+      icon: <BankOutlined />,
+      label: '企业管理',
     },
     {
       key: '/projects',
