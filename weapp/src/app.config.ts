@@ -17,7 +17,8 @@ export default defineAppConfig({
     'pages/org/list/index',
     'pages/org/edit/index',
     'pages/mine/profile/index',
-    'pages/mine/change-password/index'
+    'pages/mine/change-password/index',
+    'pages/invite/index'
   ],
   window: {
     backgroundTextStyle: 'light',

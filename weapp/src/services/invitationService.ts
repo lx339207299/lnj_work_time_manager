@@ -46,5 +46,10 @@ export const invitationService = {
     }
     
     return res
-  }
+  },
+
+  // List invitations for current org
+  list: async (): Promise<Invitation[]> => {
+    return request({ url: '/invitations/list', method: 'POST' })
+  },
 }

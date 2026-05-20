@@ -35,4 +35,11 @@ export class InvitationsController {
   accept(@Body() body: InvitationCodeDto, @Request() req) {
     return this.invitationsService.accept(body.code, req.user.sub);
   }
+
+  @Post('list')
+  @ApiOperation({ summary: 'List invitations for current org' })
+  @ApiResponse({ status: 200 })
+  list(@Request() req) {
+    return this.invitationsService.findAllByOrg(req.user.orgId);
+  }
 }

@@ -7,6 +7,16 @@ import { v4 as uuidv4 } from 'uuid';
 export class InvitationsService {
   constructor(private prisma: PrismaService) {}
 
+  async findAllByOrg(orgId: number) {
+    return this.prisma.invitation.findMany({
+      where: { orgId },
+      include: {
+        inviter: { select: { name: true, phone: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async create(createInvitationDto: CreateInvitationDto, inviterId: number) {
     // Check if org exists and user is member (or owner)
     const org = await this.prisma.organization.findUnique({
