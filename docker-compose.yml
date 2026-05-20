@@ -53,6 +53,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-prod:3306/${MYSQL_DATABASE}"
+      WX_APPID: ${WX_APPID}
+      WX_SECRET: ${WX_SECRET}
     ports:
       - "${SERVER_PORT:-3000}:3000"
     command: sh -c "npx prisma migrate deploy && node dist/main"
@@ -85,7 +87,21 @@ services:
       server-prod:
         condition: service_started
     ports:
-      - "${ADMIN_PORT:-8080}:80"
+      - "${ADMIN_PORT:-5002}:80"
+
+  # 测试环境 admin 前端服务
+  admin-test:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: lnj_work_time_manager_admin_test
+    restart: always
+    profiles: ["test"]
+    depends_on:
+      server-test:
+        condition: service_started
+    ports:
+      - "${ADMIN_TEST_PORT:-5003}:80"
 
   # 测试环境数据库
   mysql-test:
@@ -124,6 +140,8 @@ services:
       NODE_ENV: test
       PORT: 3000
       DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-test:3306/${MYSQL_DATABASE}"
+      WX_APPID: ${WX_APPID}
+      WX_SECRET: ${WX_SECRET}
       RUN_SEED: "true"
     ports:
       - "${SERVER_PORT:-3001}:3000"
