@@ -26,7 +26,8 @@ function EmployeeList() {
 
   const addOptions = [
     { name: '单个添加', value: 'single' },
-    { name: '批量导入', value: 'batch' }
+    { name: '批量导入', value: 'batch' },
+    { name: '邀请成员', value: 'invite' },
   ]
 
   useDidShow(() => {
@@ -108,6 +109,8 @@ function EmployeeList() {
         Taro.navigateTo({ url: '/pages/employee/edit/index' })
     } else if (item.value === 'batch') {
         Taro.navigateTo({ url: '/pages/employee/batch-add/index' })
+    } else if (item.value === 'invite') {
+        Taro.navigateTo({ url: '/pages/invite/index' })
     }
     setShowAddActionSheet(false)
   }
