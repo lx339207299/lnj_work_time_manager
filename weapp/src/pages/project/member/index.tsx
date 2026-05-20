@@ -147,6 +147,14 @@ function ProjectMember() {
         </View>
       </View>
 
+      {/* FAB Invite Button */}
+      <View className="fab-invite" onClick={() => Taro.navigateTo({ url: '/pages/invite/index' })}>
+        <View className="fab-button-text">
+          <Plus size={18} color="#1989fa" style={{ marginRight: 4 }} />
+          <View>邀请成员</View>
+        </View>
+      </View>
+
       {/* Add Member Popup */}
       <Popup 
         visible={addVisible} 
