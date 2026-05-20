@@ -6,7 +6,7 @@ import { getUsers, lockUser, resetUserPassword } from '@/api/users';
 import type { UserOrgRow } from '@/types/user';
 
 const UserList: React.FC = () => {
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserOrgRow | null>(null);
   const [form] = Form.useForm();

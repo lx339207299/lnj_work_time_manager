@@ -6,7 +6,7 @@ import { getOrganizations, setOrgStatus } from '@/api/organizations';
 import type { Organization } from '@/api/organizations';
 
 const OrgList: React.FC = () => {
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
 
   const handleToggleStatus = async (record: Organization) => {
     try {
