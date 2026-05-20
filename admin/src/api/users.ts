@@ -1,5 +1,7 @@
 import request from '@/utils/request';
-import type { User, UserListParams } from '@/types/user';
+import type { UserOrgRow, UserListParams } from '@/types/user';
+
+type User = UserOrgRow;
 
 export const getUsers = (params: UserListParams) => {
   return request.get<{ list: User[]; total: number }>('/admin/users', { params });
