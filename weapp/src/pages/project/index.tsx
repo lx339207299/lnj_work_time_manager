@@ -18,7 +18,6 @@ function ProjectList() {
   const [projectList, setProjectList] = useState<any[]>([])
   const [token, setToken] = useState<string>('')
   const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
-  const [needFetchData, setNeedFetchData] = useState<boolean>(false)
   
   const fetchData = async () => {
     try {
@@ -32,15 +31,6 @@ function ProjectList() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    if (!needFetchData) {
-        setLoading(false)
-        setProjectList([]) // Clear list if not logged in
-        return
-    }
-    fetchData()
-  }, [needFetchData])
 
   const dealInvitation = async (currentToken: string) => {
     if (currentToken) {
@@ -93,23 +83,26 @@ function ProjectList() {
     }
   })
 
-  useDidShow(async () => {
+  useEffect(() => {
+    // Initial fetch on component mount if token exists
+    if (Taro.getStorageSync('token')) {
+        fetchData()
+    }
+  }, [])
+
+  useDidShow(() => {
     const newToken = Taro.getStorageSync('token') ?? ''
     
-    // Check if we need to refresh (e.g., coming back from create/edit page)
-    // We can just always refresh if we have a token, or use a flag.
-    // For now, let's refresh if token exists, to ensure list is up to date (e.g. after create)
-    // To avoid flickering, we can check if data is already loaded or just rely on needFetchData logic.
-    
     if (newToken) {
-        if (newToken != token) {
+        if (newToken !== token) {
             setToken(newToken)
-            setNeedFetchData(true)
-        } else {
-            // Token same, but maybe data changed?
-            // Let's force fetch if we are already logged in
             fetchData()
         }
+    } else {
+        if (token) {
+            setToken('')
+        }
+        setProjectList([])
     }
     
     // Check for pending invite
