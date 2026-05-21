@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,7 +17,16 @@ export class InvitationsService {
     });
   }
 
-  async create(createInvitationDto: CreateInvitationDto, inviterId: number) {
+  async create(createInvitationDto: CreateInvitationDto, user: any) {
+    if (user.systemRole !== 'admin') {
+      const currentMember = await this.prisma.organizationMember.findFirst({
+        where: { orgId: createInvitationDto.orgId, userId: user.sub }
+      });
+      if (!currentMember || !['owner', 'admin', 'leader'].includes(currentMember.role)) {
+        throw new ForbiddenException('Only owner, admin, or leader can create invitations');
+      }
+    }
+
     // Check if org exists and user is member (or owner)
     const org = await this.prisma.organization.findUnique({
       where: { id: createInvitationDto.orgId },
@@ -36,7 +45,7 @@ export class InvitationsService {
     return this.prisma.invitation.create({
       data: {
         orgId: createInvitationDto.orgId,
-        inviterId,
+        inviterId: user.sub,
         code,
         expiresAt,
       },

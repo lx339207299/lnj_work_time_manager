@@ -1,5 +1,5 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMembersDto } from './dto/add-project-members.dto';
@@ -99,7 +99,22 @@ export class ProjectsService {
     };
   }
 
-  async addMembers(id: number, dto: AddProjectMembersDto) {
+  async addMembers(id: number, dto: AddProjectMembersDto, user: any) {
+    const project = await this.prisma.project.findUnique({ where: { id } });
+    if (!project) throw new NotFoundException('Project not found');
+
+    if (user.systemRole !== 'admin') {
+      if (project.orgId !== user.orgId) {
+        throw new ForbiddenException('Project does not belong to your current organization');
+      }
+      const currentMember = await this.prisma.organizationMember.findFirst({
+        where: { orgId: user.orgId, userId: user.sub }
+      });
+      if (!currentMember || !['owner', 'admin', 'leader'].includes(currentMember.role)) {
+        throw new ForbiddenException('Only owner, admin, or leader can add members');
+      }
+    }
+
     const creates = dto.memberIds.map(memberId => ({
         projectId: id,
         memberId: memberId,

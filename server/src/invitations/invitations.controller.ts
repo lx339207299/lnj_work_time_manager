@@ -19,7 +19,7 @@ export class InvitationsController {
   create(@Request() req) {
     const createInvitationDto = new CreateInvitationDto();
     createInvitationDto.orgId = req.user.orgId;
-    return this.invitationsService.create(createInvitationDto, req.user.sub);
+    return this.invitationsService.create(createInvitationDto, req.user);
   }
 
   @Post('detail')

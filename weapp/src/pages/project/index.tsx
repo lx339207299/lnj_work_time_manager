@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View } from '@tarojs/components'
 import { Button, Dialog, Empty, Skeleton, Tag } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
-import Taro, { useDidShow } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import classNames from 'classnames'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
@@ -42,8 +42,8 @@ function ProjectList() {
     fetchData()
   }, [needFetchData])
 
-  const dealInvitation = async () => {
-    if (token) {
+  const dealInvitation = async (currentToken: string) => {
+    if (currentToken) {
         const inviteCode = Taro.getStorageSync('pending_invite_code')
         if (inviteCode) {
             // Remove immediately to prevent loop if error, or keep until handled? 
@@ -54,6 +54,9 @@ function ProjectList() {
                 const invite = await invitationService.get(inviteCode)
                 Taro.hideLoading()
                 
+                // 成功展示后即可清空，避免每次返回页面都弹窗
+                Taro.removeStorageSync('pending_invite_code')
+
                 Dialog.open('invite', {
                     title: '邀请加入',
                     content: `“${invite.organization?.name || '未知组织'}”邀请您加入，是否同意？`,
@@ -61,7 +64,6 @@ function ProjectList() {
                         try {
                             await invitationService.accept(inviteCode)
                             Taro.showToast({ title: '已加入组织', icon: 'success' })
-                            Taro.removeStorageSync('pending_invite_code')
                             Dialog.close('invite')
                             
                             // Refresh org list
@@ -73,7 +75,6 @@ function ProjectList() {
                         }
                     },
                     onCancel: () => {
-                        Taro.removeStorageSync('pending_invite_code')
                         Dialog.close('invite')
                     }
                 })
@@ -85,14 +86,14 @@ function ProjectList() {
     }
   }
 
-  useDidShow(async () => {
-    // 处理分享卡片带入的邀请码
-    const instance = Taro.getCurrentInstance()
-    const urlInviteCode = instance.router?.params?.inviteCode
-    if (urlInviteCode) {
-      Taro.setStorageSync('pending_invite_code', urlInviteCode)
+  useLoad((options: any) => {
+    // 仅在页面首次加载时获取一次邀请码参数
+    if (options?.inviteCode) {
+      Taro.setStorageSync('pending_invite_code', options.inviteCode)
     }
+  })
 
+  useDidShow(async () => {
     const newToken = Taro.getStorageSync('token') ?? ''
     
     // Check if we need to refresh (e.g., coming back from create/edit page)
@@ -112,7 +113,7 @@ function ProjectList() {
     }
     
     // Check for pending invite
-    dealInvitation()
+    dealInvitation(newToken)
   })
 
   const handleCreate = () => {

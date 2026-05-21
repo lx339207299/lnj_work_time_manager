@@ -5,7 +5,9 @@ import { Button, Cell, Checkbox, Dialog, Empty, Popup, Skeleton, Swipe, Tag } fr
 import { Plus } from '@nutui/icons-react-taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService, Employee } from '../../../services/employeeService'
+import { userService } from '../../../services/userService'
 import { request } from '../../../utils/request'
+import type { UserInfo } from '../../../../types/global'
 import './index.scss'
 
 function ProjectMember() {
@@ -20,12 +22,24 @@ function ProjectMember() {
   const [orgEmployees, setOrgEmployees] = useState<Employee[]>([])
   const [selectedEmpIds, setSelectedEmpIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
+  
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
 
   useEffect(() => {
     if (projectId) {
       fetchMembers()
+      fetchUserInfo()
     }
   }, [projectId])
+
+  const fetchUserInfo = async () => {
+    try {
+      const user = await userService.getUserInfo()
+      setUserInfo(user)
+    } catch (error) {
+      console.error('Failed to get user info', error)
+    }
+  }
 
   const fetchMembers = async () => {
     setLoading(true)
@@ -96,6 +110,10 @@ function ProjectMember() {
     }
   }
 
+  const isManager = React.useMemo(() => {
+    return userInfo?.role === 'owner' || userInfo?.role === 'admin' || userInfo?.role === 'leader' || userInfo?.systemRole === 'admin'
+  }, [userInfo])
+
   return (
     <View className="project-member-page">
       {loading ? (
@@ -140,20 +158,24 @@ function ProjectMember() {
       )}
 
       {/* FAB Add Button */}
-      <View className="fab-add" onClick={handleAddClick}>
-        <View className="fab-button-text">
-            <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
-            <View>添加成员</View>
+      {isManager && (
+        <View className="fab-add" onClick={handleAddClick}>
+          <View className="fab-button-text">
+              <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+              <View>添加成员</View>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* FAB Invite Button */}
-      <View className="fab-invite" onClick={() => Taro.navigateTo({ url: '/pages/invite/index' })}>
-        <View className="fab-button-text">
-          <Plus size={18} color="#1989fa" style={{ marginRight: 4 }} />
-          <View>邀请成员</View>
+      {isManager && (
+        <View className="fab-invite" onClick={() => Taro.navigateTo({ url: '/pages/invite/index' })}>
+          <View className="fab-button-text">
+            <Plus size={18} color="#1989fa" style={{ marginRight: 4 }} />
+            <View>邀请成员</View>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Add Member Popup */}
       <Popup 

@@ -30,6 +30,7 @@ const InvitePage: React.FC = () => {
   }
 
   useShareAppMessage(() => {
+    debugger;
     return {
       title: orgName ? `${orgName} 邀请您加入` : '邀请您加入工时管理',
       path: `/pages/project/index?inviteCode=${inviteCode}`,

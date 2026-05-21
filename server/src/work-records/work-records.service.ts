@@ -1,5 +1,5 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkRecordDto } from './dto/create-work-record.dto';
 import { CustomResponse } from '../common/responses/custom.response';
@@ -53,7 +53,28 @@ export class WorkRecordsService {
     }
   }
 
+  private async checkPermission(user: any, projectId: number) {
+    if (user.systemRole === 'admin') return;
+    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) throw new Error('Project not found');
+    
+    if (project.orgId !== user.orgId) {
+      throw new ForbiddenException('Project does not belong to your current organization');
+    }
+    
+    const currentMember = await this.prisma.organizationMember.findFirst({
+      where: { orgId: user.orgId, userId: user.sub }
+    });
+    
+    if (!currentMember || !['owner', 'admin', 'leader'].includes(currentMember.role)) {
+      throw new ForbiddenException('Only owner, admin, or leader can manage work records');
+    }
+  }
+
   async create(createWorkRecordDto: CreateWorkRecordDto, user?: any) {
+    if (user) {
+        await this.checkPermission(user, createWorkRecordDto.projectId);
+    }
     // Get member info for wage snapshot
     const member = await this.prisma.organizationMember.findUnique({
       where: { id: createWorkRecordDto.memberId },
@@ -294,6 +315,10 @@ export class WorkRecordsService {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
 
+    if (user) {
+        await this.checkPermission(user, old.projectId);
+    }
+
     // Get member for context info (orgId)
     const member = await this.prisma.organizationMember.findUnique({ where: { id: old.memberId } });
 
@@ -382,6 +407,10 @@ export class WorkRecordsService {
     const old = await this.prisma.workRecord.findUnique({ where: { id } });
     if (!old) throw new Error('Record not found');
 
+    if (user) {
+        await this.checkPermission(user, old.projectId);
+    }
+
     // Get member for context info (orgId)
     const member = await this.prisma.organizationMember.findUnique({ where: { id: old.memberId } });
     
@@ -414,7 +443,10 @@ export class WorkRecordsService {
     return deleted;
   }
 
-  async batchCreate(data: { projectId: number, date: string, records: { memberId: number, duration: number }[] }, user?: any) {
+  async batchCreate(data: { projectId: number | string, date: string, records: { memberId: number, duration: number }[] }, user?: any) {
+      if (user) {
+          await this.checkPermission(user, Number(data.projectId));
+      }
       const { projectId, date, records } = data;
       // Get all members to verify and get snapshots
       const members = await this.prisma.organizationMember.findMany({
@@ -423,6 +455,7 @@ export class WorkRecordsService {
           }
       });
 
+      const numProjectId = Number(projectId);
       const operations = records.map(record => {
           const member = members.find(m => m.id === record.memberId);
           if (!member) return null; // Skip invalid members
@@ -436,7 +469,7 @@ export class WorkRecordsService {
 
           return this.prisma.workRecord.create({
               data: {
-                  projectId,
+                  projectId: numProjectId,
                   date,
                   memberId: record.memberId,
                   duration: durationInHours,
@@ -454,11 +487,11 @@ export class WorkRecordsService {
       // Summary maintenance (best-effort)
       const createdSummaries = created.map(r => {
           const amount = (r as any).amount || 0;
-          return this.updateDailySummary(projectId, r.memberId, date, r.duration || 0, 1, amount);
+          return this.updateDailySummary(r.projectId, r.memberId, date, r.duration || 0, 1, amount);
       });
       await Promise.all(createdSummaries).catch(() => {});
 
-      // Record Logs
+      // Record logs
       if (user) {
         const logOps = created.map(r => {
             const member = members.find(m => m.id === r.memberId);
@@ -476,8 +509,10 @@ export class WorkRecordsService {
                     newData: JSON.stringify(r)
                 }
             });
-        }).filter(op => op !== null) as any[];
-        await this.prisma.$transaction(logOps).catch(() => {});
+        }).filter(Boolean) as any[];
+        if (logOps.length > 0) {
+            await this.prisma.$transaction(logOps).catch(() => {});
+        }
       }
 
       return created;

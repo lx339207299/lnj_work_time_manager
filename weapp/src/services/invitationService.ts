@@ -23,12 +23,14 @@ export interface Invitation {
 export const invitationService = {
   // Create invitation
   create: async (): Promise<Invitation> => {
-    return request({ url: '/invitations/create', method: 'POST' })
+    const { data } = await request({ url: '/invitations/create', method: 'POST' }) as any
+    return Array.isArray(data) ? data[0] : data
   },
 
   // Get invitation info
   get: async (code: string): Promise<Invitation> => {
-    return request({ url: '/invitations/detail', method: 'POST', data: { code } })
+    const { data } = await request({ url: '/invitations/detail', method: 'POST', data: { code } }) as any
+    return Array.isArray(data) ? data[0] : data
   },
 
   // Accept invitation
@@ -50,6 +52,7 @@ export const invitationService = {
 
   // List invitations for current org
   list: async (): Promise<Invitation[]> => {
-    return request({ url: '/invitations/list', method: 'POST' })
+    const { data } = await request({ url: '/invitations/list', method: 'POST' }) as any
+    return data
   },
 }

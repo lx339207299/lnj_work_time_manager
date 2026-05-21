@@ -42,15 +42,8 @@ export class ProjectsController {
   @Post('add-members')
   @ApiOperation({ summary: 'Add members to project' })
   @ApiResponse({ status: 200, description: 'Success' })
-  addMembers(@Body() dto: AddProjectMembersDto) {
-    // Note: If 'id' is in dto, use it. But existing code uses @Body('id').
-    // Since we updated DTO to include optional 'id', we can assume frontend sends it in body.
-    // However, the original code used `@Body('id') id: string, @Body() dto: AddProjectMembersDto`.
-    // Swagger doesn't like multiple @Body.
-    // We should use a single @Body() dto: AddProjectMembersDto and make sure 'id' is required there if we want strictly typed.
-    // But since I made it optional in DTO to match "if passed in body", I should probably enforce it here or extract it.
-    // Let's assume the body is { id: "...", memberIds: [...] }
-    return this.projectsService.addMembers(dto.id!, dto);
+  addMembers(@Body() dto: AddProjectMembersDto, @Req() req: any) {
+    return this.projectsService.addMembers(dto.id!, dto, req.user);
   }
 
   @Post('list-members')
