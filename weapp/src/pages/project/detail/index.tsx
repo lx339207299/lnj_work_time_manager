@@ -9,6 +9,9 @@ import './index.scss'
 
 import { projectService } from '../../../services/projectService'
 
+import { userService } from '../../../services/userService'
+import type { UserInfo } from '../../../../types/global'
+
 // Define types locally if missing from 2.x types
 type CalendarCardValue = Date | Date[]
 interface CalendarCardDay {
@@ -30,6 +33,7 @@ function ProjectDetail() {
   const [records, setRecords] = useState<WorkRecord[]>([])
   const [loadingRecords, setLoadingRecords] = useState(false)
   const [monthStats, setMonthStats] = useState<string[]>([])
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   
   // Track if we need to refresh when showing
   const [needRefresh, setNeedRefresh] = useState(false)
@@ -88,9 +92,13 @@ function ProjectDetail() {
 
   const initData = async (projectId: number, resetDate: boolean = true) => {
       try {
-          // Fetch project details
-          const project = await projectService.getProjectDetail(projectId)
+          // Fetch project details and user info
+          const [project, user] = await Promise.all([
+            projectService.getProjectDetail(projectId),
+            userService.getUserInfo()
+          ])
           setCurrentProject(project)
+          setUserInfo(user)
           
           // Use current selectedDate or default
           const dateToUse = resetDate ? dayjs().format('YYYY-MM-DD') : selectedDate
@@ -113,6 +121,10 @@ function ProjectDetail() {
         initData(Number(id), true)
     }
   }, [])
+
+  const isManager = React.useMemo(() => {
+    return ['owner', 'admin', 'leader'].includes(currentProject?.role) || userInfo?.systemRole === 'admin'
+  }, [currentProject, userInfo])
 
   // Fallback
   if (!currentProject) {
@@ -168,8 +180,8 @@ function ProjectDetail() {
   }
 
   const handleRecordClick = (record: WorkRecord) => {
-    // Only allow edit if owner or self
-    if (currentProject?.role === 'owner') {
+    // Only allow edit if owner/admin/leader
+    if (['owner', 'admin', 'leader'].includes(currentProject?.role) || userInfo?.systemRole === 'admin') {
         setCurrentRecord(record)
         setActionSheetVisible(true)
     }
@@ -352,12 +364,14 @@ function ProjectDetail() {
       </View>
 
       {/* Floating Add Button */}
-      <View className="fab-add" onClick={handleAddRecord}>
-        <View className="fab-button-text">
-            <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
-            <View>记一笔</View>
+      {isManager && (
+        <View className="fab-add" onClick={handleAddRecord}>
+          <View className="fab-button-text">
+              <Plus size={18} color="#fff" style={{ marginRight: 4 }} />
+              <View>记一笔</View>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Action Sheet */}
       <ActionSheet

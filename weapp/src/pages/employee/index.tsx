@@ -55,7 +55,7 @@ function EmployeeList() {
     // Owner/Leader can edit anyone
     // Others can only edit themselves
     const canEdit = 
-        ['owner', 'leader'].includes(currentUserRole)
+        ['owner', 'admin', 'leader'].includes(currentUserRole) || userInfo?.systemRole === 'admin'
 
     if (canEdit) {
         Taro.navigateTo({ url: `/pages/employee/edit/index?id=${targetId}` })
@@ -66,7 +66,7 @@ function EmployeeList() {
 
   const handleDelete = (targetId: number) => {
       // Permission check
-      if (!['owner', 'leader'].includes(currentUserRole)) {
+      if (!['owner', 'admin', 'leader'].includes(currentUserRole) && userInfo?.systemRole !== 'admin') {
           Taro.showToast({ title: '无权删除员工', icon: 'none' })
           return
       }
@@ -91,7 +91,7 @@ function EmployeeList() {
   }
 
   const handleAdd = () => {
-    if (!['owner', 'leader'].includes(currentUserRole)) {
+    if (!['owner', 'admin', 'leader'].includes(currentUserRole) && userInfo?.systemRole !== 'admin') {
         Taro.showToast({ title: '无权添加员工', icon: 'none' })
         return
     }
@@ -134,7 +134,7 @@ function EmployeeList() {
                                 删除
                             </Button>
                         }
-                        disabled={!['owner', 'leader'].includes(currentUserRole)}
+                        disabled={!['owner', 'admin', 'leader'].includes(currentUserRole) && userInfo?.systemRole !== 'admin'}
                     >
                         <Cell
                             className="employee-cell"
@@ -145,7 +145,7 @@ function EmployeeList() {
                                     <View className="info">
                                         <View className="name-row">
                                             <Text className="name">{emp.user?.name || emp.user?.phone}</Text>
-                                            { (emp.role === 'leader' || emp.role === 'owner') &&<Tag 
+                                            { ['leader', 'owner', 'admin'].includes(emp.role) &&<Tag 
                                                 type={roleMap[emp.role]?.type as any || 'default'} 
                                                 plain
                                                 className={roleMap[emp.role]?.className}
@@ -167,7 +167,7 @@ function EmployeeList() {
                                 </View>
                             }
                             extra={
-                                (['owner', 'leader'].includes(currentUserRole)) ? (
+                                (['owner', 'admin', 'leader'].includes(currentUserRole) || userInfo?.systemRole === 'admin') ? (
                                     <ArrowRight color="#999" />
                                 ) : null
                             }
@@ -180,8 +180,8 @@ function EmployeeList() {
         )
       )}
 
-      {/* Only owner/leader can add */}
-      {['owner', 'leader'].includes(currentUserRole) && (
+      {/* Only owner/admin/leader can add */}
+      {(['owner', 'admin', 'leader'].includes(currentUserRole) || userInfo?.systemRole === 'admin') && (
           <View className="fab-add" onClick={handleAdd}>
             <View className="fab-button-text">
                 <Plus size={18} color="#fff" style={{ marginRight: 4 }} />

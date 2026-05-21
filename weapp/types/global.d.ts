@@ -63,6 +63,7 @@ export interface UserInfo {
     name: string;
   };
   role?: string;
+  systemRole?: string;
   memberships?: any[]; // Keep flexible for now, or define strict type if needed
 }
 

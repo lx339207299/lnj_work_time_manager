@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { Button, Cell, Checkbox, DatePicker, Dialog, Empty, Popup, SearchBar, Skeleton } from '@nutui/nutui-react-taro'
 import dayjs from 'dayjs'
@@ -35,10 +35,27 @@ function Stats() {
     return `${first?.name || '已选'}等${total}人`
   }, [selectedMemberIds, members])
 
+  const [token, setToken] = useState<string>('')
+
   useEffect(() => {
+    // initial load
     loadMembers()
-    fetchStats()
   }, [])
+
+  useDidShow(() => {
+    const newToken = Taro.getStorageSync('token') ?? ''
+    if (newToken) {
+      if (newToken !== token) {
+        setToken(newToken)
+        loadMembers()
+        fetchStats()
+      }
+    } else {
+      if (token) setToken('')
+      setMembers([])
+      setStats([])
+    }
+  })
 
   useEffect(() => {
     if (selectedMemberIds.length === 0 && members.length > 0) {
@@ -84,10 +101,6 @@ function Stats() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    fetchStats()
-  }, [])
 
   const normalizePickerDate = (val: any): string => {
     if (!val) return dayjs().format('YYYY-MM-DD')
