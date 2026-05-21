@@ -86,14 +86,13 @@ function ProjectList() {
   }
 
   useDidShow(async () => {
-    // 请求接口更新本地组织id和token
-    // let newOrgId = ''
-    // try {
-    //   const userInfo = await userService.getUserInfo({ ignoreTokenInvalid: true })
-    //   newOrgId = userInfo?.currentOrg?.id ?? ''
-    // } catch(e) {
-      
-    // }
+    // 处理分享卡片带入的邀请码
+    const instance = Taro.getCurrentInstance()
+    const urlInviteCode = instance.router?.params?.inviteCode
+    if (urlInviteCode) {
+      Taro.setStorageSync('pending_invite_code', urlInviteCode)
+    }
+
     const newToken = Taro.getStorageSync('token') ?? ''
     
     // Check if we need to refresh (e.g., coming back from create/edit page)
