@@ -173,9 +173,9 @@ const LoginPage: React.FC = () => {
               <View className='toggle-method' onClick={() => setLoginMethod('phone')}>
                 <Text>手机号登录</Text>
               </View>
-              <Text className='agree-text'>
+              {/* <Text className='agree-text'>
                 登录即表示同意《用户协议》和《隐私政策》
-              </Text>
+              </Text> */}
             </View>
           ) : (
             <View className='phone-login-area'>
@@ -223,9 +223,9 @@ const LoginPage: React.FC = () => {
               <View className='toggle-method' onClick={() => setLoginMethod('wechat')}>
                 <Text>微信一键登录</Text>
               </View>
-              <Text className='agree-text'>
+              {/* <Text className='agree-text'>
                 登录即表示同意《用户协议》和《隐私政策》
-              </Text>
+              </Text> */}
             </View>
           )}
         </>
