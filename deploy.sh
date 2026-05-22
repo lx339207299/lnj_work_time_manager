@@ -8,32 +8,98 @@
 #    - dev:  仅部署开发环境数据库
 #    - all:  部署生产和测试环境（默认）
 
+set -euo pipefail
+
 ENV=${1:-all}
+HEALTH_RETRIES=15
+HEALTH_INTERVAL=2
 
 echo "🚀 开始部署环境: $ENV"
 
-# 2. Docker Compose 部署
+# ── 部署函数 ──
+
+deploy_env() {
+    local env_file=$1
+    local profile=$2
+    local label=$3
+    local server_svc=$4
+    local admin_svc=$5
+    local health_url=$6
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "📦 部署 ${label} 环境"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    if [ ! -f "$env_file" ]; then
+        echo "❌ 错误：未找到 ${env_file}，跳过。"
+        return 1
+    fi
+
+    # ── 1. 备份当前镜像 ID（用于回滚） ──
+    local old_image=""
+    old_image=$(docker image ls lnj_work_time_manager-${server_svc} --format '{{.ID}}' 2>/dev/null || echo "")
+    if [ -n "$old_image" ]; then
+        docker tag "$old_image" "lnj_work_time_manager-${server_svc}:rollback" 2>/dev/null || true
+        echo "📸 已保存回滚镜像: ${old_image:0:12}"
+    fi
+
+    # ── 2. 构建 ──
+    echo "🔨 构建镜像 (--no-cache)..."
+    if ! docker compose --env-file "$env_file" --profile "$profile" build --no-cache $server_svc $admin_svc; then
+        echo "❌ 构建失败"
+        return 1
+    fi
+
+    # ── 3. 构建验证 ──
+    echo "🔍 验证构建产物..."
+    if ! docker run --rm "lnj_work_time_manager-${server_svc}" test -f dist/main.js; then
+        echo "❌ 构建验证失败：dist/main.js 不存在！"
+        echo "   镜像未部署，线上服务不受影响。"
+        return 1
+    fi
+    echo "   ✅ dist/main.js 存在"
+
+    # ── 4. 部署 ──
+    echo "🔄 重启服务 (不动数据库)..."
+    docker compose --env-file "$env_file" --profile "$profile" up -d --no-deps $server_svc $admin_svc
+
+    # ── 5. 冒烟测试 ──
+    echo "🩺 冒烟测试 (最多 ${HEALTH_RETRIES} 次重试)..."
+    for i in $(seq 1 $HEALTH_RETRIES); do
+        if curl -sf -o /dev/null "$health_url" 2>/dev/null; then
+            echo "   ✅ 第 ${i} 次通过 — HTTP 200"
+            echo ""
+            echo "🎉 ${label} 部署成功！"
+            # 清理回滚镜像
+            docker rmi "lnj_work_time_manager-${server_svc}:rollback" 2>/dev/null || true
+            return 0
+        fi
+        printf "   ⏳ 第 %2d 次未就绪，%ds 后重试...\n" "$i" "$HEALTH_INTERVAL"
+        sleep $HEALTH_INTERVAL
+    done
+
+    # ── 6. 回滚 ──
+    echo "❌ 冒烟测试失败 (${HEALTH_RETRIES} 次均无响应)"
+    if docker image inspect "lnj_work_time_manager-${server_svc}:rollback" &>/dev/null; then
+        echo "🔄 正在回滚到旧版本..."
+        docker tag "lnj_work_time_manager-${server_svc}:rollback" "lnj_work_time_manager-${server_svc}:latest"
+        docker compose --env-file "$env_file" --profile "$profile" up -d --no-deps $server_svc
+        echo "✅ 已回滚到旧版本"
+    else
+        echo "⚠️  无回滚镜像可用，请手动处理"
+    fi
+    return 1
+}
+
+# ── 环境入口 ──
 
 deploy_prod() {
-    if [ -f .env.prod ]; then
-        echo "📦 正在构建生产环境镜像 (server + admin)..."
-        docker compose --env-file .env.prod --profile prod build server-prod admin-prod
-        echo "🔄 正在重启生产服务 (不动数据库)..."
-        docker compose --env-file .env.prod --profile prod up -d --no-deps server-prod admin-prod
-    else
-        echo "❌ 错误：未找到 .env.prod 文件，跳过生产环境部署。"
-    fi
+    deploy_env ".env.prod" "prod" "生产" "server-prod" "admin-prod" "http://localhost:3002/api/"
 }
 
 deploy_test() {
-    if [ -f .env.test ]; then
-        echo "🧪 正在构建测试环境镜像 (server + admin)..."
-        docker compose --env-file .env.test --profile test build server-test admin-test
-        echo "🔄 正在重启测试服务 (不动数据库)..."
-        docker compose --env-file .env.test --profile test up -d --no-deps server-test admin-test
-    else
-        echo "❌ 错误：未找到 .env.test 文件，跳过测试环境部署。"
-    fi
+    deploy_env ".env.test" "test" "测试" "server-test" "admin-test" "http://localhost:3001/api/"
 }
 
 deploy_dev() {
@@ -45,55 +111,43 @@ deploy_dev() {
     fi
 }
 
-if [ "$ENV" == "prod" ]; then
-    deploy_prod
-elif [ "$ENV" == "test" ]; then
-    deploy_test
-elif [ "$ENV" == "dev" ]; then
-    deploy_dev
-elif [ "$ENV" == "all" ]; then
-    deploy_prod
-    deploy_test
-else
-    echo "❌ 未知环境: $ENV"
-    exit 1
-fi
+# ── 路由 ──
 
-# 3. Nginx 配置检查与重载 (Only for prod/test/all, not dev)
+case "$ENV" in
+    prod)  deploy_prod ;;
+    test)  deploy_test ;;
+    dev)   deploy_dev ;;
+    all)   deploy_prod; deploy_test ;;
+    *)     echo "❌ 未知环境: $ENV"; exit 1 ;;
+esac
+
+# ── Nginx 更新 ──
+
 if [ "$ENV" != "dev" ]; then
     NGINX_CONF_PATH="/etc/nginx/conf.d/yggl.conf"
     LOCAL_CONF="nginx-prod.conf"
 
     if [ -f "$LOCAL_CONF" ]; then
         echo "🔄 正在更新 Nginx 配置..."
-        # 备份旧配置
         if [ -f "$NGINX_CONF_PATH" ]; then
             sudo cp "$NGINX_CONF_PATH" "${NGINX_CONF_PATH}.bak_$(date +%Y%m%d_%H%M%S)"
         fi
-        
-        # 复制新配置
         sudo cp "$LOCAL_CONF" "$NGINX_CONF_PATH"
-        
-        # 检查并重载
         echo "🔍 检查 Nginx 配置..."
         if sudo nginx -t; then
             echo "✅ Nginx 配置检查通过，正在重载..."
             sudo nginx -s reload
-            echo "🎉 Nginx 重载成功！"
         else
-            echo "❌ Nginx 配置有误，请手动检查 $NGINX_CONF_PATH"
-            # 还原备份
-            if [ -f "${NGINX_CONF_PATH}.bak_*" ]; then
-                echo "⚠️  尝试还原旧配置..."
-                LATEST_BACKUP=$(ls -t ${NGINX_CONF_PATH}.bak_* | head -n1)
+            echo "❌ Nginx 配置有误，还原旧配置..."
+            LATEST_BACKUP=$(ls -t ${NGINX_CONF_PATH}.bak_* 2>/dev/null | head -n1)
+            if [ -n "$LATEST_BACKUP" ]; then
                 sudo cp "$LATEST_BACKUP" "$NGINX_CONF_PATH"
                 sudo nginx -s reload
-                echo "✅ 已还原到最近一次正确配置"
+                echo "✅ 已还原"
             fi
         fi
-    else
-        echo "⚠️  未找到 $LOCAL_CONF，跳过 Nginx 更新"
     fi
 fi
 
-echo "✨ 部署完成！"
+echo ""
+echo "✨ 全部完成！"
