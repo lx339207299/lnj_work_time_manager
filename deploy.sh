@@ -16,8 +16,10 @@ echo "🚀 开始部署环境: $ENV"
 
 deploy_prod() {
     if [ -f .env.prod ]; then
-        echo "📦 正在启动生产环境服务 (使用 .env.prod)..."
-        docker compose --env-file .env.prod --profile prod up -d --build
+        echo "📦 正在构建生产环境镜像 (server + admin)..."
+        docker compose --env-file .env.prod --profile prod build server-prod admin-prod
+        echo "🔄 正在重启生产服务 (不动数据库)..."
+        docker compose --env-file .env.prod --profile prod up -d --no-deps server-prod admin-prod
     else
         echo "❌ 错误：未找到 .env.prod 文件，跳过生产环境部署。"
     fi
@@ -25,8 +27,10 @@ deploy_prod() {
 
 deploy_test() {
     if [ -f .env.test ]; then
-        echo "🧪 正在启动测试环境服务 (使用 .env.test)..."
-        docker compose --env-file .env.test --profile test up -d --build
+        echo "🧪 正在构建测试环境镜像 (server + admin)..."
+        docker compose --env-file .env.test --profile test build server-test admin-test
+        echo "🔄 正在重启测试服务 (不动数据库)..."
+        docker compose --env-file .env.test --profile test up -d --no-deps server-test admin-test
     else
         echo "❌ 错误：未找到 .env.test 文件，跳过测试环境部署。"
     fi
