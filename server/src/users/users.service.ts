@@ -69,6 +69,12 @@ export class UsersService {
     });
   }
 
+  async delete(id: number): Promise<User> {
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
   // --- Admin Methods ---
 
   async findAllForAdmin(page: number, pageSize: number, keyword?: string, orgName?: string) {

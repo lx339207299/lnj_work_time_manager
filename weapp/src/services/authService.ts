@@ -13,6 +13,7 @@ export interface User {
     id: number
     name: string
   }
+  isWechatBound?: boolean
 }
 
 export const authService = {
@@ -168,6 +169,14 @@ export const authService = {
       method: 'POST',
       data: profile,
       token,
+    })
+  },
+
+  bindWechat: async (code: string): Promise<void> => {
+    await request({
+      url: '/auth/bind-wechat',
+      method: 'POST',
+      data: { code },
     })
   },
 }

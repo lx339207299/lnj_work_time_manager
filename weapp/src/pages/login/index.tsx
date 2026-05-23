@@ -107,17 +107,32 @@ const LoginPage: React.FC = () => {
 
     setLoading(true)
     try {
+      let currentToken = token
       // 如果手机号没有被禁用（微信登录未绑定手机号的情况），才需要绑定
       if (!isPhoneDisabled) {
-        await authService.bindPhoneManual(profilePhone, token)
+        const bindRes = await authService.bindPhoneManual(profilePhone, token)
+        currentToken = bindRes.token
+        setToken(currentToken)
       }
       // 更新个人资料
-      await authService.updateProfile({ name: userName.trim() }, token)
+      await authService.updateProfile({ name: userName.trim() }, currentToken)
       
-      Taro.setStorageSync('token', token)
+      Taro.setStorageSync('token', currentToken)
       Taro.switchTab({ url: '/pages/project/index' })
     } catch (err: any) {
-      Taro.showToast({ title: err.message || '保存失败', icon: 'none' })
+      if (err.message?.includes('已注册')) {
+        Taro.showModal({
+          title: '提示',
+          content: '该手机号已注册，请使用账号密码登录后，在【我的】页面绑定微信',
+          showCancel: false,
+          success: () => {
+            setStep('login')
+            setLoginMethod('phone')
+          }
+        })
+      } else {
+        Taro.showToast({ title: err.message || '保存失败', icon: 'none' })
+      }
     } finally {
       setLoading(false)
     }
@@ -168,7 +183,7 @@ const LoginPage: React.FC = () => {
                 disabled={loading}
                 onClick={handleWechatLogin}
               >
-                微信一键登录
+                微信登录
               </Button>
               <View className='toggle-method' onClick={() => setLoginMethod('phone')}>
                 <Text>手机号登录</Text>
