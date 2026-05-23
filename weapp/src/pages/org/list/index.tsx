@@ -216,7 +216,15 @@ function OrgList() {
             </View>
           ))
         ) : (
-          <Empty description="暂无组织" />
+          <Empty 
+            description={
+                <View style={{ textAlign: 'center', lineHeight: '1.5', color: '#999', fontSize: '14px' }}>
+                    <View>暂无组织</View>
+                    <View>如果是老板，请创建组织</View>
+                    <View>如果是员工，请让老板将您加入为员工</View>
+                </View>
+            } 
+          />
         )}
       </View>
 

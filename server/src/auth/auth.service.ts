@@ -86,8 +86,6 @@ export class AuthService {
         avatar: '',
       } as any);
 
-      // Create default organization
-      await this.organizationsService.create(user.id as any, { name: '默认组织' });
     }
 
     const userProfile = await this.getUserProfile(user.id as any);
@@ -134,9 +132,6 @@ export class AuthService {
         avatar: ''
     } as any);
 
-    // Create default organization
-    await this.organizationsService.create(newUser.id as any, { name: '默认组织' });
-
     const userProfile = await this.getUserProfile(newUser.id as any);
 
     const payload = { 
@@ -165,9 +160,6 @@ export class AuthService {
         avatar: registerDto.avatar
     } as any);
 
-    // Create default organization
-    await this.organizationsService.create(user.id as any, { name: '默认组织' });
-    
     // Auto login
     const userProfile = await this.getUserProfile(user.id as any);
     
@@ -293,9 +285,6 @@ export class AuthService {
       unionid: unionid || null,
       avatar: '',
     } as any);
-
-    // 创建默认组织
-    await this.organizationsService.create(user.id as any, { name: '默认组织' });
 
     const userProfile = await this.getUserProfile(user.id as any);
     const payload = {

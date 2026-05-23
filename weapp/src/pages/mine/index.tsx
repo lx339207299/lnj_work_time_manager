@@ -21,10 +21,20 @@ function Mine() {
       userService.getUserInfo({ignoreTokenInvalid: true})
         .then((user) => {
           setUserInfo(user)
+          if (user) {
+            Taro.setStorageSync('userInfo', user)
+          }
+          if (!user?.currentOrg) {
+            Taro.showTabBarRedDot({ index: 2 })
+          } else {
+            Taro.hideTabBarRedDot({ index: 2 })
+          }
         })
         .catch(console.error)
     } else {
         setUserInfo(null)
+        Taro.removeStorageSync('userInfo')
+        Taro.hideTabBarRedDot({ index: 2 })
     }
   })
 
@@ -40,6 +50,7 @@ function Mine() {
     Taro.showToast({ title: '已退出', icon: 'success' })
     setUserInfo(null)
     setToken(null)
+    Taro.hideTabBarRedDot({ index: 2 })
   }
   
   const handleLogin = () => {
@@ -85,6 +96,9 @@ function Mine() {
                     <Text style={{ marginRight: 4, color: userInfo?.currentOrg ? '#333' : '#999' }}>
                         {userInfo?.currentOrg?.name || '暂无组织'}
                     </Text>
+                    {token && !userInfo?.currentOrg && (
+                        <View style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#fa2c19', marginRight: 4 }} />
+                    )}
                     <ArrowRight size={12} />
                 </View>
                 } 
