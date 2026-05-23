@@ -2,6 +2,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model EmailLog {
+  id        String   @id @default(uuid())
+  to        String   // 收件人
+  subject   String   // 邮件主题
+  content   String?  @db.Text // 邮件内容（纯文本或HTML）
+  status    Int      @default(0) // 发送状态：0-成功，1-失败
+  errorMsg  String?  @db.Text // 失败时的错误信息
+  createdAt DateTime @default(now())
+
+  @@map("email_log")
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")

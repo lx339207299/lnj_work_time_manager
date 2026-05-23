@@ -8,6 +8,7 @@ import {
   DashboardOutlined,
   BankOutlined,
   LogoutOutlined,
+  MailOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '@/store/userStore';
@@ -45,6 +46,11 @@ const BasicLayout: React.FC = () => {
       key: '/projects',
       icon: <VideoCameraOutlined />,
       label: '项目管理',
+    },
+    {
+      key: '/mail',
+      icon: <MailOutlined />,
+      label: '邮件管理',
     },
   ];
 
