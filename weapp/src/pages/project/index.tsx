@@ -98,11 +98,23 @@ function ProjectList() {
             setToken(newToken)
             fetchData()
         }
+        // Fetch user info to update global state/storage and trigger tab red dot
+        userService.getUserInfo({ ignoreTokenInvalid: true }).then((user) => {
+          if (user) {
+            Taro.setStorageSync('userInfo', user)
+            if (!user.currentOrg) {
+              Taro.showTabBarRedDot({ index: 2 })
+            } else {
+              Taro.hideTabBarRedDot({ index: 2 })
+            }
+          }
+        }).catch(console.error)
     } else {
         if (token) {
             setToken('')
         }
         setProjectList([])
+        Taro.hideTabBarRedDot({ index: 2 })
     }
     
     // Check for pending invite

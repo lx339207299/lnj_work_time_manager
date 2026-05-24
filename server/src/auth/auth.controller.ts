@@ -111,4 +111,13 @@ export class AuthController {
     if (!body.phone) throw new Error('缺少 phone 参数');
     return this.authService.bindPhoneManual(req.user.sub, body.phone);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('bind-wechat')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bind WeChat account to current user' })
+  async bindWechat(@Request() req: any, @Body() body: { code: string }) {
+    if (!body.code) throw new Error('缺少 code 参数');
+    return this.authService.bindWechat(req.user.sub, body.code);
+  }
 }

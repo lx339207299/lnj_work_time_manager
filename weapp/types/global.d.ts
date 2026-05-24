@@ -65,6 +65,7 @@ export interface UserInfo {
   role?: string;
   systemRole?: string;
   memberships?: any[]; // Keep flexible for now, or define strict type if needed
+  isWechatBound?: boolean;
 }
 
 export interface ProfileReqOptions {

@@ -86,8 +86,6 @@ export class AuthService {
         avatar: '',
       } as any);
 
-      // Create default organization
-      await this.organizationsService.create(user.id as any, { name: '默认组织' });
     }
 
     const userProfile = await this.getUserProfile(user.id as any);
@@ -134,9 +132,6 @@ export class AuthService {
         avatar: ''
     } as any);
 
-    // Create default organization
-    await this.organizationsService.create(newUser.id as any, { name: '默认组织' });
-
     const userProfile = await this.getUserProfile(newUser.id as any);
 
     const payload = { 
@@ -165,9 +160,6 @@ export class AuthService {
         avatar: registerDto.avatar
     } as any);
 
-    // Create default organization
-    await this.organizationsService.create(user.id as any, { name: '默认组织' });
-    
     // Auto login
     const userProfile = await this.getUserProfile(user.id as any);
     
@@ -201,6 +193,7 @@ export class AuthService {
       // 返回currentOrg
       currentOrg: (user as any).currentOrg || null,
       role: role,
+      isWechatBound: !!(user as any).openid,
     };
     
     return userProfile;
@@ -294,9 +287,6 @@ export class AuthService {
       avatar: '',
     } as any);
 
-    // 创建默认组织
-    await this.organizationsService.create(user.id as any, { name: '默认组织' });
-
     const userProfile = await this.getUserProfile(user.id as any);
     const payload = {
       phone: null,
@@ -346,7 +336,7 @@ export class AuthService {
     // 3. 检查手机号是否已被占用
     const existing = await this.usersService.findOne(phone);
     if (existing && existing.id !== userId) {
-      throw new BadRequestException('该手机号已被其他用户绑定');
+      throw new BadRequestException('该手机号已注册，请使用账号密码登录后，在【我的】页面绑定微信');
     }
 
     await this.usersService.update(userId, { phone });
@@ -375,7 +365,7 @@ export class AuthService {
     // 检查手机号是否已被占用
     const existing = await this.usersService.findOne(phone);
     if (existing && existing.id !== userId) {
-      throw new BadRequestException('该手机号已被其他用户绑定');
+      throw new BadRequestException('该手机号已注册，请使用账号密码登录后，在【我的】页面绑定微信');
     }
 
     await this.usersService.update(userId, { phone });
@@ -392,6 +382,51 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: userProfile,
+    };
+  }
+
+  async bindWechat(userId: number, code: string) {
+    // 1. 用 code 换取 openid（GET 请求）
+    const params = new URLSearchParams({
+      appid: process.env.WX_APPID!,
+      secret: process.env.WX_SECRET!,
+      js_code: code,
+      grant_type: 'authorization_code',
+    });
+    const wxRes = await fetch(`https://api.weixin.qq.com/sns/jscode2session?${params}`);
+    const wxData = await wxRes.json() as any;
+    
+    if (wxData.errcode) {
+      throw new BadRequestException('微信绑定失败: ' + (wxData.errmsg || '未知错误'));
+    }
+
+    const { openid, unionid } = wxData;
+
+    // 2. 检查该 openid 是否已被其他账号绑定
+    const existing = await this.usersService.findByOpenid(openid);
+    if (existing && existing.id !== userId) {
+      // 如果被一个没有手机号的临时账号绑定，我们可以删除那个临时账号并抢过来
+      if (!existing.phone) {
+        await this.usersService.update(existing.id, { openid: null, unionid: null });
+        try {
+          await this.usersService.delete(existing.id);
+        } catch (e) {
+          console.error('Failed to delete temporary user during wechat bind:', e);
+        }
+      } else {
+        throw new BadRequestException('该微信已绑定其他账号');
+      }
+    }
+
+    // 3. 绑定到当前账号
+    await this.usersService.update(userId, { 
+      openid, 
+      unionid: unionid || null 
+    });
+
+    const userProfile = await this.getUserProfile(userId);
+    return {
       user: userProfile,
     };
   }
