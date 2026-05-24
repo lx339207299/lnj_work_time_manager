@@ -7,8 +7,13 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-ENV NODE_OPTIONS=--max-old-space-size=4096
-RUN npm run build
+
+# tsc 不需要大内存，用默认限制
+RUN npx tsc -b
+
+# vite 打包限制 768MB 堆内存
+ENV NODE_OPTIONS=--max-old-space-size=768
+RUN npx vite build
 
 # Serve stage
 FROM nginx:alpine
