@@ -130,10 +130,10 @@ function ProjectList() {
     // Check if has organization
     if (!Taro.getStorageSync('currentOrgId')) {
         Dialog.open('no-org-create', {
-            title: '需要创建组织',
-            content: '创建项目前，您需要先创建一个组织或加入一个现有组织。',
+            title: '温馨提示',
+            content: '创建项目前，您需要先创建一个组织或加入一个现有组织。\n老板请创建组织、普通员工联系老板邀请您加入组织。',
             confirmText: '去创建组织',
-            cancelText: '取消',
+            cancelText: '联系老板',
             onConfirm: () => {
                 Dialog.close('no-org-create')
                 Taro.navigateTo({ url: '/pages/org/edit/index' })
