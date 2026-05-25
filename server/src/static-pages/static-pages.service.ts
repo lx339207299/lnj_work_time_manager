@@ -14,6 +14,7 @@ export class StaticPagesService {
     const where: any = {};
     if (keyword) {
       where.OR = [
+        { name: { contains: keyword } },
         { code: { contains: keyword } },
         { remark: { contains: keyword } },
       ];

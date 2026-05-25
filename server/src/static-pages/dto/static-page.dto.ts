@@ -2,6 +2,10 @@ import { IsString, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateStaticPageDto {
+  @ApiPropertyOptional({ description: '标题' })
+  @IsString()
+  name: string;
+
   @ApiPropertyOptional({ description: '唯一标识' })
   @IsString()
   code: string;
@@ -17,6 +21,11 @@ export class CreateStaticPageDto {
 }
 
 export class UpdateStaticPageDto {
+  @ApiPropertyOptional({ description: '标题' })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
   @ApiPropertyOptional({ description: '唯一标识' })
   @IsOptional()
   @IsString()
