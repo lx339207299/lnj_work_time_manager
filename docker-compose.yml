@@ -6,6 +6,7 @@ services:
     restart: always
     profiles: ["dev"]
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -14,7 +15,7 @@ services:
       - "${MYSQL_PORT:-3303}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --default-time-zone=+08:00
 
   # 生产环境数据库
   mysql-prod:
@@ -23,6 +24,7 @@ services:
     restart: always
     profiles: ["prod"]
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -31,7 +33,7 @@ services:
       - "${MYSQL_PORT:-3300}:3306"
     volumes:
       - mysql_prod_data:/var/lib/mysql
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --default-time-zone=+08:00
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -110,6 +112,7 @@ services:
     restart: always
     profiles: ["test"]
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -118,7 +121,7 @@ services:
       - "${MYSQL_PORT:-3301}:3306"
     volumes:
       - mysql_test_data:/var/lib/mysql
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --default-time-zone=+08:00
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
