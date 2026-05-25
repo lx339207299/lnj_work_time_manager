@@ -9,6 +9,7 @@ import {
   BankOutlined,
   LogoutOutlined,
   MailOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '@/store/userStore';
@@ -51,6 +52,11 @@ const BasicLayout: React.FC = () => {
       key: '/mail',
       icon: <MailOutlined />,
       label: '邮件管理',
+    },
+    {
+      key: '/static-pages',
+      icon: <FileTextOutlined />,
+      label: '页面管理',
     },
   ];
 

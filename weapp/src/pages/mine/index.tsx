@@ -75,6 +75,13 @@ function Mine() {
       Taro.navigateTo({ url })
   }
 
+  const openAgreement = (code: string, title: string) => {
+    const url = 'https://yggl.bear0811.cn/api/pages/view?code=' + code;
+    Taro.navigateTo({
+      url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + title
+    })
+  }
+
   const handleBindWechat = async () => {
     try {
       const loginRes = await Taro.login()
@@ -176,11 +183,31 @@ function Mine() {
       </View>
 
       {token && (
+          <>
+          <View className="menu-list">
+            <CellGroup>
+              <Cell
+                title="用户协议"
+                align="center"
+                extra={<ArrowRight size={12} />}
+                clickable
+                onClick={() => openAgreement('yhxy', '用户协议')}
+              />
+              <Cell
+                title="隐私协议"
+                align="center"
+                extra={<ArrowRight size={12} />}
+                clickable
+                onClick={() => openAgreement('ysxy', '隐私协议')}
+              />
+            </CellGroup>
+          </View>
           <View className="logout-section">
             <Button block type="danger" onClick={handleLogout}>
               退出登录
             </Button>
           </View>
+          </>
       )}
 
       <Dialog id="no-org" />

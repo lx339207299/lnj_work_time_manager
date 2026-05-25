@@ -208,6 +208,17 @@ model WorkSummaryDaily {
   @@index([projectId, date])
 }
 
+model StaticPage {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  content   String   @db.Text
+  remark    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("static_pages")
+}
+
 model WorkRecordLog {
   id Int @id @default(autoincrement())
 

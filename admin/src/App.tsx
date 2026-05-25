@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import UserList from './pages/Users';
 import OrgList from './pages/Organizations';
 import MailList from './pages/Mail';
+import StaticPages from './pages/StaticPages';
 import { useUserStore } from './store/userStore';
 
 // Protected Route Component
@@ -35,6 +36,7 @@ const App: React.FC = () => {
             <Route path="organizations" element={<OrgList />} />
             <Route path="projects" element={<div>项目管理 (开发中)</div>} />
             <Route path="mail" element={<MailList />} />
+            <Route path="static-pages" element={<StaticPages />} />
           </Route>
         </Routes>
       </Router>

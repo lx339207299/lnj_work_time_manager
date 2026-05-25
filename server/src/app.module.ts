@@ -10,9 +10,10 @@ import { WorkRecordsModule } from './work-records/work-records.module';
 import { AuthModule } from './auth/auth.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { MailModule } from './mail/mail.module';
+import { StaticPagesModule } from './static-pages/static-pages.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule],
+  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule, StaticPagesModule],
   controllers: [AppController],
   providers: [AppService],
 })
