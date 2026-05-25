@@ -210,6 +210,7 @@ model WorkSummaryDaily {
 
 model StaticPage {
   id        Int      @id @default(autoincrement())
+  name      String   @default("")
   code      String   @unique
   content   String   @db.Text
   remark    String?

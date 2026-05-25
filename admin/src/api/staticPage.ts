@@ -2,6 +2,7 @@ import request from '@/utils/request';
 
 export interface StaticPage {
   id: number;
+  name: string;
   code: string;
   content: string;
   remark?: string;
@@ -10,6 +11,7 @@ export interface StaticPage {
 }
 
 export interface StaticPageParams {
+  name: string;
   code: string;
   content: string;
   remark?: string;

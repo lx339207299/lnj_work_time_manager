@@ -34,6 +34,12 @@ const StaticPages: React.FC = () => {
 
   const columns: ProColumns<StaticPage>[] = [
     {
+      title: '标题',
+      dataIndex: 'name',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
       title: 'Code',
       dataIndex: 'code',
       copyable: true,
@@ -65,7 +71,7 @@ const StaticPages: React.FC = () => {
   const handleAdd = () => {
     setEditingId(null);
     form.resetFields();
-    form.setFieldsValue({ code: '', content: '', remark: '' });
+    form.setFieldsValue({ name: '', code: '', content: '', remark: '' });
     editor?.setHtml('');
     setIsModalVisible(true);
   };
@@ -74,7 +80,7 @@ const StaticPages: React.FC = () => {
     setEditingId(record.id);
     const res = await staticPageApi.get(record.id);
     const data = (res as any).data;
-    form.setFieldsValue({ code: data.code, content: data.content, remark: data.remark || '' });
+    form.setFieldsValue({ name: data.name || '', code: data.code, content: data.content, remark: data.remark || '' });
     editor?.setHtml(data.content || '');
     setIsModalVisible(true);
   };
@@ -162,6 +168,13 @@ const StaticPages: React.FC = () => {
         }}
       >
         <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="标题"
+            rules={[{ required: true, message: '请输入标题' }]}
+          >
+            <Input placeholder="例如: 隐私协议" />
+          </Form.Item>
           <Form.Item
             name="code"
             label="Code（唯一标识）"
