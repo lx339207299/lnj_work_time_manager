@@ -124,6 +124,49 @@
     color: #bbb;
   }
 
+  // 协议勾选行
+  .agreement-row {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 20px;
+    padding: 0 8px;
+
+    .agree-checkbox {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      border: 1.5px solid #ccc;
+      border-radius: 50%;
+      margin-right: 6px;
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &.checked {
+        border-color: #1989fa;
+        background-color: #1989fa;
+
+        .check-mark {
+          color: #fff;
+          font-size: 10px;
+          line-height: 1;
+        }
+      }
+    }
+
+    .agree-text {
+      margin-top: 0;
+      font-size: 12px;
+      color: #999;
+      line-height: 18px;
+    }
+
+    .agree-link {
+      color: #1989fa;
+    }
+  }
+
   // 完善资料区
   .profile-form {
     width: 100%;

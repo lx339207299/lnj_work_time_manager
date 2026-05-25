@@ -21,12 +21,19 @@ const LoginPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isNewOrNoPassword, setIsNewOrNoPassword] = useState(false)
 
+  // 协议勾选
+  const [agreed, setAgreed] = useState(false)
+
   // Profile Form State
   const [profilePhone, setProfilePhone] = useState('')
   const [isPhoneDisabled, setIsPhoneDisabled] = useState(false)
 
   // Step 1: 微信一键登录
   const handleWechatLogin = async () => {
+    if (!agreed) {
+      Taro.showToast({ title: '请先阅读并同意用户协议和隐私协议', icon: 'none' })
+      return
+    }
     setLoading(true)
     try {
       const loginRes = await Taro.login()
@@ -75,6 +82,11 @@ const LoginPage: React.FC = () => {
 
     if (isNewOrNoPassword && loginPassword !== confirmPassword) {
       Taro.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+      return
+    }
+
+    if (!agreed) {
+      Taro.showToast({ title: '请先阅读并同意用户协议和隐私协议', icon: 'none' })
       return
     }
     
@@ -161,6 +173,32 @@ const LoginPage: React.FC = () => {
     Taro.removeStorageSync('token')
   }
 
+  // 打开协议
+  const openAgreement = (code: string, title: string) => {
+    const url = 'https://yggl.bear0811.cn/pages/view?code=' + code;
+    Taro.navigateTo({
+      url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + title
+    })
+  }
+
+  // 协议勾选区域
+  const agreementRow = (
+    <View className='agreement-row'>
+      <View
+        className={`agree-checkbox ${agreed ? 'checked' : ''}`}
+        onClick={() => setAgreed(!agreed)}
+      >
+        {agreed && <Text className='check-mark'>✓</Text>}
+      </View>
+      <Text className='agree-text'>
+        勾选代表您已阅读并同意
+        <Text className='agree-link' onClick={() => openAgreement('yhxy', '用户协议')}>《用户协议》</Text>
+        和
+        <Text className='agree-link' onClick={() => openAgreement('ysxy', '隐私协议')}>《隐私协议》</Text>
+      </Text>
+    </View>
+  )
+
   return (
     <View className='login-container'>
       {step === 'login' && (
@@ -188,9 +226,7 @@ const LoginPage: React.FC = () => {
               <View className='toggle-method' onClick={() => setLoginMethod('phone')}>
                 <Text>手机号登录</Text>
               </View>
-              {/* <Text className='agree-text'>
-                登录即表示同意《用户协议》和《隐私政策》
-              </Text> */}
+              {agreementRow}
             </View>
           ) : (
             <View className='phone-login-area'>
@@ -238,9 +274,7 @@ const LoginPage: React.FC = () => {
               <View className='toggle-method' onClick={() => setLoginMethod('wechat')}>
                 <Text>微信一键登录</Text>
               </View>
-              {/* <Text className='agree-text'>
-                登录即表示同意《用户协议》和《隐私政策》
-              </Text> */}
+              {agreementRow}
             </View>
           )}
         </>

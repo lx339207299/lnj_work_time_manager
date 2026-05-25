@@ -24,8 +24,17 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
+    const ctx = context.switchToHttp();
+    const response = ctx.getResponse();
+
     return next.handle().pipe(
       map((data) => {
+        // 如果是 HTML 响应等非 JSON 类型，直接返回原始数据
+        const contentType = response.getHeader ? response.getHeader('Content-Type') : '';
+        if (contentType && typeof contentType === 'string' && contentType.includes('text/html')) {
+          return data;
+        }
+
         let resultData = [];
         let property = {};
         

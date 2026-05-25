@@ -144,6 +144,7 @@ const Mail: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => {
               sendForm.resetFields();
+              editor?.setHtml('');
               setIsSendModalVisible(true);
             }}
             type="primary"
@@ -159,7 +160,6 @@ const Mail: React.FC = () => {
         onOk={handleSendMail}
         onCancel={() => setIsSendModalVisible(false)}
         confirmLoading={sending}
-        destroyOnClose
       >
         <Form form={sendForm} layout="vertical">
           <Form.Item
