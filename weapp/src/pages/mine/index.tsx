@@ -181,9 +181,6 @@ function Mine() {
             )}
         </CellGroup>
       </View>
-
-      {token && (
-          <>
           <View className="menu-list">
             <CellGroup>
               <Cell
@@ -202,6 +199,9 @@ function Mine() {
               />
             </CellGroup>
           </View>
+
+      {token && (
+          <>
           <View className="logout-section">
             <Button block type="danger" onClick={handleLogout}>
               退出登录
