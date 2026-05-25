@@ -52,10 +52,6 @@ const LoginPage: React.FC = () => {
   }
 
   const handlePhoneLogin = async () => {
-    if (!agreed) {
-      Taro.showToast({ title: '请先阅读并同意用户协议和隐私协议', icon: 'none' })
-      return
-    }
     if (!/^1\d{10}$/.test(loginPhone)) {
       Taro.showToast({ title: '请输入正确的手机号', icon: 'none' })
       return
@@ -86,6 +82,11 @@ const LoginPage: React.FC = () => {
 
     if (isNewOrNoPassword && loginPassword !== confirmPassword) {
       Taro.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+      return
+    }
+
+    if (!agreed) {
+      Taro.showToast({ title: '请先阅读并同意用户协议和隐私协议', icon: 'none' })
       return
     }
     
