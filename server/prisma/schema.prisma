@@ -210,8 +210,8 @@ model WorkSummaryDaily {
 
 model StaticPage {
   id        Int      @id @default(autoincrement())
-  name      String   @default("")
   code      String   @unique
+  name      String   @default("")
   content   String   @db.Text
   remark    String?
   createdAt DateTime @default(now())

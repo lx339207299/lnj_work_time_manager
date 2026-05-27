@@ -18,7 +18,8 @@ export default defineAppConfig({
     'pages/mine/profile/index',
     'pages/mine/change-password/index',
     'pages/invite/index',
-    'pages/webview/index'
+    'pages/webview/index',
+    'pages/agreement/index'
   ],
   window: {
     backgroundTextStyle: 'light',

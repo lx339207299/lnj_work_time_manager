@@ -181,4 +181,39 @@ export class ProjectsService {
       where: { id },
     });
   }
+
+  // --- Admin Methods ---
+
+  async findAllForAdmin(page: number, pageSize: number, keyword?: string) {
+    const where: any = {};
+    if (keyword) {
+      where.OR = [
+        { name: { contains: keyword } },
+        { description: { contains: keyword } },
+      ];
+    }
+
+    const [list, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          organization: { select: { id: true, name: true } },
+          _count: { select: { projectMembers: true, workRecords: true } },
+        },
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return { list, total };
+  }
+
+  async setProjectStatus(id: number, status: string) {
+    return this.prisma.project.update({
+      where: { id },
+      data: { status },
+    });
+  }
 }

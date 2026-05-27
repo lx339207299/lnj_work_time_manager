@@ -9,6 +9,9 @@ import UserList from './pages/Users';
 import OrgList from './pages/Organizations';
 import MailList from './pages/Mail';
 import StaticPages from './pages/StaticPages';
+import ProjectList from './pages/Projects';
+import WorkRecords from './pages/WorkRecords';
+import SystemLogs from './pages/SystemLogs';
 import { useUserStore } from './store/userStore';
 
 // Protected Route Component
@@ -34,9 +37,11 @@ const App: React.FC = () => {
             <Route index element={<Dashboard />} />
             <Route path="users" element={<UserList />} />
             <Route path="organizations" element={<OrgList />} />
-            <Route path="projects" element={<div>项目管理 (开发中)</div>} />
+            <Route path="projects" element={<ProjectList />} />
             <Route path="mail" element={<MailList />} />
             <Route path="static-pages" element={<StaticPages />} />
+            <Route path="work-records" element={<WorkRecords />} />
+            <Route path="system-logs" element={<SystemLogs />} />
           </Route>
         </Routes>
       </Router>

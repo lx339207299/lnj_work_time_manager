@@ -139,13 +139,12 @@ const StaticPages: React.FC = () => {
             pageSize: params.pageSize,
             keyword: params.keyword,
           });
-          // @ts-ignore 因为 request 拦截器直接返回了 response.data
           const responseData = res as any;
-          return {
-            data: responseData.data,
-            success: true,
-            total: responseData.pagination?.total || responseData.property?.total || 0,
-          };
+        return {
+          data: responseData.data || [],
+          success: true,
+          total: responseData.property?.total || 0,
+        };
         }}
         columns={columns}
       />

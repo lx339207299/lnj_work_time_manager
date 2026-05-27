@@ -10,6 +10,8 @@ import {
   LogoutOutlined,
   MailOutlined,
   FileTextOutlined,
+  ClockCircleOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '@/store/userStore';
@@ -57,6 +59,16 @@ const BasicLayout: React.FC = () => {
       key: '/static-pages',
       icon: <FileTextOutlined />,
       label: '页面管理',
+    },
+    {
+      key: '/work-records',
+      icon: <ClockCircleOutlined />,
+      label: '工时记录',
+    },
+    {
+      key: '/system-logs',
+      icon: <HistoryOutlined />,
+      label: '系统日志',
     },
   ];
 

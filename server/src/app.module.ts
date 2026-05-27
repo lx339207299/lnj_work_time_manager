@@ -11,9 +11,11 @@ import { AuthModule } from './auth/auth.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { MailModule } from './mail/mail.module';
 import { StaticPagesModule } from './static-pages/static-pages.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { SystemLogsModule } from './system-logs/system-logs.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule, StaticPagesModule],
+  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule, StaticPagesModule, DashboardModule, SystemLogsModule],
   controllers: [AppController],
   providers: [AppService],
 })

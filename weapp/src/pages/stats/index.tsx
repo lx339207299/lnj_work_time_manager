@@ -24,6 +24,9 @@ function Stats() {
 
   const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState<ProjectMemberStat[]>([])
+  const [token, setToken] = useState<string>('')
+  const [hasOrg, setHasOrg] = useState<boolean>(true)
+
   const selectedSummary = useMemo(() => {
     if (!members.length) return '请选择人员'
     if (selectedMemberIds.length === 0) return '请选择人员'
@@ -35,19 +38,20 @@ function Stats() {
     return `${first?.name || '已选'}等${total}人`
   }, [selectedMemberIds, members])
 
-  const [token, setToken] = useState<string>('')
-
-  useEffect(() => {
-    // initial load
-    loadMembers()
-  }, [])
-
   useDidShow(() => {
     const newToken = Taro.getStorageSync('token') ?? ''
+    const currentHasOrg = orgManager.hasCurrentOrgId()
+    
+    setHasOrg(currentHasOrg)
+    
     if (newToken) {
-      if (newToken !== token) {
+      if (newToken !== token || !members.length) {
         setToken(newToken)
-        loadMembers()
+        if (currentHasOrg) {
+          loadMembers()
+        }
+      } else if (currentHasOrg && !stats.length && members.length > 0) {
+        // Token exists and we have an org and members but no stats, fetch them
         fetchStats()
       }
     } else {
@@ -58,10 +62,29 @@ function Stats() {
   })
 
   useEffect(() => {
-    if (selectedMemberIds.length === 0 && members.length > 0) {
+    if (selectedMemberIds.length === 0 && members.length > 0 && hasOrg) {
       setSelectedMemberIds(members.map(m => m.id))
+      // trigger fetchStats when selectedMemberIds is populated initially
+      fetchStatsForIds(members.map(m => m.id))
     }
-  }, [members])
+  }, [members, hasOrg])
+
+  const fetchStatsForIds = async (memberIds: number[]) => {
+    if (!hasOrg) return;
+    setLoading(true)
+    try {
+      const res = await workRecordService.getSummaryByRange({
+        start: range.start,
+        end: range.end,
+        memberIds: memberIds.length === members.length ? undefined : memberIds,
+      })
+      setStats(res || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredMembers = useMemo(() => {
     if (!search) return members
@@ -69,6 +92,7 @@ function Stats() {
   }, [members, search])
 
   const loadMembers = async () => {
+    if (!orgManager.hasCurrentOrgId()) return;
     try {
       const list = await employeeService.getEmployees(true)
       const mapped = list.map((m: any) => ({
@@ -89,6 +113,7 @@ function Stats() {
   }
 
   const fetchStats = async () => {
+    if (!hasOrg) return;
     setLoading(true)
     try {
       const res = await workRecordService.getSummaryByRange({
@@ -121,112 +146,130 @@ function Stats() {
 
   return (
     <View className="stats-page">
-      <View className="toolbar">
-        <View className="toolbar-row">
-          <Text className="label">范围</Text>
-          <View className="range">
-            <Text className="date" onClick={() => setPickStartVisible(true)}>{range.start}</Text>
-            <Text className="divider">至</Text>
-            <Text className="date" onClick={() => setPickEndVisible(true)}>{range.end}</Text>
-          </View>
+      {!token ? (
+        <View className="content no-data">
+          <Empty 
+            description="登录后查看统计" 
+            actions={[{ text: '去登录', type: 'primary', fill: 'outline', onClick: () => Taro.navigateTo({ url: '/pages/login/index' }) }]} 
+          />
         </View>
-        <View className="toolbar-row">
-          <Text className="label">人员</Text>
-          <View className="member-actions">
-            <View className="action-btn" onClick={handleOpenMemberPicker}>{selectedSummary}</View>
-            <Button size="mini" type="primary" onClick={fetchStats} className="query-btn">查询</Button>
-          </View>
+      ) : !hasOrg ? (
+        <View className="content no-data">
+          <Empty 
+            description="加入组织后查看统计" 
+            actions={[{ text: '去创建/切换组织', type: 'primary', fill: 'outline', onClick: () => Taro.navigateTo({ url: '/pages/org/list/index' }) }]} 
+          />
         </View>
-      </View>
-
-      <View className="content">
-        {loading ? (
-          <View className="skeleton-wrapper">
-            <Skeleton rows={3} title animated />
-          </View>
-        ) : stats.length ? (
-          <View className="stat-list">
-            {stats.map(s => (
-              <View key={s.userId} className="stat-item">
-                <View className="row">
-                  <Text className="name">{s.userName}</Text>
-                  <View className="value">
-                    <Text className="num">{s.totalDuration}</Text>
-                    <Text className="unit">{s.wageType === 'hour' ? '小时' : '天'}</Text>
-                  </View>
-                </View>
+      ) : (
+        <>
+          <View className="toolbar">
+            <View className="toolbar-row">
+              <Text className="label">范围</Text>
+              <View className="range">
+                <Text className="date" onClick={() => setPickStartVisible(true)}>{range.start}</Text>
+                <Text className="divider">至</Text>
+                <Text className="date" onClick={() => setPickEndVisible(true)}>{range.end}</Text>
               </View>
-            ))}
+            </View>
+            <View className="toolbar-row">
+              <Text className="label">人员</Text>
+              <View className="member-actions">
+                <View className="action-btn" onClick={handleOpenMemberPicker}>{selectedSummary}</View>
+                <Button size="mini" type="primary" onClick={fetchStats} className="query-btn">查询</Button>
+              </View>
+            </View>
           </View>
-        ) : (
-          <Empty description="暂无统计数据" imageSize={80} />
-        )}
-      </View>
 
-      <Popup
-        visible={memberPickerVisible}
-        onClose={() => setMemberPickerVisible(false)}
-        position="bottom"
-        className="member-popup"
-        overlayClassName="member-overlay"
-        zIndex={10000}
-      >
-        <View className="member-picker">
-          <SearchBar value={search} onChange={val => setSearch(val)} placeholder="搜索人员" />
-          <View className="picker-actions top">
-            <View className="action-btn" onClick={() => setTempSelectedIds(members.map(m => m.id))}>全选</View>
-            <View className="action-btn" onClick={() => setTempSelectedIds([])}>清除</View>
+          <View className="content">
+            {loading ? (
+              <View className="skeleton-wrapper">
+                <Skeleton rows={3} title animated />
+              </View>
+            ) : stats.length ? (
+              <View className="stat-list">
+                {stats.map(s => (
+                  <View key={s.userId} className="stat-item">
+                    <View className="row">
+                      <Text className="name">{s.userName}</Text>
+                      <View className="value">
+                        <Text className="num">{s.totalDuration}</Text>
+                        <Text className="unit">{s.wageType === 'hour' ? '小时' : '天'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Empty description="暂无统计数据" imageSize={80} />
+            )}
           </View>
-          <View className="member-list">
-            {filteredMembers.map((m: any) => {
-              const checked = tempSelectedIds.includes(m.id)
-              return (
-                <View className={`member-row ${checked ? 'checked' : ''}`} key={m.id} onClick={() => {
-                  setTempSelectedIds(prev => checked ? prev.filter(id => id !== m.id) : [...prev, m.id])
-                }}>
-                  <Checkbox checked={checked} />
-                  <Text className="member-name">{m.name}</Text>
-                </View>
-              )
-            })}
-          </View>
-          <View className="picker-actions">
-            <Button
-              onClick={() => {
-                setSelectedMemberIds(tempSelectedIds)
-                setMemberPickerVisible(false)
-              }}
-              type="primary"
-              block
-            >
-              完成
-            </Button>
-          </View>
-        </View>
-      </Popup>
 
-      <DatePicker
-        visible={pickStartVisible}
-        type="date"
-        defaultValue={new Date(range.start)}
-        onConfirm={(val: any) => {
-          const d = normalizePickerDate(val)
-          setRange(prev => ({ ...prev, start: d }))
-          setPickStartVisible(false)
-        }}
-        onCancel={() => setPickStartVisible(false)}
-      />
-      <DatePicker
-        visible={pickEndVisible}
-        type="date"
-        defaultValue={new Date(range.end)}
-        onConfirm={(val: any) => {
-          const d = normalizePickerDate(val)
-          setRange(prev => ({ ...prev, end: d }))
-          setPickEndVisible(false)
-        }}
-        onCancel={() => setPickEndVisible(false)}
-      />
+          <Popup
+            visible={memberPickerVisible}
+            onClose={() => setMemberPickerVisible(false)}
+            position="bottom"
+            className="member-popup"
+            overlayClassName="member-overlay"
+            zIndex={10000}
+          >
+            <View className="member-picker">
+              <SearchBar value={search} onChange={val => setSearch(val)} placeholder="搜索人员" />
+              <View className="picker-actions top">
+                <View className="action-btn" onClick={() => setTempSelectedIds(members.map(m => m.id))}>全选</View>
+                <View className="action-btn" onClick={() => setTempSelectedIds([])}>清除</View>
+              </View>
+              <View className="member-list">
+                {filteredMembers.map((m: any) => {
+                  const checked = tempSelectedIds.includes(m.id)
+                  return (
+                    <View className={`member-row ${checked ? 'checked' : ''}`} key={m.id} onClick={() => {
+                      setTempSelectedIds(prev => checked ? prev.filter(id => id !== m.id) : [...prev, m.id])
+                    }}>
+                      <Checkbox checked={checked} />
+                      <Text className="member-name">{m.name}</Text>
+                    </View>
+                  )
+                })}
+              </View>
+              <View className="picker-actions">
+                <Button
+                  onClick={() => {
+                    setSelectedMemberIds(tempSelectedIds)
+                    setMemberPickerVisible(false)
+                  }}
+                  type="primary"
+                  block
+                >
+                  完成
+                </Button>
+              </View>
+            </View>
+          </Popup>
+
+          <DatePicker
+            visible={pickStartVisible}
+            type="date"
+            defaultValue={new Date(range.start)}
+            onConfirm={(val: any) => {
+              const d = normalizePickerDate(val)
+              setRange(prev => ({ ...prev, start: d }))
+              setPickStartVisible(false)
+            }}
+            onCancel={() => setPickStartVisible(false)}
+          />
+          <DatePicker
+            visible={pickEndVisible}
+            type="date"
+            defaultValue={new Date(range.end)}
+            onConfirm={(val: any) => {
+              const d = normalizePickerDate(val)
+              setRange(prev => ({ ...prev, end: d }))
+              setPickEndVisible(false)
+            }}
+            onCancel={() => setPickEndVisible(false)}
+          />
+        </>
+      )}
     </View>
   )
 }

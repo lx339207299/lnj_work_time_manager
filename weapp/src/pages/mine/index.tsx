@@ -76,9 +76,8 @@ function Mine() {
   }
 
   const openAgreement = (code: string, title: string) => {
-    const url = 'https://yggl.bear0811.cn/api/pages/view?code=' + code;
     Taro.navigateTo({
-      url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + title
+      url: '/pages/agreement/index?type=' + code
     })
   }
 

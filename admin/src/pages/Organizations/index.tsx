@@ -110,7 +110,7 @@ const OrgList: React.FC = () => {
         return {
           data: res.data || [],
           success: true,
-          total: res.pagination?.total || 0,
+          total: res.property?.total || res.pagination?.total || 0,
         };
       }}
       rowKey="id"
