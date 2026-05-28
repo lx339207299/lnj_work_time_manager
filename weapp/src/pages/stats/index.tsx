@@ -5,7 +5,6 @@ import { Button, Cell, Checkbox, DatePicker, Dialog, Empty, Popup, SearchBar, Sk
 import dayjs from 'dayjs'
 import { employeeService } from '../../services/employeeService'
 import { workRecordService, ProjectMemberStat } from '../../services/workRecordService'
-import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
 function Stats() {
@@ -25,7 +24,6 @@ function Stats() {
   const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState<ProjectMemberStat[]>([])
   const [token, setToken] = useState<string>('')
-  const [hasOrg, setHasOrg] = useState<boolean>(true)
 
   const selectedSummary = useMemo(() => {
     if (!members.length) return '请选择人员'
@@ -40,18 +38,12 @@ function Stats() {
 
   useDidShow(() => {
     const newToken = Taro.getStorageSync('token') ?? ''
-    const currentHasOrg = orgManager.hasCurrentOrgId()
-    
-    setHasOrg(currentHasOrg)
     
     if (newToken) {
       if (newToken !== token || !members.length) {
         setToken(newToken)
-        if (currentHasOrg) {
-          loadMembers()
-        }
-      } else if (currentHasOrg && !stats.length && members.length > 0) {
-        // Token exists and we have an org and members but no stats, fetch them
+        loadMembers()
+      } else if (!stats.length && members.length > 0) {
         fetchStats()
       }
     } else {
@@ -62,15 +54,15 @@ function Stats() {
   })
 
   useEffect(() => {
-    if (selectedMemberIds.length === 0 && members.length > 0 && hasOrg) {
+    if (selectedMemberIds.length === 0 && members.length > 0) {
       setSelectedMemberIds(members.map(m => m.id))
       // trigger fetchStats when selectedMemberIds is populated initially
       fetchStatsForIds(members.map(m => m.id))
     }
-  }, [members, hasOrg])
+  }, [members])
 
   const fetchStatsForIds = async (memberIds: number[]) => {
-    if (!hasOrg) return;
+    if (!members.length) return;
     setLoading(true)
     try {
       const res = await workRecordService.getSummaryByRange({
@@ -92,7 +84,6 @@ function Stats() {
   }, [members, search])
 
   const loadMembers = async () => {
-    if (!orgManager.hasCurrentOrgId()) return;
     try {
       const list = await employeeService.getEmployees(true)
       const mapped = list.map((m: any) => ({
@@ -113,7 +104,7 @@ function Stats() {
   }
 
   const fetchStats = async () => {
-    if (!hasOrg) return;
+    if (!members.length) return;
     setLoading(true)
     try {
       const res = await workRecordService.getSummaryByRange({
@@ -153,7 +144,7 @@ function Stats() {
             actions={[{ text: '去登录', type: 'primary', fill: 'outline', onClick: () => Taro.navigateTo({ url: '/pages/login/index' }) }]} 
           />
         </View>
-      ) : !hasOrg ? (
+      ) : members.length === 0 && !loading ? (
         <View className="content no-data">
           <Empty 
             description="加入组织后查看统计" 

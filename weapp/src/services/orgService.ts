@@ -1,5 +1,4 @@
 import { request } from '../utils/request'
-import { orgManager } from '../utils/orgManager'
 
 export const orgService = {
   // Get user's organization list
@@ -15,7 +14,6 @@ export const orgService = {
     
     // 缓存新创建的组织ID
     if (data?.id) {
-      orgManager.setCurrentOrgId(data.id)
     }
     
     return data

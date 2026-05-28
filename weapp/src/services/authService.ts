@@ -1,6 +1,5 @@
 import { request } from '../utils/request'
 import Taro from '@tarojs/taro'
-import { orgManager } from '../utils/orgManager'
 import { log } from 'console'
 
 export interface User {
@@ -39,10 +38,7 @@ export const authService = {
         const resData = res.data
         const data = Array.isArray(resData) ? resData[0] : resData
 
-        // 缓存组织ID
-        if (data.user?.currentOrg?.id) {
-          orgManager.setCurrentOrgId(data.user.currentOrg.id)
-        }
+
 
         return {
             token: data.access_token,
@@ -72,9 +68,7 @@ export const authService = {
         data: { phone, password }
       })
       const data = res.data[0]
-      if (data.user?.currentOrg?.id) {
-        orgManager.setCurrentOrgId(data.user.currentOrg.id)
-      }
+
       return {
         token: data.access_token,
         user: data.user,
@@ -93,9 +87,7 @@ export const authService = {
         data: { phone, password }
       })
       const data = res.data[0]
-      if (data.user?.currentOrg?.id) {
-        orgManager.setCurrentOrgId(data.user.currentOrg.id)
-      }
+
       return {
         token: data.access_token,
         user: data.user,

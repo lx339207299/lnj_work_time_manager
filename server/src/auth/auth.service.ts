@@ -50,7 +50,6 @@ export class AuthService {
     const payload = {
       phone: user.phone,
       sub: user.id,
-      orgId: userProfile?.currentOrg?.id || null,
       systemRole: user.systemRole || 'user',
     };
 
@@ -92,7 +91,6 @@ export class AuthService {
     const payload = {
       phone: user.phone,
       sub: user.id as any,
-      orgId: userProfile?.currentOrg?.id || null,
     };
 
     return {
@@ -116,7 +114,6 @@ export class AuthService {
         const payload = { 
           phone: user.phone, 
           sub: user.id as any,
-          orgId: userProfile?.currentOrg?.id || null 
         };
         return {
             access_token: this.jwtService.sign(payload),
@@ -137,7 +134,6 @@ export class AuthService {
     const payload = { 
       phone: newUser.phone, 
       sub: newUser.id as any,
-      orgId: userProfile?.currentOrg?.id || null 
     };
     return {
         access_token: this.jwtService.sign(payload),
@@ -166,7 +162,6 @@ export class AuthService {
     const payload = { 
       phone: user.phone, 
       sub: user.id as any,
-      orgId: userProfile?.currentOrg?.id || null 
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -228,19 +223,6 @@ export class AuthService {
     return { message: '密码修改成功' };
   }
 
-  async issueTokenForUser(userId: number) {
-    const user = await this.usersService.findById(userId);
-    if (!user) throw new UnauthorizedException('用户不存在');
-    const payload = {
-      phone: user.phone,
-      sub: user.id,
-      orgId: (user as any).currentOrgId || null
-    };
-    return this.jwtService.sign(payload);
-  }
-
-  // --- WeChat Login ---
-
   async wechatLogin(code: string) {
     // 1. 用 code 换取 openid（GET 请求）
     const params = new URLSearchParams({
@@ -267,7 +249,6 @@ export class AuthService {
       const payload = {
         phone: user.phone,
         sub: user.id,
-        orgId: userProfile?.currentOrg?.id || null,
         systemRole: user.systemRole || 'user',
       };
       return {
@@ -291,7 +272,6 @@ export class AuthService {
     const payload = {
       phone: null,
       sub: user.id as any,
-      orgId: userProfile?.currentOrg?.id || null,
       systemRole: 'user',
     };
 
@@ -347,7 +327,6 @@ export class AuthService {
     const payload = {
       phone: user.phone,
       sub: user.id,
-      orgId: userProfile?.currentOrg?.id || null,
       systemRole: user.systemRole || 'user',
     };
 
@@ -376,7 +355,6 @@ export class AuthService {
     const payload = {
       phone: user.phone,
       sub: user.id,
-      orgId: userProfile?.currentOrg?.id || null,
       systemRole: user.systemRole || 'user',
     };
 

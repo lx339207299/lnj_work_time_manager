@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { View, Text, Button, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { authService } from '../../services/authService'
-import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
 type Step = 'login' | 'profile'
@@ -153,7 +152,6 @@ const LoginPage: React.FC = () => {
   const saveTokenAndGo = (newToken: string, isNew: boolean, user?: any) => {
     setToken(newToken)
     if (user?.currentOrg?.id) {
-      orgManager.setCurrentOrgId(user.currentOrg.id)
     }
 
     if (isNew || !user?.phone || !user?.name) {

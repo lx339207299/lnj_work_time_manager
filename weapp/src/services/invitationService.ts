@@ -1,5 +1,5 @@
 import { request } from '../utils/request'
-import { orgManager } from '../utils/orgManager'
+import { userService } from './userService'
 
 export interface Invitation {
     id: number
@@ -37,11 +37,10 @@ export const invitationService = {
   accept: async (code: string): Promise<any> => {
     const res = await request({ url: '/invitations/accept', method: 'POST', data: { code } })
     
-    // 如果邀请被接受，可能切换到了新的组织，尝试获取新的组织信息
+    // 接受邀请后服务器已切换当前组织，同步本地缓存
     try {
-      const profileRes = await request({ url: '/auth/profile', method: 'POST' })
-      if (profileRes?.currentOrgId) {
-        orgManager.setCurrentOrgId(profileRes.currentOrgId)
+      const profile = await userService.getUserInfo()
+      if (profile?.currentOrg?.id) {
       }
     } catch (error) {
       console.warn('Failed to update org cache after accepting invitation:', error)

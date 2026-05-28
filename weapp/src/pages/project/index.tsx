@@ -6,7 +6,6 @@ import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import classNames from 'classnames'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
-import { orgManager } from '../../utils/orgManager'
 import './index.scss'
 
 import { request } from '../../utils/request'
