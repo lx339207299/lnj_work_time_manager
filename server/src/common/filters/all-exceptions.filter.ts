@@ -4,13 +4,20 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
+    const request = ctx.getRequest();
     const response = ctx.getResponse();
+
+    const { method, url } = request;
+    const body = request.body ? JSON.stringify(request.body) : '';
 
     let code = 1;
     let msg = '系统错误';
@@ -42,6 +49,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (exception instanceof Error) {
       msg = exception.message;
     }
+
+    this.logger.error(
+      `${method} ${url} ${body} → ${msg}`,
+      exception instanceof Error ? exception.stack : undefined,
+    );
 
     response.status(httpStatus).json({
       status: {
