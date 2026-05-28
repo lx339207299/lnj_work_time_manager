@@ -83,10 +83,11 @@ export class OrganizationsService {
   }
 
   async findAll(userId: number) {
-    // Find orgs where user is a member and org is not deleted
+    // Find orgs where user is a member (not deleted) and org is not deleted
     const memberships = await this.prisma.organizationMember.findMany({
       where: { 
         userId,
+        isDeleted: false,
         organization: { isDeleted: false }
       },
       include: { organization: true },
@@ -219,10 +220,35 @@ export class OrganizationsService {
     if (!org) throw new Error('组织不存在');
     if (org.ownerId === userId) throw new Error('负责人无法退出，请先转移权限');
 
-    return this.prisma.organizationMember.deleteMany({
-      where: {
-        orgId: id,
-        userId: userId
+    const member = await this.prisma.organizationMember.findFirst({
+      where: { orgId: id, userId: userId, isDeleted: false },
+    });
+    if (!member) throw new Error('你还不是该组织成员');
+
+    // 事务：软删除 + 自动切换 currentOrgId
+    return this.prisma.$transaction(async (tx) => {
+      await tx.organizationMember.update({
+        where: { id: member.id },
+        data: { isDeleted: true, status: 'disabled' },
+      });
+
+      // 如果退出的组织是当前选中组织，切换到其他组织
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (user?.currentOrgId === id) {
+        const other = await tx.organizationMember.findFirst({
+          where: {
+            userId,
+            orgId: { not: id },
+            isDeleted: false,
+            status: 'active',
+            organization: { isDeleted: false },
+          },
+          orderBy: { createdAt: 'asc' },
+        });
+        await tx.user.update({
+          where: { id: userId },
+          data: { currentOrgId: other ? other.orgId : null },
+        });
       }
     });
   }

@@ -1,8 +1,9 @@
 FROM node:20 AS build
 WORKDIR /app
 
-# 安装 openssl（build 阶段装一次，最终镜像直接拷库文件）
-RUN apt-get update && apt-get install -y openssl
+# 安装 openssl（先换阿里云源，境内加速）
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y openssl
 
 COPY package*.json ./
 RUN npm config set registry https://registry.npmmirror.com
