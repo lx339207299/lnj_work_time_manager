@@ -28,18 +28,12 @@ export class InvitationsService {
       }
     }
 
-    // Check if org exists and user is member (or owner)
     const org = await this.prisma.organization.findUnique({
       where: { id: createInvitationDto.orgId },
     });
     if (!org) throw new NotFoundException('Organization not found');
 
-    // Create invitation
-    // Generate a simple 6-char code or use UUID. 
-    // Let's use a random 8-char string for friendly sharing.
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    
-    // Expires in 7 days
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -86,7 +80,7 @@ export class InvitationsService {
 
     if (existingMember) {
       this.logger.log(`Already active member: memberId=${existingMember.id}`);
-      return { message: 'Already a member', member: existingMember };
+      return existingMember;
     }
 
     // Check if there's a soft-deleted record — reactivate it
@@ -107,11 +101,9 @@ export class InvitationsService {
       return member;
     }
 
-    // Get User info to populate member snapshot
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    // Create member
     const member = await this.prisma.organizationMember.create({
       data: {
         organization: { connect: { id: invite.orgId } },
@@ -122,7 +114,6 @@ export class InvitationsService {
     });
 
     this.logger.log(`Member created: memberId=${member.id}, orgId=${invite.orgId}`);
-    
     return member;
     } catch (err) {
       this.logger.error(`accept failed: ${err.message}`, err.stack);
