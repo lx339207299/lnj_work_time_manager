@@ -16,7 +16,7 @@ function ProjectList() {
   const [loading, setLoading] = useState(false)
   const [projectList, setProjectList] = useState<any[]>([])
   const [token, setToken] = useState<string>('')
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null)
+  const [currentOrgId, setCurrentOrgId] = useState<number | null>(null)
   
   const fetchData = async () => {
     try {
@@ -97,10 +97,29 @@ function ProjectList() {
             setToken(newToken)
             fetchData()
         }
-        // Fetch user info to update global state/storage and trigger tab red dot
+        
+        // Check dirty flag set by project/edit page
+        const dirty = Taro.getStorageSync('project_list_dirty')
+        if (dirty) {
+            Taro.removeStorageSync('project_list_dirty')
+            fetchData()
+        }
+        
+        // Fetch user info to detect org changes + tab red dot
         userService.getUserInfo({ ignoreTokenInvalid: true }).then((user) => {
           if (user) {
             Taro.setStorageSync('userInfo', user)
+            
+            // Org changed → refresh project list (handle both null and non-null)
+            const newOrgId = user.currentOrg?.id ?? null
+            if (newOrgId !== currentOrgId) {
+              setCurrentOrgId(newOrgId)
+              if (!newOrgId) {
+                setProjectList([])
+              }
+              fetchData()
+            }
+            
             if (!user.currentOrg) {
               Taro.showTabBarRedDot({ index: 2 })
             } else {
@@ -120,14 +139,22 @@ function ProjectList() {
     dealInvitation(newToken)
   })
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!token) {
         Taro.navigateTo({ url: '/pages/login/index' })
         return
     }
     
-    // Check if has organization
-    if (!Taro.getStorageSync('currentOrgId')) {
+    // Check if has organization — try cache first, fallback to API
+    let hasOrg = !!Taro.getStorageSync('userInfo')?.currentOrg?.id
+    if (!hasOrg) {
+      try {
+        const user = await userService.getUserInfo({ ignoreTokenInvalid: true })
+        hasOrg = !!user?.currentOrg?.id
+      } catch {}
+    }
+    
+    if (!hasOrg) {
         Dialog.open('no-org-create', {
             title: '温馨提示',
             content: '创建项目前，您需要先创建一个组织或加入一个现有组织。\n老板请创建组织、普通员工联系老板邀请您加入组织。',

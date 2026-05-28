@@ -21,7 +21,8 @@ export class ProjectsService {
     });
   }
 
-  async findAll(orgId: number, user: any) {
+  async findAll(orgId: number | null, user: any) {
+    if (!orgId) return [];
     const projects = await this.prisma.project.findMany({
       where: { orgId },
       include: {

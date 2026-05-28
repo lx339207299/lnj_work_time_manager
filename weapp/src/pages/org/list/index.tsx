@@ -97,7 +97,9 @@ function OrgList() {
           setOrgList(newList)
           
           if (currentOrgId === selectedOrg.id) {
-            setCurrentOrgId(null)
+            // 重新从服务端获取当前组织（可能已自动切换）
+            const profile = await userService.getUserInfo()
+            setCurrentOrgId(profile?.currentOrg?.id || null)
           }
 
           Taro.showToast({ title: '已删除', icon: 'success' })
@@ -140,21 +142,16 @@ function OrgList() {
           content: `确定要退出"${selectedOrg.name}"吗？`,
           onConfirm: async () => {
               try {
-                  await orgService.exitOrg(selectedOrg.id)
+          await orgService.exitOrg(selectedOrg.id)
                   
                   const newList = orgList.filter(o => o.id !== selectedOrg.id)
                   setOrgList(newList)
                   
                   // 处理缓存的组织ID
                   if (currentOrgId === selectedOrg.id) {
-                      // 如果退出的是当前使用的组织，清理缓存
-                                setCurrentOrgId(null)
-                      
-                      // 如果还有其他组织，可以设置为第一个组织（可选）
-                      if (newList.length > 0) {
-                          // 这里可以选择是否自动切换到第一个组织
-                          // setCurrentOrgId(newList[0].id)
-                      }
+                      // 重新从服务端获取当前组织（可能已自动切换）
+                      const profile = await userService.getUserInfo()
+                      setCurrentOrgId(profile?.currentOrg?.id || null)
                   }
 
                   Taro.showToast({ title: '已退出', icon: 'success' })

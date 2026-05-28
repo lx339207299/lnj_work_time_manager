@@ -47,9 +47,11 @@ function ProjectEdit() {
         Taro.showToast({ title: '保存成功', icon: 'success' })
       } else {
         // Create
-        const newProject = await projectService.createProject({ name, description })
+        await projectService.createProject({ name, description })
         Taro.showToast({ title: '创建成功', icon: 'success' })
       }
+      
+      Taro.setStorageSync('project_list_dirty', '1')
       
       setTimeout(() => {
         Taro.navigateBack()

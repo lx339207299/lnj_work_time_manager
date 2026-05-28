@@ -90,7 +90,8 @@ export class EmployeesService {
     return results;
   }
 
-  findAll(orgId: number, onlyActive: boolean = true) {
+  findAll(orgId: number | null, onlyActive: boolean = true) {
+    if (!orgId) return [];
     const where: any = { orgId };
     if (onlyActive) {
         where.isDeleted = false;
