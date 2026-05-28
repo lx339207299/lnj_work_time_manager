@@ -30,7 +30,6 @@ deploy_server() {
     local profile=$2
     local label=$3
     local svc=$4
-    local health_url=$5
 
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -41,6 +40,11 @@ deploy_server() {
         echo "❌ 错误：未找到 ${env_file}，跳过。"
         return 1
     fi
+
+    # 从 env 文件读取 SERVER_PORT，动态构造健康检查 URL
+    local server_port
+    server_port=$(grep '^SERVER_PORT=' "$env_file" | cut -d= -f2)
+    local health_url="http://localhost:${server_port:-3000}/api/"
 
     # 备份
     local old_image=""
@@ -68,8 +72,9 @@ deploy_server() {
 
     # 部署
     echo "🔄 重启服务 (不动数据库)..."
-    docker compose --env-file "$env_file" --profile "$profile" up -d --no-deps "$svc"
+    # docker compose --env-file "$env_file" --profile "$profile" up -d --no-deps "$svc"
 
+    docker compose --env-file "$env_file" --profile "$profile" up -d "$svc"
     # ── 冒烟测试（先等 NestJS 启动日志，再 HTTP 验证） ──
     echo "🩺 等待服务就绪..."
 
@@ -169,7 +174,7 @@ deploy_admin() {
 deploy_prod() {
     local target=$1
     if [ "$target" = "all" ] || [ "$target" = "server" ]; then
-        deploy_server ".env.prod" "prod" "生产" "server-prod" "http://localhost:3002/api/"
+        deploy_server ".env.prod" "prod" "生产" "server-prod"
     fi
     if [ "$target" = "all" ] || [ "$target" = "admin" ]; then
         deploy_admin ".env.prod" "prod" "生产" "admin-prod"
@@ -179,7 +184,7 @@ deploy_prod() {
 deploy_test() {
     local target=$1
     if [ "$target" = "all" ] || [ "$target" = "server" ]; then
-        deploy_server ".env.test" "test" "测试" "server-test" "http://localhost:3001/api/"
+        deploy_server ".env.test" "test" "测试" "server-test"
     fi
     if [ "$target" = "all" ] || [ "$target" = "admin" ]; then
         deploy_admin ".env.test" "test" "测试" "admin-test"
