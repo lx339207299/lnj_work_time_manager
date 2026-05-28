@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class InvitationsService {
+  private readonly logger = new Logger(InvitationsService.name);
   constructor(private prisma: PrismaService) {}
 
   async findAllByOrg(orgId: number) {
@@ -70,18 +71,40 @@ export class InvitationsService {
   }
 
   async accept(code: string, userId: number) {
+    this.logger.log(`accept called: code=${code}, userId=${userId}`);
+    try {
     const invite = await this.findOne(code);
     
-    // Check if already a member
+    // Check if already an active member
     const existingMember = await this.prisma.organizationMember.findFirst({
       where: {
         orgId: invite.orgId,
         userId: userId,
+        isDeleted: false,
       },
     });
 
     if (existingMember) {
+      this.logger.log(`Already active member: memberId=${existingMember.id}`);
       return { message: 'Already a member', member: existingMember };
+    }
+
+    // Check if there's a soft-deleted record — reactivate it
+    const deletedMember = await this.prisma.organizationMember.findFirst({
+      where: {
+        orgId: invite.orgId,
+        userId: userId,
+        isDeleted: true,
+      },
+    });
+
+    if (deletedMember) {
+      this.logger.log(`Reactivating soft-deleted member: memberId=${deletedMember.id}`);
+      const member = await this.prisma.organizationMember.update({
+        where: { id: deletedMember.id },
+        data: { isDeleted: false, status: 'active' },
+      });
+      return member;
     }
 
     // Get User info to populate member snapshot
@@ -98,11 +121,12 @@ export class InvitationsService {
       },
     });
 
-    // Update invite status? 
-    // If we want one-time invite, we set status to accepted. 
-    // If reusable (like a group link), we keep it pending until expiry.
-    // Let's assume reusable for now.
+    this.logger.log(`Member created: memberId=${member.id}, orgId=${invite.orgId}`);
     
     return member;
+    } catch (err) {
+      this.logger.error(`accept failed: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 }
