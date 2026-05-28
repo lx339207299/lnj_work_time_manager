@@ -1,5 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
+import { OrganizationsService } from '../organizations/organizations.service';
+import { AuthService } from '../auth/auth.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { InvitationCodeDto } from './dto/invitation-code.dto';
 import { InvitationResponseDto } from './dto/invitation-response.dto';
@@ -11,7 +13,11 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nes
 @UseGuards(AuthGuard('jwt'))
 @ApiBearerAuth()
 export class InvitationsController {
-  constructor(private readonly invitationsService: InvitationsService) {}
+  constructor(
+    private readonly invitationsService: InvitationsService,
+    private readonly organizationsService: OrganizationsService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('create')
   @ApiOperation({ summary: 'Create invitation' })
@@ -32,8 +38,12 @@ export class InvitationsController {
   @Post('accept')
   @ApiOperation({ summary: 'Accept invitation' })
   @ApiResponse({ status: 200, description: 'Member created' })
-  accept(@Body() body: InvitationCodeDto, @Request() req) {
-    return this.invitationsService.accept(body.code, req.user.sub);
+  async accept(@Body() body: InvitationCodeDto, @Request() req) {
+    const member = await this.invitationsService.accept(body.code, req.user.sub);
+    // 自动切换到新组织并签发新 token
+    await this.organizationsService.switchToOrg(req.user.sub, member.orgId);
+    const access_token = await this.authService.issueTokenForUser(req.user.sub);
+    return { ...member, access_token };
   }
 
   @Post('list')
