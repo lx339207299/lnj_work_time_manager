@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View } from '@tarojs/components'
 import { Button, Dialog, Empty, Skeleton, Tag } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
-import Taro, { useDidShow, useLoad } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad, usePullDownRefresh } from '@tarojs/taro'
 import classNames from 'classnames'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
@@ -105,6 +105,20 @@ function ProjectList() {
             fetchData()
         }
         
+        // Check if returning from project detail — refresh single item
+        const refreshId = Taro.getStorageSync('project_refresh_id')
+        if (refreshId) {
+            Taro.removeStorageSync('project_refresh_id')
+            projectService.getProjectDetail(refreshId).then((updated) => {
+                if (updated) {
+                    setProjectList(prev => prev.map(p => p.id === refreshId ? updated : p))
+                } else {
+                    // Project was deleted — remove from list
+                    setProjectList(prev => prev.filter(p => p.id !== refreshId))
+                }
+            }).catch(() => {})
+        }
+        
         // Fetch user info to detect org changes + tab red dot
         userService.getUserInfo({ ignoreTokenInvalid: true }).then((user) => {
           if (user) {
@@ -137,6 +151,11 @@ function ProjectList() {
     
     // Check for pending invite
     dealInvitation(newToken)
+  })
+
+  usePullDownRefresh(async () => {
+    await fetchData()
+    Taro.stopPullDownRefresh()
   })
 
   const handleCreate = async () => {

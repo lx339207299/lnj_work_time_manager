@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { ActionSheet, Avatar, Button, CalendarCard, Dialog, Empty, InputNumber, Skeleton, Tag } from '@nutui/nutui-react-taro'
 import { Edit, People, Clock, User, ArrowLeft, ArrowRight, Calendar, Order, Plus, More } from '@nutui/icons-react-taro'
-import Taro, { useRouter, useDidShow } from '@tarojs/taro'
+import Taro, { useRouter, useDidShow, useUnload } from '@tarojs/taro'
 import dayjs from 'dayjs'
 import { workRecordService, WorkRecord } from '../../../services/workRecordService'
 import './index.scss'
@@ -40,13 +40,16 @@ function ProjectDetail() {
 
   // useDidShow hook to refresh data when returning from other pages
   useDidShow(() => {
-    // Check if we have a project ID and if we need to refresh
-    // We can simply re-fetch the data here.
-    // To optimize, we could check a global flag or page stack, but re-fetching is safer for now.
-    // Especially since "add record" and "edit project" both return here.
-    
     if (currentProject?.id) {
-        initData(currentProject.id, false) // false = don't reset selectedDate
+        initData(currentProject.id, false)
+    }
+  })
+
+  // Mark project for refresh when navigating back to list
+  useUnload(() => {
+    const projectId = router.params.id
+    if (projectId) {
+      Taro.setStorageSync('project_refresh_id', Number(projectId))
     }
   })
   
