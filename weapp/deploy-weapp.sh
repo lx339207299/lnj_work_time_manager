@@ -72,11 +72,9 @@ echo "🔨 开始构建 ($MODE 模式)..."
 export TARO_APP_API_URL="$API_URL"
 export NODE_ENV="$MODE"
 
-# prod 需要 openssl-legacy-provider (Node 17+)
+# Node 17+ (OpenSSL 3.x) 与 webpack 4 不兼容，test 和 prod 都需要 openssl-legacy-provider
+export NODE_OPTIONS="--openssl-legacy-provider"
 BUILD_CMD="npx taro build --type weapp"
-if [ "$ENV" = "prod" ]; then
-    BUILD_CMD="NODE_OPTIONS=--openssl-legacy-provider $BUILD_CMD"
-fi
 
 $BUILD_CMD
 
