@@ -12,6 +12,7 @@ import {
   FileTextOutlined,
   ClockCircleOutlined,
   HistoryOutlined,
+  FileSearchOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '@/store/userStore';
@@ -69,6 +70,11 @@ const BasicLayout: React.FC = () => {
       key: '/system-logs',
       icon: <HistoryOutlined />,
       label: '系统日志',
+    },
+    {
+      key: '/work-record-logs',
+      icon: <FileSearchOutlined />,
+      label: '操作日志',
     },
   ];
 
