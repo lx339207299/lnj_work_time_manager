@@ -155,10 +155,16 @@ export class ProjectsService {
   }
 
   async addFlow(id: number, dto: CreateProjectFlowDto) {
+    // 显式透传业务字段：dto.id 是项目ID（用于定位项目），不能写入 ProjectFlow 自增主键
     return this.prisma.projectFlow.create({
       data: {
         projectId: id,
-        ...dto
+        type: dto.type,
+        category: dto.category,
+        amount: dto.amount,
+        date: dto.date,
+        remark: dto.remark,
+        relatedMemberId: dto.relatedMemberId,
       }
     });
   }
