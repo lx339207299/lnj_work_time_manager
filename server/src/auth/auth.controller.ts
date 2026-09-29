@@ -15,14 +15,6 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login-or-register')
-  @ApiOperation({ summary: 'Login or Register automatically' })
-  @ApiResponse({ status: 201, description: 'User successfully logged in or registered.', type: AuthResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
-  async loginOrRegister(@Body() loginDto: LoginDto) {
-    return this.authService.loginOrRegister(loginDto);
-  }
-
   @Post('check-status')
   @ApiOperation({ summary: 'Check user status by phone number' })
   async checkUserStatus(@Body() body: { phone: string }) {

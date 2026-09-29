@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsIn, IsNotEmpty } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsIn, IsNotEmpty, IsInt } from 'class-validator';
 
 export class CreateProjectFlowDto {
   @ApiProperty({ description: 'Project ID (if passed in body)', required: false, example: 1 })
@@ -17,8 +17,8 @@ export class CreateProjectFlowDto {
   @IsNotEmpty()
   category: string;
 
-  @ApiProperty({ example: 1000 })
-  @IsNumber()
+  @ApiProperty({ example: 100000, description: '金额，单位：分' })
+  @IsInt()
   amount: number;
 
   @ApiProperty({ example: '2023-10-01' })

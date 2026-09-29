@@ -4,6 +4,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Tag, Tooltip } from 'antd';
 import { workRecordLogsApi } from '@/api/workRecordLogs';
 import type { WorkRecordLog } from '@/api/workRecordLogs';
+import { fenToYuanStr } from '@/utils/money';
 
 const actionMap: Record<string, { text: string; color: string }> = {
   CREATE: { text: '新增', color: 'green' },
@@ -21,7 +22,7 @@ function formatDataSummary(jsonStr: string | null): string {
     const obj = JSON.parse(jsonStr);
     const parts: string[] = [];
     if (obj.duration !== undefined) parts.push(`工时: ${obj.duration}h`);
-    if (obj.amount !== undefined) parts.push(`金额: ¥${obj.amount}`);
+    if (obj.amount !== undefined) parts.push(`金额: ¥${fenToYuanStr(obj.amount)}`);
     if (obj.content) parts.push(`备注: ${obj.content.slice(0, 20)}${obj.content.length > 20 ? '...' : ''}`);
     if (obj.date) parts.push(`日期: ${obj.date}`);
     return parts.join(', ') || jsonStr;

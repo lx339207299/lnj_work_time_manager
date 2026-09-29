@@ -4,6 +4,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Tag } from 'antd';
 import { workRecordsApi } from '@/api/workRecords';
 import type { AdminWorkRecord } from '@/api/workRecords';
+import { fenToYuanStr } from '@/utils/money';
 
 const wageTypeMap: Record<string, { text: string; color: string }> = {
   hour: { text: '时薪', color: 'blue' },
@@ -66,7 +67,7 @@ const WorkRecords: React.FC = () => {
       dataIndex: 'amount',
       search: false,
       width: 90,
-      render: (_, r) => `¥${r.amount?.toFixed(2)}`,
+      render: (_, r) => `¥${fenToYuanStr(r.amount ?? 0)}`,
     },
     {
       title: '备注',

@@ -3,6 +3,7 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { Button, TextArea, Toast } from '@nutui/nutui-react-taro'
 import { employeeService } from '../../../services/employeeService'
+import { yuanToFen } from '../../../utils/money'
 import './index.scss'
 
 function BatchAddEmployee() {
@@ -52,7 +53,7 @@ function BatchAddEmployee() {
         return
       }
 
-      employees.push({ name, phone, wageAmount })
+      employees.push({ name, phone, wageAmount: yuanToFen(wageAmount) })
     })
 
     if (errors.length > 0) {
@@ -125,7 +126,7 @@ function BatchAddEmployee() {
           赵四，13111111112，220
         </View>
         <View className="desc" style={{ marginTop: 8, color: '#999' }}>
-          * 默认身份为“员工”，薪资类型为“日薪”
+          * 默认身份为“员工”，薪资类型为“日薪”，薪资单位为元
         </View>
       </View>
 

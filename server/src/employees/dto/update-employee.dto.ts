@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsNumber, IsNotEmpty, Min, IsOptional } from 'class-validator';
+import { IsNumber, IsNotEmpty, Min, IsOptional, IsInt } from 'class-validator';
 import { CreateEmployeeDto } from './create-employee.dto';
 
 export class UpdateEmployeeDto extends PartialType(CreateEmployeeDto) {
@@ -8,9 +8,9 @@ export class UpdateEmployeeDto extends PartialType(CreateEmployeeDto) {
   @IsNotEmpty()
   id: number;
 
-  @ApiProperty({ example: 100, required: false })
+  @ApiProperty({ example: 20000, required: false, description: '薪资，单位：分' })
   @IsOptional()
-  @IsNumber()
-  @Min(0.01, { message: '薪资必须大于0' })
+  @IsInt()
+  @Min(1, { message: '薪资必须大于0（单位为分）' })
   wageAmount?: number;
 }

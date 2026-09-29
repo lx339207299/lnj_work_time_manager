@@ -4,7 +4,7 @@ export interface Employee {
   id: number
   role: 'owner' | 'leader' | 'member' | 'temp'
   wageType: 'day' | 'month' | 'hour'
-  wageAmount: number
+  wageAmount: number // 单位：分
   user: {
     id: number
     name: string

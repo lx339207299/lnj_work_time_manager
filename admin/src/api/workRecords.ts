@@ -5,7 +5,7 @@ export interface AdminWorkRecord {
   date: string;
   duration: number;
   content: string | null;
-  amount: number;
+  amount: number; // 单位：分
   wageType: string;
   createdAt: string;
   projectId: number;

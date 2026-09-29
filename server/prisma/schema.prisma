@@ -87,7 +87,7 @@ model OrganizationMember {
 
   role       String @default("member") // owner, leader, member, temp
   wageType   String @default("day") // day, month, hour
-  wageAmount Float  @default(0)
+  wageAmount Int    @default(0) // 薪资，单位：分
 
   status    String  @default("active") // pending, active, disabled
   isDeleted Boolean @default(false)
@@ -142,7 +142,7 @@ model ProjectFlow {
 
   type     String // income, expense
   category String // 薪资, 收款, 福利, etc.
-  amount   Float
+  amount   Int // 金额，单位：分
   date     String // YYYY-MM-DD
   remark   String?
 
@@ -168,10 +168,10 @@ model WorkRecord {
   content  String?
 
   // Snapshot of wage at the time of record
-  wageSnapshot     Float
+  wageSnapshot     Int // 快照薪资，单位：分
   wageTypeSnapshot String
 
-  amount Float @default(0)
+  amount Int @default(0) // 金额，单位：分
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -198,7 +198,7 @@ model WorkSummaryDaily {
   memberId      Int
   date          String // YYYY-MM-DD
   totalDuration Float    @default(0)
-  totalAmount   Float    @default(0)
+  totalAmount   Int      @default(0) // 总金额，单位：分
   recordCount   Int      @default(0)
   updatedAt     DateTime @updatedAt
 

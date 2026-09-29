@@ -5,6 +5,7 @@ import { Plus } from '@nutui/icons-react-taro'
 import Taro, { useRouter } from '@tarojs/taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService } from '../../../services/employeeService'
+import { yuanToFen, fenToYuanStr } from '../../../utils/money'
 import './index.scss'
 
 const EXPENSE_TYPES = ['薪资', '人情', '福利']
@@ -102,7 +103,7 @@ function ProjectFlow() {
       try {
           await projectService.addProjectFlow(projectId, {
               type: flowType,
-              amount: Number(amount),
+              amount: yuanToFen(amount),
               category,
               remark,
               relatedUserId: selectedUser?.id,
@@ -123,12 +124,12 @@ function ProjectFlow() {
       <View className="stats-header">
           <View className="stat-card">
               <Text className="label">总收入</Text>
-              <Text className="value income">+{stats.income}</Text>
+              <Text className="value income">+{fenToYuanStr(stats.income)}</Text>
           </View>
           <View className="divider" />
           <View className="stat-card">
               <Text className="label">总支出</Text>
-              <Text className="value expense">-{stats.expense}</Text>
+              <Text className="value expense">-{fenToYuanStr(stats.expense)}</Text>
           </View>
       </View>
 
@@ -148,7 +149,7 @@ function ProjectFlow() {
                               </View>
                           </View>
                           <Text className={`amount ${item.type}`}>
-                              {item.type === 'income' ? '+' : '-'}{item.amount}
+                              {item.type === 'income' ? '+' : '-'}{fenToYuanStr(item.amount)}
                           </Text>
                       </View>
                   ))
