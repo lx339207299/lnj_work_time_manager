@@ -104,13 +104,25 @@ export class InvitationsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const member = await this.prisma.organizationMember.create({
-      data: {
-        organization: { connect: { id: invite.orgId } },
-        user: { connect: { id: userId } },
-        role: 'member',
-        status: 'active',
-      },
+    // 新建成员：member（默认 day/0）与初始工资历史同一事务；复活路径保留旧值不写历史
+    const member = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.organizationMember.create({
+        data: {
+          organization: { connect: { id: invite.orgId } },
+          user: { connect: { id: userId } },
+          role: 'member',
+          status: 'active',
+        },
+      });
+      await tx.organizationMemberWageHistory.create({
+        data: {
+          memberId: created.id,
+          wageType: created.wageType,
+          wageAmount: created.wageAmount,
+          effectiveFrom: new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10),
+        },
+      });
+      return created;
     });
 
     this.logger.log(`Member created: memberId=${member.id}, orgId=${invite.orgId}`);

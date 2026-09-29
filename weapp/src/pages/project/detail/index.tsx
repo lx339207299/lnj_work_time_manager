@@ -176,7 +176,30 @@ function ProjectDetail() {
     fetchMonthStats(monthStr)
   }
 
-  const handleAddRecord = () => {
+  const handleAddRecord = async () => {
+    // 记工时前检测：项目成员必须都已设置工资（wageAmount<=0 视为未设置）
+    try {
+      const members = await projectService.getProjectMembers(currentProject.id)
+      const unpaid = (members as any[]).filter(m => !m.wageAmount || m.wageAmount <= 0)
+      if (unpaid.length > 0) {
+        const names = unpaid.slice(0, 3).map(m => m.name).join('、')
+        Taro.showModal({
+          title: '提示',
+          content: `${names}${unpaid.length > 3 ? ' 等' : ''}${unpaid.length} 人尚未设置工资，请先设置工资后再记工时`,
+          confirmText: '去设置',
+          success: (res) => {
+            if (res.confirm) {
+              Taro.navigateTo({ url: '/pages/employee/index' })
+            }
+          }
+        })
+        return
+      }
+    } catch (error) {
+      // 检测失败也拦截：无法确认工资状态时不允许记工时
+      Taro.showToast({ title: '检测工资状态失败，请重试', icon: 'none' })
+      return
+    }
     Taro.navigateTo({
       url: `/pages/work-hour/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}&date=${selectedDate}`
     })

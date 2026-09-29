@@ -21,7 +21,7 @@ export class OrganizationsService {
         },
       });
 
-      await tx.organizationMember.create({
+      const ownerMember = await tx.organizationMember.create({
         data: {
           orgId: org.id,
           userId: userId,
@@ -29,6 +29,16 @@ export class OrganizationsService {
           wageType: 'month', // Owner salary default: month
           wageAmount: 0,     // Owner salary default: 0
           status: 'active',
+        },
+      });
+
+      // 初始工资历史（生效日=北京时间今天）
+      await tx.organizationMemberWageHistory.create({
+        data: {
+          memberId: ownerMember.id,
+          wageType: ownerMember.wageType,
+          wageAmount: ownerMember.wageAmount,
+          effectiveFrom: new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10),
         },
       });
 
