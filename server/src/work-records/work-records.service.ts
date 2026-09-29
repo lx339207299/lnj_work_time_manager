@@ -25,37 +25,36 @@ export class WorkRecordsService {
     return Math.round(exact);
   }
 
-  private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number, deltaAmount: number) {
-    try {
-      const project = await this.prisma.project.findUnique({ where: { id: projectId } });
-      if (!project) return;
-      await (this.prisma as any).workSummaryDaily.upsert({
-        where: {
-          orgId_projectId_memberId_date: {
-            orgId: project.orgId,
-            projectId,
-            memberId,
-            date,
-          },
-        },
-        update: {
-          totalDuration: { increment: deltaDuration },
-          totalAmount: { increment: deltaAmount },
-          recordCount: { increment: deltaRecord },
-        },
-        create: {
+  // 统计更新必须与明细写入处于同一事务（tx 由调用方传入），
+  // 任一失败抛错并整体回滚，避免明细与统计脱钩。
+  private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number, deltaAmount: number, tx?: any) {
+    const db = (tx || this.prisma) as any;
+    const project = await db.project.findUnique({ where: { id: projectId } });
+    if (!project) return;
+    await db.workSummaryDaily.upsert({
+      where: {
+        orgId_projectId_memberId_date: {
           orgId: project.orgId,
           projectId,
           memberId,
           date,
-          totalDuration: deltaDuration,
-          totalAmount: deltaAmount,
-          recordCount: deltaRecord,
         },
-      });
-    } catch (_) {
-      // Graceful fallback if summary table not yet migrated
-    }
+      },
+      update: {
+        totalDuration: { increment: deltaDuration },
+        totalAmount: { increment: deltaAmount },
+        recordCount: { increment: deltaRecord },
+      },
+      create: {
+        orgId: project.orgId,
+        projectId,
+        memberId,
+        date,
+        totalDuration: deltaDuration,
+        totalAmount: deltaAmount,
+        recordCount: deltaRecord,
+      },
+    });
   }
 
   private async checkPermission(user: any, projectId: number) {
@@ -95,20 +94,23 @@ export class WorkRecordsService {
 
     const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
 
-    const record = await this.prisma.workRecord.create({
-      data: {
-        projectId: createWorkRecordDto.projectId,
-        memberId: createWorkRecordDto.memberId,
-        date: createWorkRecordDto.date,
-        duration: durationInHours,
-        content: createWorkRecordDto.content,
-        wageSnapshot: member.wageAmount,
-        wageTypeSnapshot: member.wageType,
-        amount,
-      },
+    // 明细 + 统计同一事务：统计更新失败则整体回滚并报错
+    const record = await this.prisma.$transaction(async (tx) => {
+      const rec = await tx.workRecord.create({
+        data: {
+          projectId: createWorkRecordDto.projectId,
+          memberId: createWorkRecordDto.memberId,
+          date: createWorkRecordDto.date,
+          duration: durationInHours,
+          content: createWorkRecordDto.content,
+          wageSnapshot: member.wageAmount,
+          wageTypeSnapshot: member.wageType,
+          amount,
+        },
+      });
+      await this.updateDailySummary(rec.projectId, rec.memberId, rec.date, durationInHours, 1, amount, tx);
+      return rec;
     });
-
-    await this.updateDailySummary(record.projectId, record.memberId, record.date, durationInHours, 1, amount);
 
     // Record Log
     if (user) {
@@ -367,26 +369,31 @@ export class WorkRecordsService {
 
     const newAmount = this.calculateAmount(durationInHours, old.wageTypeSnapshot, old.wageSnapshot);
 
-    const updated = await this.prisma.workRecord.update({
-      where: { id },
-      data: {
-        duration: durationInHours,
-        content: data.content,
-        date: data.date,
-        amount: newAmount
-      }
-    });
+    // 明细 + 统计同一事务：跨日期时的「旧日期扣减 + 新日期累加」也必须原子完成
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const rec = await tx.workRecord.update({
+        where: { id },
+        data: {
+          duration: durationInHours,
+          content: data.content,
+          date: data.date,
+          amount: newAmount
+        }
+      });
 
-    if (old.date === updated.date) {
-      const deltaDuration = (updated.duration || 0) - (old.duration || 0);
-      const deltaAmount = newAmount - oldAmount;
-      if (deltaDuration !== 0 || deltaAmount !== 0) {
-        await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, deltaDuration, 0, deltaAmount);
+      if (old.date === rec.date) {
+        const deltaDuration = (rec.duration || 0) - (old.duration || 0);
+        const deltaAmount = newAmount - oldAmount;
+        if (deltaDuration !== 0 || deltaAmount !== 0) {
+          await this.updateDailySummary(rec.projectId, rec.memberId, rec.date, deltaDuration, 0, deltaAmount, tx);
+        }
+      } else {
+        await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount, tx);
+        await this.updateDailySummary(rec.projectId, rec.memberId, rec.date, (rec.duration || 0), 1, newAmount, tx);
       }
-    } else {
-      await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
-      await this.updateDailySummary(updated.projectId, updated.memberId, updated.date, (updated.duration || 0), 1, newAmount);
-    }
+
+      return rec;
+    });
 
     // Record Log
     if (user && member) {
@@ -423,10 +430,14 @@ export class WorkRecordsService {
       ? (old as any).amount 
       : this.calculateAmount(old.duration, old.wageTypeSnapshot, old.wageSnapshot);
 
-    const deleted = await this.prisma.workRecord.delete({
-      where: { id }
+    // 明细 + 统计同一事务：删除与统计扣减原子完成
+    const deleted = await this.prisma.$transaction(async (tx) => {
+      const rec = await tx.workRecord.delete({
+        where: { id }
+      });
+      await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount, tx);
+      return rec;
     });
-    await this.updateDailySummary(old.projectId, old.memberId, old.date, -(old.duration || 0), -1, -oldAmount);
 
     // Record Log
     if (user && member) {
@@ -461,10 +472,10 @@ export class WorkRecordsService {
       });
 
       const numProjectId = Number(projectId);
-      const operations = records.map(record => {
+      const recordDataList = records.map(record => {
           const member = members.find(m => m.id === record.memberId);
           if (!member) return null; // Skip invalid members
-          
+
           let durationInHours = record.duration;
           if (member.wageType === 'day' || member.wageType === 'month') {
               durationInHours = record.duration * 8;
@@ -472,29 +483,31 @@ export class WorkRecordsService {
 
           const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
 
-          return this.prisma.workRecord.create({
-              data: {
-                  projectId: numProjectId,
-                  date,
-                  memberId: record.memberId,
-                  duration: durationInHours,
-                  content: '', // Default empty for batch
-                  wageSnapshot: member.wageAmount,
-                  wageTypeSnapshot: member.wageType,
-                  amount
-              }
-          });
+          return {
+              projectId: numProjectId,
+              date,
+              memberId: record.memberId,
+              duration: durationInHours,
+              content: '', // Default empty for batch
+              wageSnapshot: member.wageAmount,
+              wageTypeSnapshot: member.wageType,
+              amount
+          };
       }).filter(op => op !== null);
 
       // Filter out nulls safely (TS might complain about type)
-      const validOps = operations as any[]; 
-      const created = await this.prisma.$transaction(validOps);
-      // Summary maintenance (best-effort)
-      const createdSummaries = created.map(r => {
-          const amount = (r as any).amount || 0;
-          return this.updateDailySummary(r.projectId, r.memberId, date, r.duration || 0, 1, amount);
+      const validDataList = recordDataList as any[];
+
+      // 明细 + 统计同一事务：任一条失败整体回滚并报错（替换原 best-effort 统计更新）
+      const created = await this.prisma.$transaction(async (tx) => {
+          const results: any[] = [];
+          for (const data of validDataList) {
+              const rec = await tx.workRecord.create({ data });
+              results.push(rec);
+              await this.updateDailySummary(rec.projectId, rec.memberId, date, rec.duration || 0, 1, (rec as any).amount || 0, tx);
+          }
+          return results;
       });
-      await Promise.all(createdSummaries).catch(() => {});
 
       // Record logs
       if (user) {
