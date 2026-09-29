@@ -25,6 +25,18 @@ export class WorkRecordsService {
     return Math.round(exact);
   }
 
+  // 取「工作日期当天生效」的工资（effectiveFrom 含当天；同日多次调薪取最后一条）。
+  // 无早于该日期的历史行时兜底回成员现值（如补记日期早于建档日）。
+  private async getWageAt(memberId: number, date: string) {
+    const history = await this.prisma.organizationMemberWageHistory.findFirst({
+      where: { memberId, effectiveFrom: { lte: date } },
+      orderBy: [{ effectiveFrom: 'desc' }, { id: 'desc' }],
+    });
+    if (history) return { wageType: history.wageType, wageAmount: history.wageAmount };
+    const member = await this.prisma.organizationMember.findUnique({ where: { id: memberId } });
+    return { wageType: member?.wageType || 'day', wageAmount: member?.wageAmount || 0 };
+  }
+
   // 统计更新必须与明细写入处于同一事务（tx 由调用方传入），
   // 任一失败抛错并整体回滚，避免明细与统计脱钩。
   private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number, deltaAmount: number, tx?: any) {
@@ -86,13 +98,16 @@ export class WorkRecordsService {
 
     if (!member) throw new Error('Member not found');
 
+    // 按工作日期取「当时生效」的工资：调薪后补记历史日期仍按旧价计算
+    const wage = await this.getWageAt(createWorkRecordDto.memberId, createWorkRecordDto.date);
+
     // Convert duration to hours if wage type is day or month
     let durationInHours = createWorkRecordDto.duration;
-    if (member.wageType === 'day' || member.wageType === 'month') {
+    if (wage.wageType === 'day' || wage.wageType === 'month') {
         durationInHours = createWorkRecordDto.duration * 8;
     }
 
-    const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
+    const amount = this.calculateAmount(durationInHours, wage.wageType, wage.wageAmount);
 
     // 明细 + 统计同一事务：统计更新失败则整体回滚并报错
     const record = await this.prisma.$transaction(async (tx) => {
@@ -103,8 +118,8 @@ export class WorkRecordsService {
           date: createWorkRecordDto.date,
           duration: durationInHours,
           content: createWorkRecordDto.content,
-          wageSnapshot: member.wageAmount,
-          wageTypeSnapshot: member.wageType,
+          wageSnapshot: wage.wageAmount,
+          wageTypeSnapshot: wage.wageType,
           amount,
         },
       });
@@ -472,16 +487,37 @@ export class WorkRecordsService {
       });
 
       const numProjectId = Number(projectId);
+
+      // 取批次日期当天生效的工资历史（批次内日期相同，一次查询覆盖全部成员；
+      // orderBy 倒序后每个成员首次出现的行即最新一条）
+      const latestHistories = await this.prisma.organizationMemberWageHistory.findMany({
+          where: {
+              memberId: { in: records.map(r => r.memberId) },
+              effectiveFrom: { lte: date },
+          },
+          orderBy: [{ effectiveFrom: 'desc' }, { id: 'desc' }],
+      });
+      const historyByMember = new Map<number, { wageType: string, wageAmount: number }>();
+      for (const h of latestHistories) {
+          if (!historyByMember.has(h.memberId)) {
+              historyByMember.set(h.memberId, { wageType: h.wageType, wageAmount: h.wageAmount });
+          }
+      }
+
       const recordDataList = records.map(record => {
           const member = members.find(m => m.id === record.memberId);
           if (!member) return null; // Skip invalid members
 
+          // 历史价优先，无则兜底成员现值
+          const wage = historyByMember.get(record.memberId)
+              || { wageType: member.wageType, wageAmount: member.wageAmount };
+
           let durationInHours = record.duration;
-          if (member.wageType === 'day' || member.wageType === 'month') {
+          if (wage.wageType === 'day' || wage.wageType === 'month') {
               durationInHours = record.duration * 8;
           }
 
-          const amount = this.calculateAmount(durationInHours, member.wageType, member.wageAmount);
+          const amount = this.calculateAmount(durationInHours, wage.wageType, wage.wageAmount);
 
           return {
               projectId: numProjectId,
@@ -489,8 +525,8 @@ export class WorkRecordsService {
               memberId: record.memberId,
               duration: durationInHours,
               content: '', // Default empty for batch
-              wageSnapshot: member.wageAmount,
-              wageTypeSnapshot: member.wageType,
+              wageSnapshot: wage.wageAmount,
+              wageTypeSnapshot: wage.wageType,
               amount
           };
       }).filter(op => op !== null);
