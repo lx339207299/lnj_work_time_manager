@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsNotEmpty, Min, IsInt } from 'class-validator';
 
 export class CreateEmployeeDto {
   // @ApiProperty({ example: 'uuid-org-id', hidden: true })
@@ -32,9 +32,9 @@ export class CreateEmployeeDto {
   @IsString()
   wageType?: string;
 
-  @ApiProperty({ example: 100, required: true })
-  @IsNumber()
+  @ApiProperty({ example: 20000, required: true, description: '薪资，单位：分' })
+  @IsInt()
   @IsNotEmpty()
-  @Min(0.01, { message: '薪资必须大于0' })
+  @Min(1, { message: '薪资必须大于0（单位为分）' })
   wageAmount: number;
 }

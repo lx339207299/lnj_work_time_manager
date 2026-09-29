@@ -9,15 +9,20 @@ export class WorkRecordsService {
   constructor(private prisma: PrismaService) {}
 
   private calculateAmount(durationInHours: number, wageType: string, wageAmount: number): number {
+    // wageAmount 单位：分（Int）。返回值单位：分（Int）。
+    // 中间过程保持浮点，仅在最终结果四舍五入到整分，避免累计误差。
+    let exact: number;
     if (wageType === 'hour') {
-      return durationInHours * wageAmount;
+      exact = durationInHours * wageAmount;
     } else if (wageType === 'day') {
-      return (durationInHours / 8) * wageAmount;
+      exact = (durationInHours / 8) * wageAmount;
     } else if (wageType === 'month') {
       // Assuming 21.75 working days per month for calculation
-      return (durationInHours / 8) * (wageAmount / 21.75);
+      exact = (durationInHours / 8) * (wageAmount / 21.75);
+    } else {
+      return 0;
     }
-    return 0;
+    return Math.round(exact);
   }
 
   private async updateDailySummary(projectId: number, memberId: number, date: string, deltaDuration: number, deltaRecord: number, deltaAmount: number) {

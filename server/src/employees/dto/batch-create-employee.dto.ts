@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString, IsNotEmpty, ValidateNested, IsOptional, IsNumber, Min } from 'class-validator';
+import { IsArray, IsString, IsNotEmpty, ValidateNested, IsOptional, IsNumber, Min, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class CreateEmployeeItemDto {
@@ -11,9 +11,9 @@ class CreateEmployeeItemDto {
   @IsNotEmpty()
   phone: string;
 
-  @IsNumber()
+  @IsInt()
   @IsNotEmpty()
-  @Min(0.01, { message: '薪资必须大于0' })
+  @Min(1, { message: '薪资必须大于0（单位为分）' })
   wageAmount: number;
 
   @IsString()
@@ -24,8 +24,8 @@ class CreateEmployeeItemDto {
 export class BatchCreateEmployeeDto {
   @ApiProperty({
     example: [
-      { name: '张三', phone: '13800138000', wageAmount: 100, wageType: 'day' },
-      { name: '李四', phone: '13900139000', wageAmount: 120, wageType: 'day' },
+      { name: '张三', phone: '13800138000', wageAmount: 20000, wageType: 'day' },
+      { name: '李四', phone: '13900139000', wageAmount: 24000, wageType: 'day' },
     ],
     description: 'List of employees to create',
   })

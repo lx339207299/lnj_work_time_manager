@@ -7,6 +7,7 @@ import { ArrowRight } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { employeeService, Employee } from '../../../services/employeeService'
 import { request } from '../../../utils/request'
+import { yuanToFen, fenToYuanStr } from '../../../utils/money'
 import './index.scss'
 import { debug } from 'console'
 
@@ -61,7 +62,7 @@ function EmployeeEdit() {
         setPhone(emp.user?.phone || '')
         setRole(emp.role)
         setWageType(emp.wageType)
-        setWageAmount(emp.wageAmount)
+        setWageAmount(emp.wageAmount > 0 ? fenToYuanStr(emp.wageAmount) : 0)
         setBirthday(emp.user?.birthday || '')
       }
     } catch (error) {
@@ -80,7 +81,7 @@ function EmployeeEdit() {
       const data = {
         role: role as any,
         wageType: wageType as any,
-        wageAmount: Number(wageAmount),
+        wageAmount: yuanToFen(wageAmount),
       }
 
       if (id) {
