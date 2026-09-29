@@ -150,6 +150,7 @@ export class ProjectsService {
         name: m.member.user?.name || m.member.user?.phone,
         role: m.member.role, // Org role
         wageType: m.member.wageType,
+        wageAmount: m.member.wageAmount, // 单位：分；<=0 视为未设工资，小程序记工时需拦截
         avatar: m.member.user?.avatar || ''
     }));
   }

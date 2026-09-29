@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { Button, Cell, Dialog, Empty, Input, InputNumber, Picker, Popup, Radio, Skeleton } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import { projectService } from '../../../services/projectService'
 import { employeeService } from '../../../services/employeeService'
 import { yuanToFen, fenToYuanStr } from '../../../utils/money'
@@ -35,9 +35,15 @@ function ProjectFlow() {
   useEffect(() => {
     if (projectId) {
         fetchFlows()
-        fetchMembers()
     }
   }, [projectId])
+
+  // 每次页面回显都刷新成员（含 wageAmount）：跳去员工编辑设置完工资返回后，数据保持新鲜
+  useDidShow(() => {
+    if (projectId) {
+        fetchMembers()
+    }
+  })
 
   const fetchFlows = async () => {
     setLoading(true)
@@ -97,6 +103,20 @@ function ProjectFlow() {
       }
       if (category === '薪资' && !selectedUser) {
           Taro.showToast({ title: '请选择员工', icon: 'none' })
+          return
+      }
+      if (category === '薪资' && selectedUser && (!selectedUser.wageAmount || selectedUser.wageAmount <= 0)) {
+          // 未设工资：拦截提交，引导先去设置（数据来自 list-members 的 wageAmount 字段）
+          Taro.showModal({
+              title: '提示',
+              content: `${selectedUser.name} 尚未设置工资，请先设置工资后再记流水`,
+              confirmText: '去设置',
+              success: (res) => {
+                  if (res.confirm) {
+                      Taro.navigateTo({ url: `/pages/employee/edit/index?id=${selectedUser.id}` })
+                  }
+              }
+          })
           return
       }
 

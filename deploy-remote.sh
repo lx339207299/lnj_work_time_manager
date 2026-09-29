@@ -80,7 +80,7 @@ deploy_admin() {
   echo "🔨 本地安装依赖 + 类型检查 + vite 打包..."
   (cd admin && npm install --silent)
   (cd admin && npx tsc -b)
-  (cd admin && NODE_OPTIONS=--max-old-space-size=1024 npx vite build)
+  (cd admin && NODE_OPTIONS=--max-old-space-size=4096 npx vite build)
 
   echo "🐳 打包进 nginx 镜像 $PLATFORM ..."
   docker build $PLATFORM -f Dockerfile.serve -t "$IMAGE_ADMIN:latest" .

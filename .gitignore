@@ -9,3 +9,4 @@
 
 #小程序本地环境变量
 weapp/.env.development
+*.tsbuildinfo
