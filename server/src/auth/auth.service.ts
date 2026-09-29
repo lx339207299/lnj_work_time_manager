@@ -100,48 +100,6 @@ export class AuthService {
     };
   }
 
-  async loginOrRegister(loginDto: LoginDto) {
-    // For fixed verification code '123456', direct string comparison is sufficient.
-    // bcrypt.compare is for hashing passwords.
-    if (loginDto.code !== '123456') {
-      throw new Error('验证码错误');
-    }
-    const user = await this.usersService.findOne(loginDto.phone);
-    
-    // If user exists, try login
-    if (user) {
-        const userProfile = await this.getUserProfile(user.id as any);
-        const payload = { 
-          phone: user.phone, 
-          sub: user.id as any,
-        };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user: userProfile,
-            isNewUser: false
-        };
-    }
-
-    // If user does not exist, register
-    const newUser = await this.usersService.create({
-        phone: loginDto.phone,
-        name: '',
-        avatar: ''
-    } as any);
-
-    const userProfile = await this.getUserProfile(newUser.id as any);
-
-    const payload = { 
-      phone: newUser.phone, 
-      sub: newUser.id as any,
-    };
-    return {
-        access_token: this.jwtService.sign(payload),
-        user: userProfile,
-        isNewUser: true
-    };
-  }
-
   async register(registerDto: RegisterDto) {
     // Check if user exists
     const existing = await this.usersService.findOne(registerDto.phone);
