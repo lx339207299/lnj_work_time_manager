@@ -135,12 +135,17 @@ function ProjectMember() {
                                     <View className="name-row">
                                         <Text className="name">{mem.name}</Text>
                                         {(mem.role === 'owner' || mem.role === 'leader') && (
-                                            <Tag 
-                                                type={mem.role === 'owner' ? 'danger' : 'warning'} 
+                                            <Tag
+                                                type={mem.role === 'owner' ? 'danger' : 'warning'}
                                                 plain
                                                 style={{ marginLeft: 8 }}
                                             >
                                                 {mem.role === 'owner' ? '负责人' : '组长'}
+                                            </Tag>
+                                        )}
+                                        {mem.isCreator && (
+                                            <Tag type="primary" plain style={{ marginLeft: 8 }}>
+                                                创建人
                                             </Tag>
                                         )}
                                     </View>

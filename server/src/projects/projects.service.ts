@@ -172,14 +172,17 @@ export class ProjectsService {
 
   async getMembers(id: number) {
     const projectId = Number(id);
-    const memberships = await this.prisma.projectMember.findMany({
-      where: { projectId: projectId },
-      include: {
-        member: {
-            include: { user: true }
+    const [project, memberships] = await Promise.all([
+      this.prisma.project.findUnique({ where: { id: projectId }, select: { creatorId: true } }),
+      this.prisma.projectMember.findMany({
+        where: { projectId: projectId },
+        include: {
+          member: {
+              include: { user: true }
+          }
         }
-      }
-    });
+      }),
+    ]);
 
     return memberships.map(m => ({
         id: m.member.id,
@@ -187,7 +190,8 @@ export class ProjectsService {
         role: m.member.role, // Org role
         wageType: m.member.wageType,
         wageAmount: m.member.wageAmount, // 单位：分；<=0 视为未设工资，小程序记工时需拦截
-        avatar: m.member.user?.avatar || ''
+        avatar: m.member.user?.avatar || '',
+        isCreator: project?.creatorId != null && project.creatorId === m.member.userId,
     }));
   }
 
