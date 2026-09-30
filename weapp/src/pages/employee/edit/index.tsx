@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Cell, DatePicker, Dialog, Empty, Input, InputNumber, Picker } from '@nutui/nutui-react-taro'
+import { Button, Cell, Dialog, Empty, Input, InputNumber, Picker } from '@nutui/nutui-react-taro'
 import { ArrowRight } from '@nutui/icons-react-taro'
 import dayjs from 'dayjs'
 import { employeeService, Employee } from '../../../services/employeeService'
@@ -33,12 +33,10 @@ function EmployeeEdit() {
   const [role, setRole] = useState('member')
   const [wageType, setWageType] = useState('day')
   const [wageAmount, setWageAmount] = useState<string | number>(0)
-  const [birthday, setBirthday] = useState('')
 
   // UI State
   const [showRolePicker, setShowRolePicker] = useState(false)
   const [showWagePicker, setShowWagePicker] = useState(false)
-  const [showBirthdayPicker, setShowBirthdayPicker] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Manager Edit Mode Only
@@ -63,11 +61,33 @@ function EmployeeEdit() {
         // 月薪选项已下线，存量月薪员工回显时兜底为日薪
         setWageType(emp.wageType === 'month' ? 'day' : emp.wageType)
         setWageAmount(emp.wageAmount > 0 ? fenToYuanStr(emp.wageAmount) : 0)
-        setBirthday(emp.user?.birthday || '')
       }
     } catch (error) {
       Taro.showToast({ title: '获取员工信息失败', icon: 'error' })
     }
+  }
+
+  // 从手机通讯录选择联系人，自动填充姓名和手机号（基础库 2.8.0+）
+  const handleChooseContact = () => {
+    const wxApi = Taro as any
+    if (typeof wxApi.chooseContact !== 'function') {
+      Taro.showToast({ title: '当前微信版本不支持，请手动输入', icon: 'none' })
+      return
+    }
+    wxApi.chooseContact({
+      success: (res: any) => {
+        const rawPhone = res.phoneNumber || res.phoneNumberList?.[0] || ''
+        const cleaned = String(rawPhone).replace(/[\s-]/g, '')
+        if (cleaned) setPhone(cleaned)
+        if (res.displayName) setName(res.displayName)
+        if (!cleaned) {
+          Taro.showToast({ title: '该联系人没有手机号，请手动输入', icon: 'none' })
+        }
+      },
+      fail: () => {
+        Taro.showToast({ title: '未选择联系人', icon: 'none' })
+      }
+    })
   }
 
   const handleSave = async () => {
@@ -88,7 +108,7 @@ function EmployeeEdit() {
         await employeeService.updateEmployee(Number(id), data)
         Taro.showToast({ title: '更新成功', icon: 'success' })
       } else {
-        await employeeService.addEmployee({ ...data, phone, name, birthday })
+        await employeeService.addEmployee({ ...data, phone, name })
         Taro.showToast({ title: '添加成功', icon: 'success' })
       }
 
@@ -159,19 +179,24 @@ function EmployeeEdit() {
         <Cell.Group>
             {!id && (
                 <>
+                    <Cell
+                        title="从通讯录选择"
+                        extra={<Text style={{ color: '#1677ff' }}>点击选择联系人</Text>}
+                        onClick={handleChooseContact}
+                    />
                     <Cell title="姓名" extra={
-                        <Input 
+                        <Input
                             placeholder="请输入姓名"
-                            value={name} 
+                            value={name}
                             onChange={(val) => setName(val)}
                             align="right"
                             style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
                         />
                     } />
                     <Cell title="手机号" extra={
-                        <Input 
+                        <Input
                             placeholder="请输入手机号"
-                            value={phone} 
+                            value={phone}
                             onChange={(val) => setPhone(val)}
                             maxLength={11}
                             align="right"
@@ -179,16 +204,6 @@ function EmployeeEdit() {
                             style={{ border: 'none', padding: 0, textAlign: 'right', color: '#333' }}
                         />
                     } />
-                    <Cell 
-                        title="生日" 
-                        extra={
-                            <View style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Text style={{ color: birthday ? '#333' : '#999' }}>{birthday || '请选择'}</Text>
-                                <ArrowRight size={14} color="#999" />
-                            </View>
-                        }
-                        onClick={() => setShowBirthdayPicker(true)}
-                    />
                 </>
             )}
             {id && (
@@ -199,12 +214,6 @@ function EmployeeEdit() {
                     <Cell title="手机号" extra={
                         <Text style={{ color: '#999' }}>{phone || '待填写'}</Text>
                     } />
-                    <Cell 
-                        title="生日" 
-                        extra={
-                            <Text style={{ color: '#999' }}>{birthday || '未设置'}</Text>
-                        }
-                    />
                 </>
             )}
         </Cell.Group>
@@ -285,20 +294,6 @@ function EmployeeEdit() {
             setShowWagePicker(false)
         }}
         onClose={() => setShowWagePicker(false)}
-      />
-
-      {/* Birthday Picker */}
-      <DatePicker
-        visible={showBirthdayPicker}
-        title="选择生日"
-        type="date"
-        startDate={new Date(1900, 0, 1)}
-        endDate={new Date()}
-        onConfirm={(options, values) => {
-            setBirthday(values.join('-'))
-            setShowBirthdayPicker(false)
-        }}
-        onClose={() => setShowBirthdayPicker(false)}
       />
 
       <Dialog id="transfer" />
