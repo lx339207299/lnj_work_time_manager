@@ -26,7 +26,7 @@ export class OrganizationsService {
           orgId: org.id,
           userId: userId,
           role: 'owner',
-          wageType: 'month', // Owner salary default: month
+          wageType: 'day',   // Owner salary default: day（月薪选项已下线）
           wageAmount: 0,     // Owner salary default: 0
           status: 'active',
         },

@@ -20,7 +20,6 @@ const roleOptions = [
 
 const wageTypeOptions = [
   { text: '日薪 (按天)', value: 'day' },
-  { text: '月薪 (按月)', value: 'month' },
   { text: '时薪 (按时)', value: 'hour' },
 ]
 
@@ -61,7 +60,8 @@ function EmployeeEdit() {
         setName(emp.user?.name || '')
         setPhone(emp.user?.phone || '')
         setRole(emp.role)
-        setWageType(emp.wageType)
+        // 月薪选项已下线，存量月薪员工回显时兜底为日薪
+        setWageType(emp.wageType === 'month' ? 'day' : emp.wageType)
         setWageAmount(emp.wageAmount > 0 ? fenToYuanStr(emp.wageAmount) : 0)
         setBirthday(emp.user?.birthday || '')
       }

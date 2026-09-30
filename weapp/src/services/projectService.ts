@@ -1,11 +1,25 @@
 import { request } from '../utils/request'
 import { Project, CreateProjectData, UpdateProjectData, ProjectMember, AddProjectMemberData } from '../../types/global'
 
+export interface ProjectListResult {
+  list: Project[]
+  total: number
+  hasMore: boolean
+}
+
 export const projectService = {
-  // Get project list for current org
-  getProjects: async (): Promise<Project[]> => {
-    const { data } = (await request({ url: '/projects/list', method: 'POST' })) as any
-    return data
+  // Get project list for current org (paged)
+  getProjects: async (page = 1, pageSize = 20): Promise<ProjectListResult> => {
+    const res = (await request({ url: '/projects/list', method: 'POST', data: { page, pageSize } })) as any
+    const data = res?.data
+    const list: Project[] = Array.isArray(data) ? data : []
+    const total = res?.pagination?.total
+    return {
+      list,
+      total: total ?? list.length,
+      // 旧后端无 pagination 时返回全量数据，视为没有更多
+      hasMore: total !== undefined ? page * pageSize < total : false,
+    }
   },
 
   getProjectDetail: async (projectId: number): Promise<Project> => {

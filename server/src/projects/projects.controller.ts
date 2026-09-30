@@ -6,6 +6,7 @@ import { AddProjectMembersDto } from './dto/add-project-members.dto';
 import { CreateProjectFlowDto } from './dto/create-project-flow.dto';
 import { ProjectIdDto } from './dto/project-id.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ListProjectsDto } from './dto/list-projects.dto';
 import { ProjectResponseDto, ProjectMemberDto, ProjectFlowDto } from './dto/project-response.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiHeader, ApiResponse } from '@nestjs/swagger';
@@ -22,14 +23,15 @@ export class ProjectsController {
   @ApiResponse({ status: 201, type: ProjectResponseDto })
   create(@Body() createProjectDto: CreateProjectDto, @Req() req: any) {
     createProjectDto.orgId = req.user.orgId;
+    createProjectDto.creatorId = req.user.sub;
     return this.projectsService.create(createProjectDto);
   }
 
   @Post('list')
   @ApiOperation({ summary: 'Get projects list' })
   @ApiResponse({ status: 200, type: [ProjectResponseDto] })
-  findAll(@Req() req: any) {
-    return this.projectsService.findAll(req.user.orgId, req.user);
+  findAll(@Body() body: ListProjectsDto, @Req() req: any) {
+    return this.projectsService.findAll(req.user.orgId, req.user, body ?? new ListProjectsDto());
   }
 
   @Post('detail')
@@ -71,8 +73,8 @@ export class ProjectsController {
   @Post('delete')
   @ApiOperation({ summary: 'Delete project' })
   @ApiResponse({ status: 200, type: ProjectResponseDto })
-  remove(@Body() body: ProjectIdDto) {
-    return this.projectsService.remove(body.id);
+  remove(@Body() body: ProjectIdDto, @Req() req: any) {
+    return this.projectsService.remove(body.id, req.user);
   }
 
   @Post('list-flows')

@@ -36,6 +36,7 @@ model User {
   memberships OrganizationMember[]
   invitations Invitation[]
   currentOrg  Organization?        @relation("CurrentOrg", fields: [currentOrgId], references: [id])
+  createdProjects Project[]        @relation("ProjectCreator")
 
   // 后台管理扩展字段
   email      String? @unique
@@ -122,6 +123,8 @@ model Project {
   id           Int          @id @default(autoincrement())
   orgId        Int
   organization Organization @relation(fields: [orgId], references: [id])
+  creatorId    Int?
+  creator      User?        @relation("ProjectCreator", fields: [creatorId], references: [id])
 
   name        String
   description String?
