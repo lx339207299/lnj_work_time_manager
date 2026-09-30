@@ -62,8 +62,10 @@ function ProjectDetail() {
 
   // More Action Sheet
   const [moreActionVisible, setMoreActionVisible] = useState(false)
+  const [deleteProjectDialogVisible, setDeleteProjectDialogVisible] = useState(false)
   const moreActionOptions = [
-    { name: '项目流水', key: 'flow' },
+    { name: '项目流水', key: 'flow', danger: false },
+    ...(currentProject?.role === 'owner' ? [{ name: '删除项目', key: 'delete', danger: true }] : []),
     // { name: '刷新', key: 'refresh' }
   ]
 
@@ -231,6 +233,22 @@ function ProjectDetail() {
       Taro.navigateTo({
         url: `/pages/project/flow/index?projectId=${currentProject.id}&projectName=${encodeURIComponent(currentProject.name)}`
       })
+    } else if (item.key === 'delete') {
+      setDeleteProjectDialogVisible(true)
+    }
+  }
+
+  const handleDeleteProject = async () => {
+    setDeleteProjectDialogVisible(false)
+    if (!currentProject) return
+    try {
+      await projectService.deleteProject(currentProject.id)
+      // 通知列表页全量刷新
+      Taro.setStorageSync('project_list_dirty', '1')
+      Taro.showToast({ title: '项目已删除', icon: 'success' })
+      setTimeout(() => Taro.navigateBack(), 800)
+    } catch (err: any) {
+      Taro.showToast({ title: err.message || '删除失败', icon: 'none' })
     }
   }
 
@@ -414,6 +432,19 @@ function ProjectDetail() {
         onSelect={handleMoreActionSelect}
         onCancel={() => setMoreActionVisible(false)}
       />
+
+      {/* Delete Project Confirm Dialog */}
+      <Dialog
+        visible={deleteProjectDialogVisible}
+        title="删除项目"
+        onConfirm={handleDeleteProject}
+        onCancel={() => setDeleteProjectDialogVisible(false)}
+      >
+        <View style={{ padding: '20px 16px', textAlign: 'center' }}>
+            确定删除项目“{currentProject?.name}”吗？
+            {'\n'}该项目下的全部工时记录、成员和流水将被一并删除，且不可恢复。
+        </View>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog

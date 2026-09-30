@@ -7,6 +7,11 @@ export class CreateProjectDto {
   @IsNumber()
   orgId: number;
 
+  // @ApiProperty({ description: 'Creator user ID', required: false, hidden: true })
+  @IsOptional()
+  @IsNumber()
+  creatorId?: number;
+
   @ApiProperty({ example: 'Project Name' })
   @IsString()
   @IsNotEmpty()

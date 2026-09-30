@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View } from '@tarojs/components'
 import { Button, Dialog, Empty, Skeleton, Tag } from '@nutui/nutui-react-taro'
 import { Plus, Horizontal } from '@nutui/icons-react-taro'
-import Taro, { useDidShow, useLoad, usePullDownRefresh } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad, usePullDownRefresh, useReachBottom } from '@tarojs/taro'
 import classNames from 'classnames'
 import { projectService } from '../../services/projectService'
 import { invitationService } from '../../services/invitationService'
@@ -12,24 +12,49 @@ import { request } from '../../utils/request'
 import type { Project } from '../../../types/global'
 import { userService } from '../../services/userService'
 
+const PAGE_SIZE = 20
+
 function ProjectList() {
   const [loading, setLoading] = useState(false)
   const [projectList, setProjectList] = useState<any[]>([])
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [token, setToken] = useState<string>('')
   const [currentOrgId, setCurrentOrgId] = useState<number | null>(null)
-  
+
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await projectService.getProjects()
-      // Ensure res is an array
-      setProjectList(Array.isArray(res) ? res : [])
+      const res = await projectService.getProjects(1, PAGE_SIZE)
+      setProjectList(res.list)
+      setPage(1)
+      setHasMore(res.hasMore)
     } catch (error) {
       setProjectList([])
+      setHasMore(false)
     } finally {
       setLoading(false)
     }
   }
+
+  const loadMore = async () => {
+    if (loading || loadingMore || !hasMore) return
+    try {
+      setLoadingMore(true)
+      const nextPage = page + 1
+      const res = await projectService.getProjects(nextPage, PAGE_SIZE)
+      setProjectList(prev => [...prev, ...res.list])
+      setPage(nextPage)
+      setHasMore(res.hasMore)
+    } catch (error) {
+      // 加载失败保留已有数据，下次触底可重试
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  useReachBottom(loadMore)
 
   const dealInvitation = async (currentToken: string) => {
     if (currentToken) {
@@ -130,6 +155,7 @@ function ProjectList() {
               setCurrentOrgId(newOrgId)
               if (!newOrgId) {
                 setProjectList([])
+                setHasMore(false)
               }
               fetchData()
             }
@@ -208,7 +234,8 @@ function ProjectList() {
       <View className="list-container">
         {loading ? renderSkeleton() : (
           projectList.length > 0 ? (
-            projectList.map(project => (
+            <>
+              {projectList.map(project => (
               <View 
                 key={project.id} 
                 className="project-card"
@@ -244,7 +271,11 @@ function ProjectList() {
                   </View>
                 </View>
               </View>
-            ))
+              ))}
+              <View className="list-footer">
+                {loadingMore ? '加载中...' : hasMore ? '上拉加载更多' : '没有更多了'}
+              </View>
+            </>
           ) : (
             <Empty 
                 description={token ? "暂无项目" : "登录后管理项目"} 

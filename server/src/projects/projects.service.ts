@@ -1,9 +1,11 @@
 
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CustomResponse } from '../common/responses/custom.response';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMembersDto } from './dto/add-project-members.dto';
 import { CreateProjectFlowDto } from './dto/create-project-flow.dto';
+import { ListProjectsDto } from './dto/list-projects.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -16,87 +18,121 @@ export class ProjectsService {
         description: createProjectDto.description,
         organization: {
             connect: { id: createProjectDto.orgId }
-        }
+        },
+        ...(createProjectDto.creatorId
+          ? { creator: { connect: { id: createProjectDto.creatorId } } }
+          : {}),
       },
     });
   }
 
-  async findAll(orgId: number | null, user: any) {
+  async findAll(orgId: number | null, user: any, dto: ListProjectsDto = new ListProjectsDto()) {
     if (!orgId) return [];
-    const projects = await this.prisma.project.findMany({
-      where: { orgId },
-      include: {
-        projectMembers: true,
-        workRecords: true,
-      },
-    });
+    const page = dto.page ?? 1;
+    const pageSize = dto.pageSize ?? 20;
+    // 未传分页参数时保持旧行为（全量返回），兼容未升级的旧客户端
+    const paged = dto.page !== undefined || dto.pageSize !== undefined;
 
-    // Get current user's organization member record to determine their role
-    const userMember = await this.prisma.organizationMember.findFirst({
-      where: {
-        orgId: orgId,
-        userId: user.sub
-      }
-    });
+    const where = { orgId };
+    // 工时聚合下推到数据库，避免全量加载 workRecords 到内存 reduce
+    const [projects, total, hoursAgg, daysAgg, userMember] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        orderBy: { id: 'asc' },
+        include: { _count: { select: { projectMembers: true } } },
+        ...(paged ? { skip: (page - 1) * pageSize, take: pageSize } : {}),
+      }),
+      this.prisma.project.count({ where }),
+      this.prisma.workRecord.groupBy({
+        by: ['projectId'],
+        where: { project: { orgId }, wageTypeSnapshot: 'hour' },
+        _sum: { duration: true },
+      }),
+      this.prisma.workRecord.groupBy({
+        by: ['projectId'],
+        where: { project: { orgId }, wageTypeSnapshot: { in: ['day', 'month'] } },
+        _sum: { duration: true },
+      }),
+      this.prisma.organizationMember.findFirst({
+        where: { orgId, userId: user.sub },
+      }),
+    ]);
+
+    // 当前用户作为项目负责人的项目（用于 role 判定）
+    const projectIds = projects.map((p: any) => p.id);
+    const ownerMemberships = projectIds.length
+      ? await this.prisma.projectMember.findMany({
+          where: { projectId: { in: projectIds }, role: 'owner', member: { userId: user.sub } },
+          select: { projectId: true },
+        })
+      : [];
+    const ownerProjectIds = new Set(ownerMemberships.map((m: any) => m.projectId));
+
+    const hoursMap = new Map(hoursAgg.map((a: any) => [a.projectId, a._sum.duration ?? 0]));
+    const daysMap = new Map(daysAgg.map((a: any) => [a.projectId, a._sum.duration ?? 0]));
 
     // Map to match frontend Project interface with stats
-    return projects.map((p: any) => {
-      // Check if current user is project owner (created the project)
-      const isOwner = p.projectMembers.some((pm: any) => 
-        pm.userId === user.sub && pm.role === 'owner'
-      );
-      
-      const hoursRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'hour');
-      const daysRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'day' || r.wageTypeSnapshot === 'month');
+    const list = projects.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      role: ownerProjectIds.has(p.id) ? 'owner' : (userMember?.role || 'member'),
+      memberCount: p._count.projectMembers,
+      totalHours: hoursMap.get(p.id) ?? 0,
+      totalDaysHours: daysMap.get(p.id) ?? 0,
+    }));
 
-      return {
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
-        memberCount: p.projectMembers.length,
-        totalHours: hoursRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-        totalDaysHours: daysRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-      };
-    });
+    // data 保持数组格式（兼容旧客户端），分页信息放在 pagination
+    return paged
+      ? CustomResponse.success(list, {}, { total, pageSize, currentPage: page })
+      : CustomResponse.success(list);
   }
 
   async findOne(id: number, user: any) {
     const p: any = await this.prisma.project.findUnique({
       where: { id },
       include: {
-        projectMembers: true,
-        workRecords: true,
+        projectMembers: {
+          include: { member: { include: { user: { select: { name: true } } } } },
+        },
+        creator: { select: { name: true } },
       },
     });
 
     if (!p) return null;
 
     // Get current user's organization member record
-    const userMember = await this.prisma.organizationMember.findFirst({
-      where: {
-        orgId: p.orgId,
-        userId: user.sub
-      }
-    });
+    const [hoursAgg, daysAgg, userMember] = await Promise.all([
+      this.prisma.workRecord.aggregate({
+        where: { projectId: id, wageTypeSnapshot: 'hour' },
+        _sum: { duration: true },
+      }),
+      this.prisma.workRecord.aggregate({
+        where: { projectId: id, wageTypeSnapshot: { in: ['day', 'month'] } },
+        _sum: { duration: true },
+      }),
+      this.prisma.organizationMember.findFirst({
+        where: {
+          orgId: p.orgId,
+          userId: user.sub
+        }
+      }),
+    ]);
 
     // Check if current user is project owner
-    const isOwner = p.projectMembers.some((pm: any) => 
-      pm.userId === user.sub && pm.role === 'owner'
+    const isOwner = p.projectMembers.some((pm: any) =>
+      pm.member?.userId === user.sub && pm.role === 'owner'
     );
-
-    const hoursRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'hour');
-    const daysRecords = p.workRecords.filter((r: any) => r.wageTypeSnapshot === 'day' || r.wageTypeSnapshot === 'month');
 
     return {
       id: p.id,
       name: p.name,
       description: p.description,
-      ownerName: p.projectMembers.find((pm: any) => pm.role === 'owner')?.member?.user?.name || '',
+      ownerName: p.creator?.name || '',
       role: isOwner ? 'owner' : (userMember?.role || 'member'), // Determine role based on org membership
       memberCount: p.projectMembers.length,
-      totalHours: hoursRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
-      totalDaysHours: daysRecords.reduce((sum: number, r: any) => sum + r.duration, 0),
+      totalHours: hoursAgg._sum.duration ?? 0,
+      totalDaysHours: daysAgg._sum.duration ?? 0,
     };
   }
 
@@ -184,9 +220,30 @@ export class ProjectsService {
     });
   }
 
-  async remove(id: number) {
-    return this.prisma.project.delete({
-      where: { id },
+  async remove(id: number, user: any) {
+    const project = await this.prisma.project.findUnique({ where: { id } });
+    if (!project) throw new NotFoundException('Project not found');
+
+    // 仅组织负责人（或平台超管）可删除项目
+    if (user.systemRole !== 'admin') {
+      if (project.orgId !== user.orgId) {
+        throw new ForbiddenException('Project does not belong to your current organization');
+      }
+      const currentMember = await this.prisma.organizationMember.findFirst({
+        where: { orgId: project.orgId, userId: user.sub }
+      });
+      if (!currentMember || currentMember.role !== 'owner') {
+        throw new ForbiddenException('Only organization owner can delete project');
+      }
+    }
+
+    // 事务内级联清理，防止表间数据脱钩
+    return this.prisma.$transaction(async (tx: any) => {
+      await tx.workRecord.deleteMany({ where: { projectId: id } });
+      await tx.projectMember.deleteMany({ where: { projectId: id } });
+      await tx.projectFlow.deleteMany({ where: { projectId: id } });
+      await tx.workSummaryDaily.deleteMany({ where: { projectId: id } });
+      return tx.project.delete({ where: { id } });
     });
   }
 
