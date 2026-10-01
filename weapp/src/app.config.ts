@@ -15,6 +15,7 @@ export default defineAppConfig({
     'pages/employee/batch-add/index',
     'pages/org/list/index',
     'pages/org/edit/index',
+    'pages/org/flow/index',
     'pages/mine/profile/index',
     'pages/mine/change-password/index',
     'pages/invite/index',

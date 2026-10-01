@@ -1,41 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
-import { Button, Dialog, Empty, Input, InputNumber, Popup, Radio, Skeleton } from '@nutui/nutui-react-taro'
+import { Button, Empty, Input, Picker, Popup, Skeleton } from '@nutui/nutui-react-taro'
 import { Plus } from '@nutui/icons-react-taro'
-import Taro, { useRouter } from '@tarojs/taro'
-import { projectService } from '../../../services/projectService'
+import Taro from '@tarojs/taro'
+import dayjs from 'dayjs'
+import { orgFlowService, OrgFlow } from '../../../services/orgFlowService'
+import { employeeService } from '../../../services/employeeService'
 import { yuanToFen, fenToYuanStr } from '../../../utils/money'
 import './index.scss'
 
-const EXPENSE_TYPES = ['人情', '福利', '其他']
-const INCOME_TYPES = ['收款', '其他']
+const EXPENSE_TYPES = ['工资', '设备', '其他']
+const INCOME_TYPES = ['其他']
 
-function ProjectFlow() {
-  const router = useRouter()
-  const projectId = Number(router.params.projectId || '-1')
-  const projectName = router.params.projectName ? decodeURIComponent(router.params.projectName) : '项目'
-
-  const [flows, setFlows] = useState<any[]>([])
+function OrgFlowPage() {
+  const [flows, setFlows] = useState<OrgFlow[]>([])
   const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState({ income: 0, expense: 0 })
-  
+
   // Add Flow State
   const [addVisible, setAddVisible] = useState(false)
   const [flowType, setFlowType] = useState<'expense' | 'income'>('expense') // 'expense' | 'income'
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
   const [remark, setRemark] = useState('')
+  const [selectedUser, setSelectedUser] = useState<{ id: number; name: string } | null>(null)
+
+  // Employee Selection
+  const [showMemberSelect, setShowMemberSelect] = useState(false)
+  const [members, setMembers] = useState<{ id: number; name: string }[]>([])
 
   useEffect(() => {
-    if (projectId) {
-        fetchFlows()
-    }
-  }, [projectId])
+    Taro.setNavigationBarTitle({ title: '组织流水' })
+    fetchFlows()
+  }, [])
 
   const fetchFlows = async () => {
     setLoading(true)
     try {
-      const list = await projectService.getProjectFlows(projectId)
+      const list = await orgFlowService.listOrgFlows()
       setFlows(list)
 
       // Calculate stats
@@ -48,18 +50,31 @@ function ProjectFlow() {
     }
   }
 
+  const fetchMembers = async () => {
+      try {
+          const list = await employeeService.getEmployees(true)
+          setMembers(list.map(m => ({ id: m.id, name: m.user?.name || m.user?.phone || `成员${m.id}` })))
+      } catch (error) {
+      }
+  }
+
   const handleAddClick = () => {
       // Reset form
       setFlowType('expense')
       setAmount('')
       setCategory('')
       setRemark('')
+      setSelectedUser(null)
       setAddVisible(true)
+      if (members.length === 0) {
+          fetchMembers()
+      }
   }
 
   const handleTypeChange = (type: 'expense' | 'income') => {
       setFlowType(type)
       setCategory('') // Reset category when type changes
+      setSelectedUser(null)
   }
 
   const handleConfirmAdd = async () => {
@@ -71,25 +86,47 @@ function ProjectFlow() {
           Taro.showToast({ title: '请选择类型', icon: 'none' })
           return
       }
+      if (category === '工资' && !selectedUser) {
+          Taro.showToast({ title: '请选择员工', icon: 'none' })
+          return
+      }
 
       try {
-          await projectService.addProjectFlow(projectId, {
+          await orgFlowService.addOrgFlow({
               type: flowType,
               amount: yuanToFen(amount),
               category,
               remark,
-              date: new Date().toISOString().split('T')[0]
+              relatedMemberId: selectedUser?.id,
+              date: dayjs().format('YYYY-MM-DD')
           })
           Taro.showToast({ title: '添加成功', icon: 'success' })
           setAddVisible(false)
           fetchFlows()
       } catch (error) {
-          Taro.showToast({ title: '添加失败', icon: 'error' })
+          Taro.showToast({ title: (error as any)?.message || '添加失败', icon: 'none' })
       }
   }
 
+  const handleItemClick = (item: OrgFlow) => {
+      Taro.showModal({
+          title: '删除流水',
+          content: `确定删除「${item.category}${item.relatedUserName ? ` - ${item.relatedUserName}` : ''}」这笔流水吗？`,
+          success: async (res) => {
+              if (!res.confirm) return
+              try {
+                  await orgFlowService.deleteOrgFlow(item.id)
+                  Taro.showToast({ title: '已删除', icon: 'success' })
+                  fetchFlows()
+              } catch (error) {
+                  Taro.showToast({ title: (error as any)?.message || '删除失败', icon: 'none' })
+              }
+          }
+      })
+  }
+
   return (
-    <View className="project-flow-page">
+    <View className="org-flow-page">
       {/* Stats Header */}
       <View className="stats-header">
           <View className="stat-card">
@@ -110,9 +147,9 @@ function ProjectFlow() {
           ) : (
               flows.length > 0 ? (
                   flows.map(item => (
-                      <View key={item.id} className="flow-item">
+                      <View key={item.id} className="flow-item" onClick={() => handleItemClick(item)}>
                           <View className="info">
-                              <Text className="title">{item.category} {item.relatedUser ? `- ${item.relatedUser}` : ''}</Text>
+                              <Text className="title">{item.category} {item.relatedUserName ? `- ${item.relatedUserName}` : ''}</Text>
                               <View className="meta">
                                   <Text>{item.date}</Text>
                                   {item.remark && <Text>| {item.remark}</Text>}
@@ -135,9 +172,9 @@ function ProjectFlow() {
       </View>
 
       {/* Add Flow Popup */}
-      <Popup 
-        visible={addVisible} 
-        position="bottom" 
+      <Popup
+        visible={addVisible}
+        position="bottom"
         round
         onClose={() => setAddVisible(false)}
       >
@@ -146,12 +183,12 @@ function ProjectFlow() {
             <ScrollView scrollY className="popup-content">
                 <View className="form-item">
                     <View className="type-tags" style={{ justifyContent: 'center', marginBottom: 20 }}>
-                        <View 
+                        <View
                             className={`tag ${flowType === 'expense' ? 'active' : ''}`}
                             onClick={() => handleTypeChange('expense')}
                             style={{ flex: 1, textAlign: 'center' }}
                         >支出</View>
-                        <View 
+                        <View
                             className={`tag ${flowType === 'income' ? 'active' : ''}`}
                             onClick={() => handleTypeChange('income')}
                             style={{ flex: 1, textAlign: 'center' }}
@@ -161,9 +198,9 @@ function ProjectFlow() {
 
                 <View className="form-item">
                     <Text className="label">金额</Text>
-                    <Input 
-                        type="number" 
-                        placeholder="0.00" 
+                    <Input
+                        type="number"
+                        placeholder="0.00"
                         value={amount}
                         onChange={(val) => setAmount(val)}
                     />
@@ -184,6 +221,20 @@ function ProjectFlow() {
                     </View>
                 </View>
 
+                {category === '工资' && (
+                    <View className="form-item">
+                        <Text className="label">关联员工</Text>
+                        <View
+                            className="member-select"
+                            onClick={() => setShowMemberSelect(true)}
+                        >
+                            <Text className={selectedUser ? 'member-name' : 'member-placeholder'}>
+                                {selectedUser ? selectedUser.name : '请选择员工'}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
                 <View className="form-item">
                     <Text className="label">备注</Text>
                     <Input
@@ -198,8 +249,19 @@ function ProjectFlow() {
             </View>
         </View>
       </Popup>
+
+      {/* Member Selection Picker */}
+      <Picker
+        visible={showMemberSelect}
+        options={members.map(m => ({ text: m.name, value: m.id }))}
+        onConfirm={(options) => {
+            setSelectedUser({ id: options[0].value as number, name: options[0].text as string })
+            setShowMemberSelect(false)
+        }}
+        onCancel={() => setShowMemberSelect(false)}
+      />
     </View>
   )
 }
 
-export default ProjectFlow
+export default OrgFlowPage

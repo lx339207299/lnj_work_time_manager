@@ -13,9 +13,10 @@ import { MailModule } from './mail/mail.module';
 import { StaticPagesModule } from './static-pages/static-pages.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SystemLogsModule } from './system-logs/system-logs.module';
+import { OrgFlowsModule } from './org-flows/org-flows.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule, StaticPagesModule, DashboardModule, SystemLogsModule],
+  imports: [PrismaModule, UsersModule, OrganizationsModule, ProjectsModule, EmployeesModule, WorkRecordsModule, AuthModule, InvitationsModule, MailModule, StaticPagesModule, DashboardModule, SystemLogsModule, OrgFlowsModule],
   controllers: [AppController],
   providers: [AppService],
 })
