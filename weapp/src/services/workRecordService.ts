@@ -88,6 +88,7 @@ export const workRecordService = {
   batchAddWorkRecords: async (data: {
       projectId: string | number
       date: string
+      content?: string
       records: { memberId: number; duration: number }[]
   }): Promise<{ records?: unknown[]; createdCount?: number; updatedCount?: number }> => {
       const { data: result } = (await request({ url: '/work-records/batch', method: 'POST', data })) as any

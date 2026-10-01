@@ -30,6 +30,8 @@ function WorkHour() {
   const [selectedDate, setSelectedDate] = useState(date || dayjs().format('YYYY-MM-DD'))
   const [submitting, setSubmitting] = useState(false)
   const [quickFillVersion, setQuickFillVersion] = useState(0)
+  // 批次备注：随本批所有记录提交；换日期时随已有记录重新预填
+  const [remark, setRemark] = useState('')
   // 按天唯一：当天已有工时记录（key 为 memberId），预填并显示"已记录"
   const [existingByMember, setExistingByMember] = useState<Record<number, any>>({})
   // 用户手动改过工时的成员，异步回填不覆盖
@@ -90,8 +92,11 @@ function WorkHour() {
       const map: Record<number, any> = {}
       list.forEach((r: any) => { map[r.userId] = r })
       setExistingByMember(map)
+      // 备注预填：取当天第一条已有记录的备注（无则清空），换日期时随新日期重置
+      setRemark(list.find((r: any) => r.content)?.content || '')
     } catch (error) {
       setExistingByMember({})
+      setRemark('')
     }
   }
 
@@ -170,6 +175,7 @@ function WorkHour() {
         const res = await workRecordService.batchAddWorkRecords({
             projectId: projectId || '',
             date: selectedDate,
+            content: remark,
             records
         })
 
@@ -295,6 +301,20 @@ function WorkHour() {
                 </View>
             )})}
         </View>
+      </View>
+
+      {/* Remark */}
+      <View className="section-card remark-card">
+        <View className="card-header">
+            <Text className="title">备注</Text>
+        </View>
+        <TextArea
+            value={remark}
+            onChange={(val) => setRemark(val)}
+            placeholder="请输入备注信息（选填）"
+            maxLength={100}
+            rows={2}
+        />
       </View>
 
       <View className="footer-action">

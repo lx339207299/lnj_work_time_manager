@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsArray, ValidateNested, IsNotEmpty } from 'class-validator';
+import { IsNumber, IsString, IsArray, ValidateNested, IsNotEmpty, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class WorkRecordItemDto {
@@ -24,6 +24,11 @@ export class BatchCreateWorkRecordDto {
   @IsString()
   @IsNotEmpty()
   date: string;
+
+  @ApiProperty({ example: '加班到晚上10点', required: false, description: '批次备注，写入本批每条记录' })
+  @IsOptional()
+  @IsString()
+  content?: string;
 
   @ApiProperty({ type: [WorkRecordItemDto] })
   @IsArray()

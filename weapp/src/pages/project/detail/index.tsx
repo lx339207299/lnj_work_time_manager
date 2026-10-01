@@ -285,6 +285,9 @@ function ProjectDetail() {
     { name: '删除记录', key: 'delete', color: '#fa2c19' }
   ]
 
+  // 备注显示：后端已把批次备注同步到当天全部记录（当天只有一份备注），仅在其中一条记录卡片上显示一次
+  const remarkRecord = records.find(r => r.content)
+
   return (
     <View className="project-detail-page">
       {/* Header Section */}
@@ -389,17 +392,18 @@ function ProjectDetail() {
                     </View>
                     <View className="duration">
                     <Text className="num">
-                        {(record.wageType === 'day' || record.wageType === 'month') 
-                            ? record.duration / 8 
+                        {(record.wageType === 'day' || record.wageType === 'month')
+                            ? record.duration / 8
                             : record.duration}
                     </Text>
                     <Text className="unit">
-                        {(record.wageType === 'day' || record.wageType === 'month') 
-                            ? '天' 
+                        {(record.wageType === 'day' || record.wageType === 'month')
+                            ? '天'
                             : '小时'}
                     </Text>
                     </View>
                 </View>
+                {record.id === remarkRecord?.id && <Text className="record-content">备注：{remarkRecord.content}</Text>}
                 </View>
             ))}
             </View>
