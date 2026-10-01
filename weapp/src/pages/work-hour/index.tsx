@@ -266,16 +266,17 @@ function WorkHour() {
                                         // max={member.wageType === 'day' ? 3 : 24}
                                         step={member.wageType === 'hour' ? 1 : 0.1}
                                         digits={1}
-                                        formatter={(val) => String(Number(val))}
+                                        formatter={(val) => String(Math.round(Number(val) * 10) / 10)}
                                         onChange={(val) => {
                                             const num = Number(val)
                                             // 日薪按 0.1 天校验，时薪保持 0.5 小时；判 0.1 倍数不能用 num % 0.1（浮点误差，如 0.3 % 0.1 ≠ 0）
                                             const valid = member.wageType === 'hour'
                                                 ? num % 0.5 === 0
-                                                : Math.round(num * 10) / 10 === num
+                                                : Math.abs(num * 10 - Math.round(num * 10)) < 1e-9
                                             if (valid) {
                                                 dirtyRef.current.add(member.id)
-                                                setWorkHours(prev => ({ ...prev, [member.id]: num }))
+                                                // 规范化到 0.1，消除加减号产生的浮点尾差（如 0.9 - 0.1 = 0.8000000000000001）
+                                                setWorkHours(prev => ({ ...prev, [member.id]: member.wageType === 'hour' ? num : Math.round(num * 10) / 10 }))
                                             } else {
                                                 Taro.showToast({ title: member.wageType === 'hour' ? '只能输入整数或x.5' : '只能输入0.1的倍数', icon: 'none' })
                                             }

@@ -462,7 +462,10 @@ function ProjectDetail() {
                 max={currentRecord?.wageType === 'hour' ? 24 : 3}
                 step={currentRecord?.wageType === 'hour' ? 0.5 : 0.1}
                 digits={1}
-                onChange={(val) => setEditDuration(Number(val))}
+                onChange={(val) => {
+                    // 规范化到 0.1，消除加减号产生的浮点尾差（如 0.9 - 0.1 = 0.8000000000000001）
+                    setEditDuration(Math.round(Number(val) * 10) / 10)
+                }}
             />
             <Text style={{ marginLeft: '8px' }}>{currentRecord?.wageType === 'hour' ? '小时' : '天'}</Text>
         </View>
