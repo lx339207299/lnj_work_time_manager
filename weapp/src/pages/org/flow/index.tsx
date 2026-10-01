@@ -30,7 +30,7 @@ function OrgFlowPage() {
   const [members, setMembers] = useState<{ id: number; name: string }[]>([])
 
   useEffect(() => {
-    Taro.setNavigationBarTitle({ title: '组织流水' })
+    Taro.setNavigationBarTitle({ title: '流水管理' })
     fetchFlows()
   }, [])
 

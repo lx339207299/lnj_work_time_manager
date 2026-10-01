@@ -168,7 +168,7 @@ function Mine() {
             /* Manager View */
             <>
                 <Cell
-                    title="组织流水"
+                    title="流水管理"
                     align="center"
                     extra={<ArrowRight size={12} />}
                     clickable
