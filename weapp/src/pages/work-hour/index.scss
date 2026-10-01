@@ -217,13 +217,11 @@
             }
         }
 
-        textarea {
-            font-size: 14px;
+        // NutUI TextArea 外层默认 padding 10px 25px，导致输入框比标题缩进；归零后与标题左右齐平
+        .nut-textarea {
+            padding: 8px;
             background: #f9f9f9;
             border-radius: 6px;
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
         }
     }
 

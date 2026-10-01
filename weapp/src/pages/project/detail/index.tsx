@@ -285,7 +285,7 @@ function ProjectDetail() {
     { name: '删除记录', key: 'delete', color: '#fa2c19' }
   ]
 
-  // 备注显示：后端已把批次备注同步到当天全部记录（当天只有一份备注），仅在其中一条记录卡片上显示一次
+  // 当天备注：后端已把批次备注同步到当天全部记录（当天只有一份备注），单独展示在用工记录列表下方
   const remarkRecord = records.find(r => r.content)
 
   return (
@@ -403,13 +403,20 @@ function ProjectDetail() {
                     </Text>
                     </View>
                 </View>
-                {record.id === remarkRecord?.id && <Text className="record-content">备注：{remarkRecord.content}</Text>}
                 </View>
             ))}
             </View>
         ) : (
             <Empty description="暂无用工记录" imageSize={80} />
         )
+        )}
+
+        {/* 当天备注：单独一个模块，展示在用工记录列表下方 */}
+        {remarkRecord && (
+          <View className="remark-section">
+            <View className="section-title">备注</View>
+            <View className="remark-content">{remarkRecord.content}</View>
+          </View>
         )}
       </View>
 
