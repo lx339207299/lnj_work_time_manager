@@ -157,6 +157,17 @@
                                 border: 1px solid rgba(25, 137, 250, 0.2);
                             }
                         }
+
+                        // 当天已有工时记录的标记
+                        .recorded-tag {
+                            font-size: 11px;
+                            color: #fa8c16;
+                            background: rgba(250, 140, 22, 0.1);
+                            border: 1px solid rgba(250, 140, 22, 0.25);
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            margin-left: 5px;
+                        }
                     }
                 }
 

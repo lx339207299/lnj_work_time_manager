@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Calendar, Cell, Checkbox, Dialog, Empty, InputNumber, TextArea } from '@nutui/nutui-react-taro'
@@ -30,10 +30,18 @@ function WorkHour() {
   const [selectedDate, setSelectedDate] = useState(date || dayjs().format('YYYY-MM-DD'))
   const [submitting, setSubmitting] = useState(false)
   const [quickFillVersion, setQuickFillVersion] = useState(0)
+  // 按天唯一：当天已有工时记录（key 为 memberId），预填并显示"已记录"
+  const [existingByMember, setExistingByMember] = useState<Record<number, any>>({})
+  // 用户手动改过工时的成员，异步回填不覆盖
+  const dirtyRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     fetchMembers()
   }, [])
+
+  useEffect(() => {
+    fetchExisting(selectedDate)
+  }, [selectedDate])
 
   const fetchMembers = async () => {
     if (projectId) {
@@ -66,14 +74,7 @@ function WorkHour() {
                return
              }
 
-            // Initialize selection and work hours
-            setSelectedMemberIds(mapped.map(m => m.id))
-            
-            const initialHours: Record<string, number> = {}
-            mapped.forEach(m => {
-                initialHours[m.id] = m.wageType === 'hour' ? 8 : 1
-            })
-            setWorkHours(initialHours)
+            // 勾选与工时初始化统一由「已有记录合并」effect 处理（members 变化即触发）
 
         } catch (error) {
             Taro.showToast({ title: '获取成员失败', icon: 'error' })
@@ -81,8 +82,45 @@ function WorkHour() {
     }
   }
 
+  // 拉取选中日期的已有记录；失败降级为"无已有记录"，不阻塞记工时
+  const fetchExisting = async (date: string) => {
+    if (!projectId) return
+    try {
+      const list = await workRecordService.getProjectWorkRecords(Number(projectId), date)
+      const map: Record<number, any> = {}
+      list.forEach((r: any) => { map[r.userId] = r })
+      setExistingByMember(map)
+    } catch (error) {
+      setExistingByMember({})
+    }
+  }
+
+  // 已有记录合并：members / existingByMember 任一就绪后统一处理（与请求完成顺序无关）。
+  // 优先级：手输值 > 已有记录预填 > 默认值；存储恒为小时，按行单位换算展示值
+  useEffect(() => {
+    if (members.length === 0) return
+    setSelectedMemberIds(members.map(m => m.id))
+    setWorkHours(prev => {
+      const next: Record<string, number> = {}
+      members.forEach(m => {
+        const existing = existingByMember[m.id]
+        if (dirtyRef.current.has(m.id)) {
+          next[m.id] = prev[m.id] !== undefined ? prev[m.id] : (m.wageType === 'hour' ? 8 : 1)
+        } else if (existing) {
+          const hours = existing.duration || 0
+          next[m.id] = m.wageType === 'hour' ? hours : Math.round((hours / 8) * 10) / 10
+        } else {
+          next[m.id] = m.wageType === 'hour' ? 8 : 1
+        }
+      })
+      return next
+    })
+  }, [members, existingByMember])
+
   const handleConfirmDate = (param: string) => {
     if (Array.isArray(param) && param.length > 0) {
+        // 换日期即重置上下文：手输标记失效，工时按新日期重预填
+        dirtyRef.current = new Set()
         setSelectedDate(param[3])
     }
     setShowCalendar(false)
@@ -109,7 +147,9 @@ function WorkHour() {
     setWorkHours(newHours)
     // To force re-render input numbers, we can increment a version counter
     setQuickFillVersion(prev => prev + 1)
-    
+    // 重置为默认后手输标记失效
+    dirtyRef.current = new Set()
+
     Taro.showToast({ title: '已重置为默认值', icon: 'none' })
   }
 
@@ -127,19 +167,25 @@ function WorkHour() {
 
     setSubmitting(true)
     try {
-        await workRecordService.batchAddWorkRecords({
+        const res = await workRecordService.batchAddWorkRecords({
             projectId: projectId || '',
             date: selectedDate,
             records
         })
-        
-        const count = selectedMemberIds.length
-        Taro.showToast({ title: `成功为${count}人记录`, icon: 'success' })
+
+        // 按天唯一：当日已有记录的成员由后端覆盖更新
+        const created = Number(res?.createdCount ?? selectedMemberIds.length)
+        const updated = Number(res?.updatedCount ?? 0)
+        if (updated > 0) {
+            Taro.showToast({ title: `新增${created}人，覆盖已记录${updated}人`, icon: 'none' })
+        } else {
+            Taro.showToast({ title: `成功为${created}人记录`, icon: 'success' })
+        }
         setTimeout(() => {
             Taro.navigateBack()
         }, 1500)
     } catch (error) {
-        Taro.showToast({ title: '提交失败', icon: 'error' })
+        Taro.showToast({ title: (error as any)?.message || '提交失败', icon: 'none' })
     } finally {
         setSubmitting(false)
     }
@@ -205,6 +251,7 @@ function WorkHour() {
                                     <View className={'role-tag'}>
                                         {member.wageType === 'day' ? '日薪' : member.wageType === 'month' ? '月薪' : '时薪'}
                                     </View>
+                                    {existingByMember[member.id] && <View className="recorded-tag">已记录</View>}
                                 </View>
                             </View>
                         </View>
@@ -212,8 +259,8 @@ function WorkHour() {
                         {/* Individual Work Hour Setting */}
                             {isSelected && (
                                 <View className="work-setting">
-                                    <InputNumber 
-                                        key={`${member.id}-${quickFillVersion}`} // Force re-render on quick fill
+                                    <InputNumber
+                                        key={`${member.id}-${quickFillVersion}-${existingByMember[member.id]?.id ?? 0}`} // Force re-render on quick fill / 异步回填已有工时
                                         value={workHours[member.id]}
                                         min={0} 
                                         // max={member.wageType === 'day' ? 3 : 24} 
@@ -223,11 +270,12 @@ function WorkHour() {
                                         onChange={(val) => {
                                             const num = Number(val)
                                             if (num % 0.5 === 0) {
+                                                dirtyRef.current.add(member.id)
                                                 setWorkHours(prev => ({ ...prev, [member.id]: num }))
                                             } else {
                                                 Taro.showToast({ title: '只能输入整数或x.5', icon: 'none' })
                                             }
-                                        }} 
+                                        }}
                                         onBlur={() => {
                                             // Force update to reset invalid input
                                             const current = workHours[member.id]

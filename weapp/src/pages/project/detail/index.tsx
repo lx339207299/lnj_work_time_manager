@@ -220,7 +220,9 @@ function ProjectDetail() {
     if (!currentRecord) return
 
     if (item.key === 'edit') {
-        setEditDuration(currentRecord.duration)
+        // 预填与展示口径一致：日薪/月薪显示天数（存储为小时，÷8），时薪显示小时。
+        // 提交传"用户单位"，后端按 wageTypeSnapshot ×8 转回小时
+        setEditDuration(currentRecord.wageType === 'hour' ? currentRecord.duration : currentRecord.duration / 8)
         setEditDialogVisible(true)
     } else if (item.key === 'delete') {
         setDeleteDialogVisible(true)
@@ -454,15 +456,15 @@ function ProjectDetail() {
         onCancel={() => setEditDialogVisible(false)}
       >
         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
-            <InputNumber 
+            <InputNumber
                 value={editDuration}
                 min={0}
-                max={24}
+                max={currentRecord?.wageType === 'hour' ? 24 : 3}
                 step={0.5}
                 digits={1}
                 onChange={(val) => setEditDuration(Number(val))}
             />
-            <Text style={{ marginLeft: '8px' }}>小时</Text>
+            <Text style={{ marginLeft: '8px' }}>{currentRecord?.wageType === 'hour' ? '小时' : '天'}</Text>
         </View>
       </Dialog>
 
