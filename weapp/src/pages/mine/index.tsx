@@ -167,11 +167,18 @@ function Mine() {
             {token && isManager && (
             /* Manager View */
             <>
-                <Cell 
-                    title="员工管理" 
+                <Cell
+                    title="流水管理"
                     align="center"
                     extra={<ArrowRight size={12} />}
-                    clickable 
+                    clickable
+                    onClick={() => handleProtectedClick('/pages/org/flow/index')}
+                />
+                <Cell
+                    title="员工管理"
+                    align="center"
+                    extra={<ArrowRight size={12} />}
+                    clickable
                     onClick={() => handleProtectedClick('/pages/employee/index')}
                 />
             </>

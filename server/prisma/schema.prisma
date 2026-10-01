@@ -76,6 +76,7 @@ model Organization {
   projects    Project[]
   invitations Invitation[]
   users       User[]               @relation("CurrentOrg")
+  flows       OrganizationFlow[]
 }
 
 model OrganizationMember {
@@ -99,9 +100,32 @@ model OrganizationMember {
   workRecords        WorkRecord[]
   projectMemberships ProjectMember[]
   wageHistories      OrganizationMemberWageHistory[]
+  organizationFlows  OrganizationFlow[]
 
   // Ensure unique phone per org? Or unique user per org.
   @@unique([orgId, userId])
+}
+
+// 组织级收支台账：工资发放、设备添置等发生在组织层（非项目层）的流水
+model OrganizationFlow {
+  id          Int          @id @default(autoincrement())
+  orgId       Int
+  organization Organization @relation(fields: [orgId], references: [id])
+
+  type     String // income, expense
+  category String // 工资, 设备, 其他
+  amount   Int // 金额，单位：分
+  date     String // YYYY-MM-DD
+  remark   String?
+
+  // 关联成员（可选，如工资发给哪个工人）
+  relatedMemberId Int?
+  relatedMember   OrganizationMember? @relation(fields: [relatedMemberId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, date])
 }
 
 // 成员工资变更历史：记工时按工作日期取「当时生效」的工资（effectiveFrom 含当天）
