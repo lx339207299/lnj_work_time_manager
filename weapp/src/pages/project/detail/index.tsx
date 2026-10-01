@@ -460,7 +460,7 @@ function ProjectDetail() {
                 value={editDuration}
                 min={0}
                 max={currentRecord?.wageType === 'hour' ? 24 : 3}
-                step={0.5}
+                step={currentRecord?.wageType === 'hour' ? 0.5 : 0.1}
                 digits={1}
                 onChange={(val) => setEditDuration(Number(val))}
             />
