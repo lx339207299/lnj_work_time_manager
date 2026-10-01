@@ -262,18 +262,22 @@ function WorkHour() {
                                     <InputNumber
                                         key={`${member.id}-${quickFillVersion}-${existingByMember[member.id]?.id ?? 0}`} // Force re-render on quick fill / 异步回填已有工时
                                         value={workHours[member.id]}
-                                        min={0} 
-                                        // max={member.wageType === 'day' ? 3 : 24} 
-                                        step={1} 
+                                        min={0}
+                                        // max={member.wageType === 'day' ? 3 : 24}
+                                        step={member.wageType === 'hour' ? 1 : 0.1}
                                         digits={1}
                                         formatter={(val) => String(Number(val))}
                                         onChange={(val) => {
                                             const num = Number(val)
-                                            if (num % 0.5 === 0) {
+                                            // 日薪按 0.1 天校验，时薪保持 0.5 小时；判 0.1 倍数不能用 num % 0.1（浮点误差，如 0.3 % 0.1 ≠ 0）
+                                            const valid = member.wageType === 'hour'
+                                                ? num % 0.5 === 0
+                                                : Math.round(num * 10) / 10 === num
+                                            if (valid) {
                                                 dirtyRef.current.add(member.id)
                                                 setWorkHours(prev => ({ ...prev, [member.id]: num }))
                                             } else {
-                                                Taro.showToast({ title: '只能输入整数或x.5', icon: 'none' })
+                                                Taro.showToast({ title: member.wageType === 'hour' ? '只能输入整数或x.5' : '只能输入0.1的倍数', icon: 'none' })
                                             }
                                         }}
                                         onBlur={() => {
