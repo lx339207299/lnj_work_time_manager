@@ -32,7 +32,8 @@ function EmployeeEdit() {
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('member')
   const [wageType, setWageType] = useState('day')
-  const [wageAmount, setWageAmount] = useState<string | number>(0)
+  // 空字符串时不显示数值，让输入框展示 placeholder（提交时 yuanToFen('') 兜底为 0）
+  const [wageAmount, setWageAmount] = useState('')
 
   // UI State
   const [showRolePicker, setShowRolePicker] = useState(false)
@@ -60,7 +61,7 @@ function EmployeeEdit() {
         setRole(emp.role)
         // 月薪选项已下线，存量月薪员工回显时兜底为日薪
         setWageType(emp.wageType === 'month' ? 'day' : emp.wageType)
-        setWageAmount(emp.wageAmount > 0 ? fenToYuanStr(emp.wageAmount) : 0)
+        setWageAmount(emp.wageAmount > 0 ? fenToYuanStr(emp.wageAmount) : '')
       }
     } catch (error) {
       Taro.showToast({ title: '获取员工信息失败', icon: 'error' })
@@ -244,7 +245,7 @@ function EmployeeEdit() {
             <Cell title="薪资数额" extra={
                 <Input 
                     placeholder="请输入金额"
-                    value={String(wageAmount)} 
+                    value={wageAmount}
                     onChange={(val) => setWageAmount(val)}
                     align="right"
                     type="digit"
