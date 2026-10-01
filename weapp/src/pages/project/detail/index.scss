@@ -1,7 +1,7 @@
 .project-detail-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding-bottom: 20px;
+  padding-bottom: 80px; // 预留底部悬浮「记录工时」按钮高度，避免遮挡最后一条记录
 
   .header-section {
     background: #fff;
@@ -223,6 +223,15 @@
       padding-bottom: 8px;
       margin-bottom: 12px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+
+      // 记录备注（批量记工时填写的备注）
+      .record-content {
+        display: block;
+        font-size: 12px;
+        color: #666;
+        margin-top: 6px;
+        line-height: 1.5;
+      }
 
       .record-header {
         margin-bottom: 8px;

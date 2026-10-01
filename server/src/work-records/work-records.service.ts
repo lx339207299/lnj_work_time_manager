@@ -530,7 +530,7 @@ export class WorkRecordsService {
     return deleted;
   }
 
-  async batchCreate(data: { projectId: number | string, date: string, records: { memberId: number, duration: number }[] }, user?: any) {
+  async batchCreate(data: { projectId: number | string, date: string, content?: string, records: { memberId: number, duration: number }[] }, user?: any) {
       if (user) {
           await this.checkPermission(user, Number(data.projectId));
       }
@@ -582,7 +582,7 @@ export class WorkRecordsService {
               date,
               memberId: record.memberId,
               duration: durationInHours,
-              content: '', // Default empty for batch
+              content: data.content ?? '', // 批次备注，未传则为空
               wageSnapshot: wage.wageAmount,
               wageTypeSnapshot: wage.wageType,
               amount
@@ -593,6 +593,8 @@ export class WorkRecordsService {
       const validDataList = recordDataList as any[];
 
       // 按天唯一：查出该日已有记录，已有则覆盖更新
+      // 批次备注在循环外取出：循环变量 data 遮蔽方法参数，undefined 表示不改动原备注
+      const batchContent = data.content;
       const existingRecords = await this.prisma.workRecord.findMany({
           where: { projectId: numProjectId, date, memberId: { in: validDataList.map(d => d.memberId) } },
       });
@@ -604,7 +606,7 @@ export class WorkRecordsService {
           for (const data of validDataList) {
               const existing = existingByMember.get(data.memberId);
               if (existing) {
-                  // 覆盖更新：batch 不带 content（不传即保留原备注）；统计记差值且条数不变
+                  // 覆盖更新：content 未传(undefined)即保留原备注，传 '' 为清空；统计记差值且条数不变
                   const rec = await tx.workRecord.update({
                       where: { id: existing.id },
                       data: {
@@ -612,6 +614,7 @@ export class WorkRecordsService {
                           wageSnapshot: data.wageSnapshot,
                           wageTypeSnapshot: data.wageTypeSnapshot,
                           amount: data.amount,
+                          content: batchContent,
                       },
                   });
                   await this.updateDailySummary(
@@ -627,6 +630,14 @@ export class WorkRecordsService {
                   await this.updateDailySummary(rec.projectId, rec.memberId, date, rec.duration || 0, 1, (rec as any).amount || 0, tx);
                   results.push({ rec, old: null, isOverwrite: false });
               }
+          }
+
+          // 当天备注统一：批次备注同步到当天该项目全部记录（以最后一次提交为准），保证当天备注只有一份
+          if (batchContent !== undefined) {
+              await tx.workRecord.updateMany({
+                  where: { projectId: numProjectId, date },
+                  data: { content: batchContent },
+              });
           }
       }).catch((e) => this.toFriendlyUniqueError(e, '部分记录写入冲突，请重试'));
 

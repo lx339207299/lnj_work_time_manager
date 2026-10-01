@@ -204,6 +204,29 @@
         }
     }
 
+    &.remark-card {
+        padding: 16px;
+
+        .card-header {
+            margin-bottom: 8px;
+
+            .title {
+                font-size: 15px;
+                font-weight: 600;
+                color: #333;
+            }
+        }
+
+        textarea {
+            font-size: 14px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+
     &.form-card {
         padding: 0 16px;
         display: none; // Hidden as requested
