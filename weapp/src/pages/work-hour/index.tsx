@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Button, Calendar, Cell, Checkbox, Dialog, Empty, InputNumber, TextArea } from '@nutui/nutui-react-taro'
-import { Calendar as CalendarIcon, Edit } from '@nutui/icons-react-taro'
+import { Button, Cell, Checkbox, Dialog, Empty, InputNumber, TextArea } from '@nutui/nutui-react-taro'
 import dayjs from 'dayjs'
 import { projectService } from '../../services/projectService'
 import { workRecordService } from '../../services/workRecordService'
@@ -26,8 +25,8 @@ function WorkHour() {
   const [members, setMembers] = useState<Member[]>([])
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([])
   const [workHours, setWorkHours] = useState<Record<string, number>>({})
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(date || dayjs().format('YYYY-MM-DD'))
+  // 记工时日期固定为入口传入日期（无日期选择，纯展示）
+  const selectedDate = date || dayjs().format('YYYY-MM-DD')
   const [submitting, setSubmitting] = useState(false)
   const [quickFillVersion, setQuickFillVersion] = useState(0)
   // 批次备注：随本批所有记录提交；换日期时随已有记录重新预填
@@ -92,7 +91,7 @@ function WorkHour() {
       const map: Record<number, any> = {}
       list.forEach((r: any) => { map[r.userId] = r })
       setExistingByMember(map)
-      // 备注预填：取当天第一条已有记录的备注（无则清空），换日期时随新日期重置
+      // 备注预填：取当天第一条已有记录的备注（无则清空）
       setRemark(list.find((r: any) => r.content)?.content || '')
     } catch (error) {
       setExistingByMember({})
@@ -121,15 +120,6 @@ function WorkHour() {
       return next
     })
   }, [members, existingByMember])
-
-  const handleConfirmDate = (param: string) => {
-    if (Array.isArray(param) && param.length > 0) {
-        // 换日期即重置上下文：手输标记失效，工时按新日期重预填
-        dirtyRef.current = new Set()
-        setSelectedDate(param[3])
-    }
-    setShowCalendar(false)
-  }
 
   const handleToggleSelectAll = () => {
       if (selectedMemberIds.length === members.length) {
@@ -206,11 +196,10 @@ function WorkHour() {
             <Text className="value">{decodedProjectName || '未指定'}</Text>
         </View>
         <View className="divider" />
-        <View className="row-item" onClick={() => setShowCalendar(true)}>
+        <View className="row-item">
             <Text className="label">日期</Text>
             <View className="value date-trigger">
                 <Text>{selectedDate}</Text>
-                <Edit size={16} color="#666" />
             </View>
         </View>
       </View>
@@ -322,14 +311,6 @@ function WorkHour() {
             确认添加
         </Button>
       </View>
-
-      {/* Calendar Popup */}
-      <Calendar
-        visible={showCalendar}
-        defaultValue={selectedDate}
-        onClose={() => setShowCalendar(false)}
-        onConfirm={handleConfirmDate}
-      />
     </View>
   )
 }
