@@ -194,6 +194,9 @@ model WorkRecord {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 同一项目+员工+一天仅一条;重复提交由服务层做覆盖更新
+  @@unique([projectId, memberId, date])
 }
 
 model Invitation {

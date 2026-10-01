@@ -1,5 +1,6 @@
 
 import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkRecordDto } from './dto/create-work-record.dto';
 import { CustomResponse } from '../common/responses/custom.response';
@@ -7,6 +8,14 @@ import { CustomResponse } from '../common/responses/custom.response';
 @Injectable()
 export class WorkRecordsService {
   constructor(private prisma: PrismaService) {}
+
+  // P2002(唯一索引冲突)→ 友好业务错误;AllExceptionsFilter 会把 message 透传给前端
+  private toFriendlyUniqueError(e: unknown, msg: string): never {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      throw new Error(msg);
+    }
+    throw e as Error;
+  }
 
   private calculateAmount(durationInHours: number, wageType: string, wageAmount: number): number {
     // wageAmount 单位：分（Int）。返回值单位：分（Int）。
@@ -109,8 +118,43 @@ export class WorkRecordsService {
 
     const amount = this.calculateAmount(durationInHours, wage.wageType, wage.wageAmount);
 
-    // 明细 + 统计同一事务：统计更新失败则整体回滚并报错
-    const record = await this.prisma.$transaction(async (tx) => {
+    // 明细 + 统计同一事务：统计更新失败则整体回滚并报错。
+    // 同一 (projectId, memberId, date) 已有记录时做覆盖更新（按天唯一），
+    // 工资快照/金额按当日生效价重算，统计记差值且条数不变。
+    const result = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.workRecord.findUnique({
+        where: {
+          projectId_memberId_date: {
+            projectId: createWorkRecordDto.projectId,
+            memberId: createWorkRecordDto.memberId,
+            date: createWorkRecordDto.date,
+          },
+        },
+      });
+
+      if (existing) {
+        const rec = await tx.workRecord.update({
+          where: { id: existing.id },
+          data: {
+            duration: durationInHours,
+            content: createWorkRecordDto.content ?? existing.content,
+            wageSnapshot: wage.wageAmount,
+            wageTypeSnapshot: wage.wageType,
+            amount,
+          },
+        });
+        await this.updateDailySummary(
+          rec.projectId,
+          rec.memberId,
+          rec.date,
+          durationInHours - (existing.duration || 0),
+          0, // 覆盖不改变条数
+          amount - (existing.amount || 0),
+          tx,
+        );
+        return { rec, old: existing, isOverwrite: true };
+      }
+
       const rec = await tx.workRecord.create({
         data: {
           projectId: createWorkRecordDto.projectId,
@@ -124,8 +168,10 @@ export class WorkRecordsService {
         },
       });
       await this.updateDailySummary(rec.projectId, rec.memberId, rec.date, durationInHours, 1, amount, tx);
-      return rec;
-    });
+      return { rec, old: null as any, isOverwrite: false };
+    }).catch((e) => this.toFriendlyUniqueError(e, '该员工当日已有工时记录，写入冲突，请重试'));
+
+    const record = result.rec;
 
     // Record Log
     if (user) {
@@ -137,8 +183,8 @@ export class WorkRecordsService {
                 operatorId: user.sub || user.userId, // Assuming user object has sub or userId
                 targetMemberId: record.memberId,
                 date: record.date,
-                action: 'CREATE',
-                oldData: null,
+                action: result.isOverwrite ? 'UPDATE' : 'CREATE',
+                oldData: result.isOverwrite ? JSON.stringify(result.old) : null,
                 newData: JSON.stringify(record)
             }
         });
@@ -386,6 +432,16 @@ export class WorkRecordsService {
 
     // 明细 + 统计同一事务：跨日期时的「旧日期扣减 + 新日期累加」也必须原子完成
     const updated = await this.prisma.$transaction(async (tx) => {
+      // 按天唯一：改日期时目标日期不能已有该员工的其他记录
+      if (data.date && data.date !== old.date) {
+        const conflict = await tx.workRecord.findFirst({
+          where: { projectId: old.projectId, memberId: old.memberId, date: data.date, id: { not: id } },
+        });
+        if (conflict) {
+          throw new Error(`该员工在 ${data.date} 已有工时记录，请在那条记录上直接修改`);
+        }
+      }
+
       const rec = await tx.workRecord.update({
         where: { id },
         data: {
@@ -408,7 +464,7 @@ export class WorkRecordsService {
       }
 
       return rec;
-    });
+    }).catch((e) => this.toFriendlyUniqueError(e, '该员工在目标日期已有工时记录，不能重复添加'));
 
     // Record Log
     if (user && member) {
@@ -478,7 +534,9 @@ export class WorkRecordsService {
       if (user) {
           await this.checkPermission(user, Number(data.projectId));
       }
-      const { projectId, date, records } = data;
+      const { projectId, date, records: rawRecords } = data;
+      // 同批次同 memberId 去重(last-wins)：唯一约束下重复输入会整批失败
+      const records = [...new Map(rawRecords.map(r => [r.memberId, r])).values()];
       // Get all members to verify and get snapshots
       const members = await this.prisma.organizationMember.findMany({
           where: {
@@ -534,33 +592,60 @@ export class WorkRecordsService {
       // Filter out nulls safely (TS might complain about type)
       const validDataList = recordDataList as any[];
 
-      // 明细 + 统计同一事务：任一条失败整体回滚并报错（替换原 best-effort 统计更新）
-      const created = await this.prisma.$transaction(async (tx) => {
-          const results: any[] = [];
-          for (const data of validDataList) {
-              const rec = await tx.workRecord.create({ data });
-              results.push(rec);
-              await this.updateDailySummary(rec.projectId, rec.memberId, date, rec.duration || 0, 1, (rec as any).amount || 0, tx);
-          }
-          return results;
+      // 按天唯一：查出该日已有记录，已有则覆盖更新
+      const existingRecords = await this.prisma.workRecord.findMany({
+          where: { projectId: numProjectId, date, memberId: { in: validDataList.map(d => d.memberId) } },
       });
+      const existingByMember = new Map(existingRecords.map(r => [r.memberId, r]));
+
+      // 明细 + 统计同一事务：任一条失败整体回滚并报错（替换原 best-effort 统计更新）
+      const results: { rec: any; old: any; isOverwrite: boolean }[] = [];
+      await this.prisma.$transaction(async (tx) => {
+          for (const data of validDataList) {
+              const existing = existingByMember.get(data.memberId);
+              if (existing) {
+                  // 覆盖更新：batch 不带 content（不传即保留原备注）；统计记差值且条数不变
+                  const rec = await tx.workRecord.update({
+                      where: { id: existing.id },
+                      data: {
+                          duration: data.duration,
+                          wageSnapshot: data.wageSnapshot,
+                          wageTypeSnapshot: data.wageTypeSnapshot,
+                          amount: data.amount,
+                      },
+                  });
+                  await this.updateDailySummary(
+                      rec.projectId, rec.memberId, date,
+                      (rec.duration || 0) - (existing.duration || 0),
+                      0,
+                      ((rec as any).amount || 0) - (existing.amount || 0),
+                      tx,
+                  );
+                  results.push({ rec, old: existing, isOverwrite: true });
+              } else {
+                  const rec = await tx.workRecord.create({ data });
+                  await this.updateDailySummary(rec.projectId, rec.memberId, date, rec.duration || 0, 1, (rec as any).amount || 0, tx);
+                  results.push({ rec, old: null, isOverwrite: false });
+              }
+          }
+      }).catch((e) => this.toFriendlyUniqueError(e, '部分记录写入冲突，请重试'));
 
       // Record logs
       if (user) {
-        const logOps = created.map(r => {
-            const member = members.find(m => m.id === r.memberId);
+        const logOps = results.map(({ rec, old, isOverwrite }) => {
+            const member = members.find(m => m.id === rec.memberId);
             if (!member) return null;
             return this.prisma.workRecordLog.create({
                 data: {
                     orgId: member.orgId,
-                    projectId: r.projectId,
-                    workRecordId: r.id,
+                    projectId: rec.projectId,
+                    workRecordId: rec.id,
                     operatorId: user.sub || user.userId,
-                    targetMemberId: r.memberId,
-                    date: r.date,
-                    action: 'CREATE',
-                    oldData: null,
-                    newData: JSON.stringify(r)
+                    targetMemberId: rec.memberId,
+                    date: rec.date,
+                    action: isOverwrite ? 'UPDATE' : 'CREATE',
+                    oldData: isOverwrite ? JSON.stringify(old) : null,
+                    newData: JSON.stringify(rec)
                 }
             });
         }).filter(Boolean) as any[];
@@ -569,6 +654,10 @@ export class WorkRecordsService {
         }
       }
 
-      return created;
+      return CustomResponse.success({
+          records: results.map(r => r.rec),
+          createdCount: results.filter(r => !r.isOverwrite).length,
+          updatedCount: results.filter(r => r.isOverwrite).length,
+      });
   }
 }

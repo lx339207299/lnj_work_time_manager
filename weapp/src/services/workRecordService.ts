@@ -84,12 +84,13 @@ export const workRecordService = {
     await request({ url: '/work-records/delete', method: 'POST', data: { id } })
   },
 
-  // Batch add work records
+  // Batch add work records（按天唯一：当日已有记录的成员由后端覆盖更新，返回新增/覆盖人数）
   batchAddWorkRecords: async (data: {
       projectId: string | number
       date: string
       records: { memberId: number; duration: number }[]
-  }): Promise<void> => {
-      await request({ url: '/work-records/batch', method: 'POST', data })
+  }): Promise<{ records?: unknown[]; createdCount?: number; updatedCount?: number }> => {
+      const { data: result } = (await request({ url: '/work-records/batch', method: 'POST', data })) as any
+      return result
   }
 }
